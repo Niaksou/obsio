@@ -61,6 +61,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 - Sites, bâtiments, étages ; import d'un plan par étage (PDF ou image).
 - Équipements (tableaux électriques en priorité) placés sur le plan 2D.
 - Import d'un rapport PDF avec extraction automatique et écran de validation.
+- Comptes rendus Q18 (vérification demandée par l'assureur, référentiel APSAD D18) en plus des rapports du Code du travail : modalités à préciser.
 - Réserves : statut, gravité, échéance, assignation, commentaires, historique.
 - Détection des réserves reconduites d'un rapport à l'autre.
 - Lien intervenant signé, à durée limitée, limité aux réserves assignées.
@@ -244,10 +245,10 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
 - [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 9 rapports publics (préfectures, communes) de 8 organismes, tous en PDF texte ; il manque au moins un rapport scanné
-- [ ] Écrire le résultat attendu pour chacun (pré-rempli, 93 réserves, à relire)
+- [x] Écrire le résultat attendu pour chacun (pré-rempli, 93 réserves ; 04 et 01 relus)
 - [x] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod (tâche `extract-report`, testée avec un faux fournisseur ; l'enregistrement en base vient en J3)
 - [ ] Script d'évaluation qui compare extraction et résultat attendu (écrit, pas encore lancé : l'offre gratuite de Mistral n'ouvre ni l'OCR ni mistral-medium)
-- [ ] Critère de sortie : taux de réserves correctement extraites jugé suffisant pour une relecture rapide
+- [ ] Critère de sortie (validé) : au moins 95 % des réserves retrouvées, aucune réserve inventée, au moins 90 % des descriptions fidèles
 
 **J2 — Sites, plans, équipements**
 
