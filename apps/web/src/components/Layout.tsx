@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 
 /** Choix de l'organisation active, affiché seulement si l'utilisateur en a plusieurs. */
@@ -25,7 +25,7 @@ function OrganisationSwitcher() {
   );
 }
 
-export function Layout() {
+export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
 
@@ -41,6 +41,14 @@ export function Layout() {
           Obsio
         </Link>
         {session && (
+          <nav className="nav" aria-label="Navigation principale">
+            <NavLink to="/" end>
+              Sites
+            </NavLink>
+            <NavLink to="/organisation">Organisation</NavLink>
+          </nav>
+        )}
+        {session && (
           <div className="session">
             <OrganisationSwitcher />
             <span>{session.user.name}</span>
@@ -50,7 +58,7 @@ export function Layout() {
           </div>
         )}
       </header>
-      <main className="main">
+      <main className={fullBleed ? 'main main-full' : 'main'}>
         <Outlet />
       </main>
     </>

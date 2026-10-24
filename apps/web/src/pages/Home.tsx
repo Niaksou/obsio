@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { authClient } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
 import { useSubmit } from '../components/useSubmit.js';
@@ -7,30 +6,8 @@ const ROLE_LABELS: Record<string, string> = { admin: 'Administrateur', membre: '
 
 export function Home() {
   const { data: session } = authClient.useSession();
-  const { data: organisations, isPending: listPending } = authClient.useListOrganizations();
-  const { data: organisation, isPending: activePending } = authClient.useActiveOrganization();
-
-  // Sans organisation active, on active la première dont l'utilisateur est membre.
-  const firstOrganisationId = organisations?.[0]?.id;
-  useEffect(() => {
-    if (!activePending && !organisation && firstOrganisationId) {
-      void authClient.organization.setActive({ organizationId: firstOrganisationId });
-    }
-  }, [activePending, organisation, firstOrganisationId]);
-
-  if (listPending || activePending) return <p className="loading">Chargement…</p>;
-  if (!organisation) {
-    if (organisations?.length) return <p className="loading">Chargement…</p>;
-    return (
-      <div className="card">
-        <h1>Aucune organisation</h1>
-        <p>
-          Votre compte n'est rattaché à aucune organisation. Ouvrez le lien d'invitation reçu par
-          e-mail, ou demandez une invitation à l'administrateur de votre entreprise.
-        </p>
-      </div>
-    );
-  }
+  const { data: organisation } = authClient.useActiveOrganization();
+  if (!organisation) return <p className="loading">Chargement…</p>;
 
   const me = organisation.members.find((m) => m.userId === session?.user.id);
   const isAdmin = me?.role === 'admin';

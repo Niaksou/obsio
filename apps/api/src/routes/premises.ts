@@ -280,15 +280,30 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
       schema: { params: idParams, response: { 200: floorDetailSchema, ...notFound } },
     },
     async (request, reply) => {
-      const row = await scoped(request, (tx) => activeFloor(tx, request.params.id));
-      if (!row) return missing(reply, 'Étage');
+      const found = await scoped(request, async (tx) => {
+        const row = await activeFloor(tx, request.params.id);
+        if (!row) return null;
+        // Bâtiment et site pour le cartouche du plan.
+        const [parents] = await tx
+          .select({
+            building: { id: building.id, name: building.name },
+            site: { id: site.id, name: site.name },
+          })
+          .from(building)
+          .innerJoin(site, eq(site.id, building.siteId))
+          .where(eq(building.id, row.buildingId));
+        return { row, ...parents! };
+      });
+      if (!found) return missing(reply, 'Étage');
+      const { row } = found;
       const { plan, ...rest } = toFloor(row);
-      if (!plan) return { ...rest, plan: null };
+      const context = { ...rest, building: found.building, site: found.site };
+      if (!plan) return { ...context, plan: null };
       const [imageUrl, sourceUrl] = await Promise.all([
         storage.signedDownloadUrl(row.planImageKey!),
         row.planSourceKey ? storage.signedDownloadUrl(row.planSourceKey) : null,
       ]);
-      return { ...rest, plan: { ...plan, imageUrl, sourceUrl } };
+      return { ...context, plan: { ...plan, imageUrl, sourceUrl } };
     },
   );
 

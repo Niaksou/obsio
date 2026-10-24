@@ -159,6 +159,10 @@ describe("Plan d'un étage", () => {
     expect(confirmed.json().plan).toEqual({ width: 2000, height: 1400 });
 
     const detail = (await membre.get(`/api/floors/${floorId}`)).json();
+    expect(detail).toMatchObject({
+      building: { name: 'Atelier' },
+      site: { name: 'Usine de Lyon' },
+    });
     const fetched = await fetch(detail.plan.imageUrl);
     expect(new Uint8Array(await fetched.arrayBuffer())).toEqual(png);
     expect(detail.plan.sourceUrl).toEqual(expect.any(String));

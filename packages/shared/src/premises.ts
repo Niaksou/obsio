@@ -38,8 +38,10 @@ export const floorSchema = z.object({
 });
 export type Floor = z.infer<typeof floorSchema>;
 
-/** Étage avec les liens de lecture du plan (URL signées, valables quelques minutes). */
+/** Étage avec son bâtiment, son site et les liens de lecture du plan (URL signées, courtes). */
 export const floorDetailSchema = floorSchema.extend({
+  building: z.object({ id: z.uuid(), name: z.string() }),
+  site: z.object({ id: z.uuid(), name: z.string() }),
   plan: floorPlanSchema.extend({ imageUrl: z.url(), sourceUrl: z.url().nullable() }).nullable(),
 });
 export type FloorDetail = z.infer<typeof floorDetailSchema>;
