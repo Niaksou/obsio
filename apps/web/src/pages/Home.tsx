@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { authClient } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
 import { useSubmit } from '../components/useSubmit.js';
-import { CreateOrganisation } from './CreateOrganisation.js';
 
 const ROLE_LABELS: Record<string, string> = { admin: 'Administrateur', membre: 'Membre' };
 
@@ -21,7 +20,16 @@ export function Home() {
 
   if (listPending || activePending) return <p className="loading">Chargement…</p>;
   if (!organisation) {
-    return organisations?.length ? <p className="loading">Chargement…</p> : <CreateOrganisation />;
+    if (organisations?.length) return <p className="loading">Chargement…</p>;
+    return (
+      <div className="card">
+        <h1>Aucune organisation</h1>
+        <p>
+          Votre compte n'est rattaché à aucune organisation. Ouvrez le lien d'invitation reçu par
+          e-mail, ou demandez une invitation à l'administrateur de votre entreprise.
+        </p>
+      </div>
+    );
   }
 
   const me = organisation.members.find((m) => m.userId === session?.user.id);

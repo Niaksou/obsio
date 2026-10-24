@@ -1,6 +1,30 @@
 import { Link, Outlet, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 
+/** Choix de l'organisation active, affiché seulement si l'utilisateur en a plusieurs. */
+function OrganisationSwitcher() {
+  const { data: organisations } = authClient.useListOrganizations();
+  const { data: active } = authClient.useActiveOrganization();
+  if (!organisations || organisations.length < 2) return null;
+
+  return (
+    <select
+      aria-label="Organisation"
+      value={active?.id ?? ''}
+      onChange={(event) =>
+        void authClient.organization.setActive({ organizationId: event.target.value })
+      }
+    >
+      {!active && <option value="">Choisir une organisation</option>}
+      {organisations.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function Layout() {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
@@ -18,6 +42,7 @@ export function Layout() {
         </Link>
         {session && (
           <div className="session">
+            <OrganisationSwitcher />
             <span>{session.user.name}</span>
             <button type="button" className="link" onClick={signOut}>
               Se déconnecter

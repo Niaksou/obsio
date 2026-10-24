@@ -156,8 +156,8 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 
 | Entité | Champs clés | Relations |
 | --- | --- | --- |
-| `Organisation` | nom, SIRET, plan d'abonnement | possède sites et utilisateurs |
-| `Utilisateur` | e-mail, nom, rôle (admin, membre) | appartient à une organisation |
+| `Organisation` | nom, SIRET, plan d'abonnement | possède sites ; a des membres |
+| `Utilisateur` | e-mail, nom | membre d'une ou plusieurs organisations, avec un rôle (admin, membre) dans chacune |
 | `Site` | nom, adresse | appartient à une organisation ; contient bâtiments |
 | `Batiment` | nom | appartient à un site ; contient étages |
 | `Etage` | nom, niveau, fichier du plan, échelle | appartient à un bâtiment |
@@ -197,8 +197,12 @@ Mise en œuvre (J0) :
 
 **Comptes et rôles (J0)**
 
-- Inscription par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
-- Le créateur d'une organisation en est `admin` ; l'admin invite des membres (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
+- Pas d'inscription en libre-service : le produit est vendu sur devis. Une organisation (le compte d'une entreprise cliente) est ouverte par l'éditeur avec `pnpm org:create "<nom>" <e-mail>`, qui crée l'organisation et invite son premier `admin`.
+- L'inscription n'est acceptée que pour une adresse ayant une invitation en attente et non expirée. Un utilisateur ne peut pas créer d'organisation lui-même.
+- Les invitations de l'éditeur sont envoyées au nom d'un compte technique « opérateur » (`OPERATOR_EMAIL`), sans mot de passe ni appartenance.
+- L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
+- Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
+- Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
 - La suppression d'une organisation est désactivée.
 - Fichiers en stockage privé, servis uniquement par URLs signées à courte durée.
 

@@ -50,6 +50,7 @@ pnpm --filter @saas/api db:migrate
 pnpm dev                        # API :3000, front :5173, worker
 ```
 
+- Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`
 - Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `saas_test`, migrée automatiquement)
 - Vérifications : `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm build`
 - Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @saas/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier

@@ -13,7 +13,8 @@
     "test": "pnpm -r test",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "org:create": "pnpm --filter @saas/api org:create"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -15,6 +15,11 @@ export function RequireSession({ children }: { children: ReactNode }) {
   return children;
 }
 
+/** Vrai si la page demandée est une invitation : seul cas où l'inscription est proposée. */
+export function isInvitationPath(path: string): boolean {
+  return path.startsWith('/invitations/');
+}
+
 /** Destination après connexion : uniquement un chemin interne, jamais une URL externe. */
 export function safeRedirect(value: string | null): string {
   return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';

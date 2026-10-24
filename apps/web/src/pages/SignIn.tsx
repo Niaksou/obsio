@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { authClient } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
-import { safeRedirect } from '../components/RequireSession.js';
+import { isInvitationPath, safeRedirect } from '../components/RequireSession.js';
 import { useSubmit } from '../components/useSubmit.js';
 
 export function SignIn() {
@@ -28,7 +28,7 @@ export function SignIn() {
       footer={
         <>
           <Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
-          <Link to={`/inscription${query}`}>Créer un compte</Link>
+          {isInvitationPath(redirect) && <Link to={`/inscription${query}`}>Créer un compte</Link>}
         </>
       }
     >

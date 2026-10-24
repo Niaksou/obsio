@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { authClient } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
-import { safeRedirect } from '../components/RequireSession.js';
+import { isInvitationPath, safeRedirect } from '../components/RequireSession.js';
 import { useSubmit } from '../components/useSubmit.js';
 
 export function SignUp() {
@@ -23,6 +23,19 @@ export function SignUp() {
       }),
     );
     if (ok) setSentTo(email);
+  }
+
+  if (!isInvitationPath(redirect)) {
+    return (
+      <div className="card">
+        <h1>Inscription sur invitation</h1>
+        <p>
+          Les comptes sont créés à partir d'une invitation reçue par e-mail. Si votre entreprise
+          utilise déjà le service, demandez une invitation à son administrateur.
+        </p>
+        <Link to="/connexion">J'ai déjà un compte</Link>
+      </div>
+    );
   }
 
   if (sentTo) {
@@ -47,7 +60,12 @@ export function SignUp() {
       footer={<Link to={`/connexion${params.size ? `?${params}` : ''}`}>J'ai déjà un compte</Link>}
     >
       <Field label="Nom" name="name" autoComplete="name" />
-      <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" />
+      <Field
+        label="Adresse e-mail (celle qui a reçu l'invitation)"
+        name="email"
+        type="email"
+        autoComplete="email"
+      />
       <Field
         label="Mot de passe (12 caractères minimum)"
         name="password"
