@@ -6,5 +6,6 @@ export default defineConfig({
   // Les variables VITE_* sont lues dans le .env à la racine du monorepo.
   envDir: '../..',
   resolve: { conditions: ['@obsio/source'] },
-  server: { port: 5173, strictPort: true },
+  // `pnpm dev:lan` ouvre le serveur au réseau local pour tester depuis un téléphone.
+  server: { port: 5173, strictPort: true, host: process.env.DEV_LAN === '1' },
 });

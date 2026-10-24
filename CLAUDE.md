@@ -50,6 +50,7 @@ pnpm --filter @obsio/api db:migrate
 pnpm dev                        # API :3000, front :5173, worker
 ```
 
+- Tester depuis un téléphone sur le même Wi-Fi : `pnpm dev:lan` à la place de `pnpm dev` ; l'adresse IP locale remplace `localhost` (front, API, stockage, liens des e-mails), à ouvrir aussi sur le poste. Forcer l'adresse avec `LAN_IP=192.168.x.y pnpm dev:lan`
 - Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`
 - Jeu de test d'extraction : PDF et résultats attendus dans `fixtures/reports/` (hors dépôt) ; `pnpm --filter @obsio/worker fixtures:check` les valide
 - Évaluation de l'extraction (appelle Mistral, `MISTRAL_API_KEY` requise) : `pnpm --filter @obsio/worker eval:extraction [--only <motif>] [--model <id>] [--no-cache]` ; OCR mis en cache dans `fixtures/reports/.cache/`, résultats et synthèse dans `fixtures/reports/.runs/`
