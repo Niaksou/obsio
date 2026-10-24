@@ -6,7 +6,7 @@ import type { Database } from '../db/client.js';
 import * as schema from '../db/schema/index.js';
 import type { EmailSender } from '../email/sender.js';
 import { invitationEmail, resetPasswordEmail, verificationEmail } from '../email/templates.js';
-import { ac, roles } from './permissions.js';
+import { ac, roles } from '@saas/shared/permissions';
 
 const INVITATION_TTL_SECONDS = 7 * 24 * 60 * 60;
 

@@ -3,6 +3,8 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
+  // Les variables VITE_* sont lues dans le .env à la racine du monorepo.
+  envDir: '../..',
   resolve: { conditions: ['source'] },
-  server: { port: 5173 },
+  server: { port: 5173, strictPort: true },
 });

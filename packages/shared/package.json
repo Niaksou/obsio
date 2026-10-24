@@ -8,6 +8,11 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./permissions": {
+      "source": "./src/permissions.ts",
+      "types": "./dist/permissions.d.ts",
+      "default": "./dist/permissions.js"
     }
   },
   "scripts": {
@@ -16,6 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "better-auth": "^1.7.12",
     "zod": "^4.6.7"
   }
 }
