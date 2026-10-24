@@ -82,7 +82,7 @@ Un front React et une API Node séparés, en TypeScript de bout en bout, avec l'
 
 ```
 ┌────────────────────┐  HTTPS   ┌──────────────────────┐ ──▶ ┌──────────────────────┐
-│ Front React (PWA)  │ ───────▶ │ API Fastify/NestJS   │     │ PostgreSQL (RLS)     │
+│ Front React (PWA)  │ ───────▶ │ API Fastify          │     │ PostgreSQL (RLS)     │
 │ Desktop : resp.    │          │ Auth, cloisonnement  │ ──▶ ├──────────────────────┤
 │ Mobile : électric. │          │ Liens signés         │     │ Stockage objet S3    │
 └────────────────────┘          └──────────┬───────────┘ ──▶ ├──────────────────────┤
@@ -108,12 +108,12 @@ Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité
 | Code partagé | Monorepo (pnpm workspaces), package commun de types et schémas Zod | Front et back séparés sans dupliquer les types |
 | Front | React + Vite, PWA (service worker, IndexedDB), Konva pour le plan 2D | Une seule app desktop et mobile, mode hors ligne |
 | 3D (plus tard) | React Three Fiber | Écosystème Three.js le plus confortable en React |
-| Back | Node.js, Fastify ou NestJS (à trancher) | Même langage que le front |
-| Base de données | PostgreSQL + Drizzle ou Prisma, Row Level Security | Cloisonnement garanti par la base |
+| Back | Node.js, Fastify, validation des routes par Zod | Même langage que le front, léger, peu de code répétitif |
+| Base de données | PostgreSQL + Drizzle, Row Level Security | Cloisonnement garanti par la base ; Drizzle reste proche du SQL et déclare les politiques RLS |
 | Tâches de fond | BullMQ sur Redis | Imports longs hors des requêtes HTTP |
-| Fichiers | Stockage objet compatible S3, URLs signées | PDF, plans et photos hors de la base |
+| Fichiers | Stockage objet compatible S3, URLs signées (RustFS en local) | PDF, plans et photos hors de la base |
 | Extraction | Mistral OCR + modèle Mistral en sortie structurée | Hébergé dans l'UE, bon sur les tableaux |
-| Auth | Better Auth ou service managé ; jetons signés pour les intervenants | Pas de compte pour l'électricien |
+| Auth | Better Auth (plugin organisation) ; jetons signés pour les intervenants | Organisations, rôles et invitations fournis ; pas de compte pour l'électricien |
 | E-mail | Fournisseur transactionnel hébergé dans l'UE (à choisir) | Notifications et envoi des liens |
 | Hébergement | PaaS en France (Scaleway, Clever Cloud ou OVH) | Peu d'exploitation, argument RGPD |
 
@@ -184,8 +184,22 @@ Un client ne doit jamais voir les données d'un autre : le cloisonnement est gar
 
 **Cloisonnement**
 
-- Row Level Security PostgreSQL sur toutes les tables, avec l'organisation courante posée en début de transaction.
+- Row Level Security PostgreSQL sur toutes les tables métier, avec l'organisation courante posée en début de transaction.
 - Tests automatisés qui tentent d'accéder aux données d'une autre organisation.
+
+Mise en œuvre (J0) :
+
+- Deux rôles PostgreSQL : `app_owner` possède les tables et passe les migrations ; `app_user` sert à l'application, sans droit de contourner la RLS ni de vider une table.
+- Chaque table métier a une RLS activée et forcée (`FORCE ROW LEVEL SECURITY`, qui s'applique aussi au propriétaire) et une politique `organisation_id = app_current_organisation_id()`.
+- L'API accède aux tables métier par `withOrganisation(db, organisationId, fn)`, qui pose `app.organisation_id` pour la seule transaction en cours. Sans organisation posée, aucune ligne n'est visible.
+- Un test vérifie que toute table portant `organisation_id` a une RLS active, forcée et une politique.
+- Exception : les tables `member` et `invitation` de Better Auth n'ont pas de RLS, car Better Auth les lit sans organisation posée (par exemple pour lister les organisations d'un utilisateur). Seul Better Auth y accède ; l'appartenance est relue en base à chaque requête par le garde `requireOrganisation`, pas seulement dans la session.
+
+**Comptes et rôles (J0)**
+
+- Inscription par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
+- Le créateur d'une organisation en est `admin` ; l'admin invite des membres (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
+- La suppression d'une organisation est désactivée.
 - Fichiers en stockage privé, servis uniquement par URLs signées à courte durée.
 
 **Liens intervenant**
@@ -212,11 +226,12 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J0 — Fondations**
 
-- [ ] Monorepo pnpm : `apps/web`, `apps/api`, `apps/worker`, `packages/shared`
-- [ ] Choix définitif Fastify ou NestJS
-- [ ] PostgreSQL + ORM + migrations, RLS sur une première table
-- [ ] Auth, organisations, invitations
-- [ ] CI : lint, tests, build ; déploiement d'un environnement de préproduction
+- [x] Monorepo pnpm : `apps/web`, `apps/api`, `apps/worker`, `packages/shared`
+- [x] Choix définitif Fastify ou NestJS : Fastify
+- [x] PostgreSQL + ORM + migrations, RLS sur une première table (Drizzle, table `site`)
+- [x] Auth, organisations, invitations (Better Auth)
+- [x] CI : lint, tests, build (GitHub Actions)
+- [ ] Déploiement d'un environnement de préproduction
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
@@ -274,7 +289,6 @@ Le risque principal est l'accès à de vrais rapports : sans eux, l'extraction n
 
 **Questions ouvertes**
 
-- Fastify ou NestJS pour l'API ?
 - Quel modèle Mistral pour l'extraction (taille, coût) ? À trancher sur le jeu de test.
 - Quel modèle de prix : par site, par bâtiment ou par nombre de réserves suivies ?
 - Qui paie en priorité : l'entreprise utilisatrice ou l'entreprise d'électricité qui l'offre à ses clients ?

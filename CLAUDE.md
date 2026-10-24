@@ -19,18 +19,18 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
 
 - TypeScript partout, monorepo **pnpm workspaces** :
   - `apps/web` : React + Vite, PWA (service worker, IndexedDB), Konva pour le plan 2D
-  - `apps/api` : Node.js, Fastify ou NestJS (choix à faire en J0)
+  - `apps/api` : Node.js, Fastify (routes validées par Zod), Better Auth (plugin organisation)
   - `apps/worker` : worker BullMQ pour l'extraction des rapports
-  - `packages/shared` : types et schémas Zod partagés entre front, API et worker
-- PostgreSQL + Drizzle ou Prisma (choix à faire en J0), avec **Row Level Security**
+  - `packages/shared` : types et schémas Zod partagés entre front, API et worker ; rôles Better Auth dans `@saas/shared/permissions`
+- PostgreSQL 17 + Drizzle, avec **Row Level Security** : accès aux tables métier uniquement via `withOrganisation()` (`apps/api/src/db/client.ts`)
 - Redis pour BullMQ
-- Stockage objet compatible S3 (MinIO en local)
+- Stockage objet compatible S3 (RustFS en local : MinIO ne publie plus d'images Docker)
 - Extraction : **Mistral OCR** puis modèle Mistral en sortie structurée, derrière une interface `ExtractionProvider`
-- Développement local via `docker compose` (PostgreSQL, Redis, MinIO)
+- Développement local via `docker compose` (PostgreSQL sur le port 5433, Redis, RustFS, Mailpit)
 
 ## Règles non négociables
 
-- **Cloisonnement multi-client** : chaque table métier porte `organisation_id` et est protégée par RLS. Toute nouvelle table doit l'être aussi, avec un test qui vérifie qu'une organisation ne voit pas les données d'une autre.
+- **Cloisonnement multi-client** : chaque table métier porte `organisation_id` et est protégée par RLS (politique `organisationIsolation()` dans le schéma Drizzle **et** `FORCE ROW LEVEL SECURITY` ajouté à la main dans la migration). Toute nouvelle table doit l'être aussi, avec un test qui vérifie qu'une organisation ne voit pas les données d'une autre. Le test `apps/api/test/rls.test.ts` échoue si une table portant `organisation_id` n'est pas protégée.
 - **Validation humaine** : une réserve extraite par l'IA n'est jamais activée sans validation par un utilisateur.
 - **Toute sortie de LLM est validée par un schéma Zod** avant d'être utilisée ou stockée.
 - **Traçabilité des extractions** : on stocke versions des modèles, version du prompt et sortie brute.
@@ -40,4 +40,17 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
 
 ## Commandes
 
-À compléter en J0 une fois le monorepo en place (installation, lancement en local, tests, lint, migrations).
+Prérequis : Node 24+, pnpm 9, Docker.
+
+```sh
+cp .env.example .env            # puis remplacer BETTER_AUTH_SECRET (openssl rand -base64 32)
+pnpm install
+docker compose up -d --wait     # PostgreSQL, Redis, RustFS, Mailpit
+pnpm --filter @saas/api db:migrate
+pnpm dev                        # API :3000, front :5173, worker
+```
+
+- Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `saas_test`, migrée automatiquement)
+- Vérifications : `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm build`
+- Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @saas/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier
+- E-mails envoyés en local : http://localhost:8025 (Mailpit) ; console du stockage : http://localhost:9001
