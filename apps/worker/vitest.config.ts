@@ -8,7 +8,10 @@ try {
 }
 
 export default defineConfig({
-  resolve: { conditions: ['source'] },
-  ssr: { resolve: { conditions: ['source'] } },
-  test: { env: { NODE_ENV: 'test' } },
+  resolve: { conditions: ['@obsio/source'] },
+  ssr: { resolve: { conditions: ['@obsio/source'] } },
+  test: {
+    env: { NODE_ENV: 'test' },
+    include: ['test/**/*.test.ts', 'eval/**/*.test.ts', 'src/**/*.test.ts'],
+  },
 });

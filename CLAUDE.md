@@ -52,6 +52,7 @@ pnpm dev                        # API :3000, front :5173, worker
 
 - Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`
 - Jeu de test d'extraction : PDF et résultats attendus dans `fixtures/reports/` (hors dépôt) ; `pnpm --filter @obsio/worker fixtures:check` les valide
+- Évaluation de l'extraction (appelle Mistral, `MISTRAL_API_KEY` requise) : `pnpm --filter @obsio/worker eval:extraction [--only <motif>] [--model <id>] [--no-cache]` ; OCR mis en cache dans `fixtures/reports/.cache/`, résultats et synthèse dans `fixtures/reports/.runs/`
 - Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `obsio_test`, migrée automatiquement)
 - Vérifications : `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm build`
 - Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @obsio/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier

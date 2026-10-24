@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --conditions=source --env-file-if-exists=../../.env src/main.ts",
+    "dev": "tsx watch --conditions=@obsio/source --env-file-if-exists=../../.env src/main.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "fixtures:check": "tsx --conditions=source eval/check-fixtures.ts"
+    "fixtures:check": "tsx --conditions=@obsio/source eval/check-fixtures.ts",
+    "eval:extraction": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env eval/run.ts"
   },
   "dependencies": {
+    "@mistralai/mistralai": "^3.2.0",
     "@obsio/shared": "workspace:*",
     "bullmq": "^6.4.1",
     "ioredis": "^6.0.0",
