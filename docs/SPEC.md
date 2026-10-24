@@ -71,7 +71,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 
 **Hors MVP (plus tard)**
 
-- Vue 3D par extrusion des plans (React Three Fiber).
+- Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Elle utilisera le niveau et l'échelle des étages.
 - Import BIM (IFC) et détection automatique des murs.
 - Autres vérifications périodiques : incendie, levage, gaz, portes automatiques.
 - Planning des prochaines visites et relances de l'organisme de contrôle.
@@ -166,7 +166,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `Site` | nom, adresse | appartient à une organisation ; contient bâtiments |
 | `Batiment` | nom | appartient à un site ; contient étages |
 | `Etage` | nom, niveau, fichier du plan, échelle | appartient à un bâtiment |
-| `Equipement` | type (TGBT, TD, éclairage de sécurité…), repère (« TD2 »), position x/y sur le plan, alias textuels | placé sur un étage ; porte des réserves |
+| `Equipement` | type (TGBT, TD, coffret, armoire, éclairage de sécurité, prise de courant, luminaire, transformateur, onduleur, borne de recharge, machine, autre), repère ou nom de machine propre à l'entreprise (« TD2 », « Presse 3 »), position x/y sur le plan (en proportion de l'image, de 0 à 1), alias textuels | placé sur un étage ; porte des réserves |
 | `RapportVerification` | organisme, date de visite, type de document (`periodique`, `initiale`, `q18`, `q19`), numéro, fichier PDF ; pour un Q18, état des 8 constatations standard et conclusion ; pour un Q19, nombre d'anomalies par priorité | concerne un site ; produit des réserves (un PDF importé peut contenir plusieurs documents) |
 | `ImportRapport` | statut (`en_analyse`, `a_valider`, `valide`, `erreur`), versions modèles et prompt, sortie brute | un par rapport importé |
 | `ReserveBrouillon` | champs extraits, confiance, équipement proposé | appartient à un import ; devient une réserve |
@@ -184,6 +184,10 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 - Une anomalie signalée dans plusieurs documents (rapport du Code du travail et Q18, par exemple) est **une seule réserve avec plusieurs sources** : l'électricien la corrige une fois, une seule preuve la lève pour toutes ses sources, et l'export se filtre par origine (dossier pour l'assureur, dossier réglementaire). Le rapprochement est proposé automatiquement (même code d'observation, sinon texte et localisation proches) et confirmé par l'utilisateur à la validation.
 - Q18 : chaque point de non-conformité est une source ; une constatation standard cochée en danger sans point rattaché est proposée comme réserve à la validation (texte de la constatation), jamais créée par l'IA.
 - `Equipement.alias` (« TD2 », « tableau atelier ») améliore le rapprochement automatique au fil des imports.
+- Seul l'admin crée et modifie sites, bâtiments, étages, plans et équipements ; les membres les consultent.
+- Les liens site → bâtiment → étage → équipement passent par la paire (id, organisation_id) : une clé étrangère ne passe pas par la RLS, la paire interdit de rattacher une ligne au parent d'une autre organisation.
+- Sites, bâtiments, étages et équipements sont archivés, jamais supprimés.
+- Tables en anglais dans le code : `site`, `building`, `floor`, `equipment`.
 - Rien n'est supprimé physiquement : une réserve levée reste consultable, et le journal `Evenement` sert de preuve.
 
 ## Sécurité, multi-tenant et RGPD
@@ -256,7 +260,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 **J2 — Sites, plans, équipements**
 
 - [ ] CRUD sites, bâtiments, étages
-- [ ] Import d'un plan par étage, affichage zoomable (Konva)
+- [ ] Import d'un plan par étage (PDF, page choisie et convertie en image dans le navigateur, ou image), affichage zoomable (Konva) ; calibrage de l'échelle reporté
 - [ ] Placement et édition des équipements sur le plan
 
 **J3 — Import et validation**

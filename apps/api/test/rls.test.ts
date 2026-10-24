@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createDatabase, withOrganisation } from '../src/db/client.js';
-import { site } from '../src/db/schema/index.js';
+import { building, equipment, floor, site } from '../src/db/schema/index.js';
 import { createOrganisation, resetDatabase, testConfig } from './helpers.js';
 
 const { pool, db } = createDatabase(testConfig().DATABASE_URL);
@@ -68,6 +68,110 @@ describe('Row Level Security', () => {
         tx.update(site).set({ organisationId: orgA }).where(eq(site.id, siteB)),
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe('Row Level Security des bâtiments, étages et équipements', () => {
+  let orgA: string;
+  let orgB: string;
+  let siteA: string;
+  let siteB: string;
+
+  /** Crée un site, un bâtiment, un étage et un équipement pour une organisation. */
+  async function seed(org: string, label: string) {
+    return withOrganisation(db, org, async (tx) => {
+      const [s] = await tx
+        .insert(site)
+        .values({ organisationId: org, name: `Site ${label}` })
+        .returning();
+      const [b] = await tx
+        .insert(building)
+        .values({ organisationId: org, siteId: s!.id, name: `Bâtiment ${label}` })
+        .returning();
+      const [f] = await tx
+        .insert(floor)
+        .values({ organisationId: org, buildingId: b!.id, name: `RDC ${label}` })
+        .returning();
+      await tx.insert(equipment).values({
+        organisationId: org,
+        floorId: f!.id,
+        type: 'td',
+        name: `TD ${label}`,
+        x: 0.5,
+        y: 0.5,
+      });
+      return { siteId: s!.id, buildingId: b!.id, floorId: f!.id };
+    });
+  }
+
+  beforeEach(async () => {
+    await resetDatabase();
+    orgA = (await createOrganisation(db, 'A')).id;
+    orgB = (await createOrganisation(db, 'B')).id;
+    siteA = (await seed(orgA, 'A')).siteId;
+    siteB = (await seed(orgB, 'B')).siteId;
+  });
+
+  it('une organisation ne voit que ses propres bâtiments, étages et équipements', async () => {
+    const [buildings, floors, equipments] = await withOrganisation(db, orgA, (tx) =>
+      Promise.all([
+        tx.select().from(building),
+        tx.select().from(floor),
+        tx.select().from(equipment),
+      ]),
+    );
+    expect(buildings.map((b) => b.name)).toEqual(['Bâtiment A']);
+    expect(floors.map((f) => f.name)).toEqual(['RDC A']);
+    expect(equipments.map((e) => e.name)).toEqual(['TD A']);
+  });
+
+  it("on ne peut pas rattacher un bâtiment au site d'une autre organisation", async () => {
+    // La clé étrangère contourne la RLS : c'est la paire (site_id, organisation_id) qui bloque.
+    await expect(
+      withOrganisation(db, orgA, (tx) =>
+        tx.insert(building).values({ organisationId: orgA, siteId: siteB, name: 'Intrus' }),
+      ),
+    ).rejects.toThrow();
+    await expect(
+      withOrganisation(db, orgA, (tx) =>
+        tx.insert(building).values({ organisationId: orgA, siteId: siteA, name: 'Légitime' }),
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it("on ne peut pas rattacher un étage ou un équipement au parent d'une autre organisation", async () => {
+    const [b] = await withOrganisation(db, orgB, (tx) => tx.select().from(building));
+    const [f] = await withOrganisation(db, orgB, (tx) => tx.select().from(floor));
+    await expect(
+      withOrganisation(db, orgA, (tx) =>
+        tx.insert(floor).values({ organisationId: orgA, buildingId: b!.id, name: 'Intrus' }),
+      ),
+    ).rejects.toThrow();
+    await expect(
+      withOrganisation(db, orgA, (tx) =>
+        tx
+          .insert(equipment)
+          .values({ organisationId: orgA, floorId: f!.id, type: 'td', name: 'Intrus' }),
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('refuse une position hors du plan ou à moitié renseignée', async () => {
+    const [f] = await withOrganisation(db, orgA, (tx) => tx.select().from(floor));
+    const insert = (x: number | null, y: number | null) =>
+      withOrganisation(db, orgA, (tx) =>
+        tx.insert(equipment).values({
+          organisationId: orgA,
+          floorId: f!.id,
+          type: 'machine',
+          name: 'Presse 3',
+          x,
+          y,
+        }),
+      );
+    await expect(insert(1.2, 0.5)).rejects.toThrow();
+    await expect(insert(0.5, null)).rejects.toThrow();
+    await expect(insert(null, null)).resolves.toBeDefined();
   });
 });
 
