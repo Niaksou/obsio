@@ -38,7 +38,7 @@ export function Layout() {
     <>
       <header className="header">
         <Link to="/" className="brand">
-          Vérifications électriques
+          Obsio
         </Link>
         {session && (
           <div className="session">

@@ -2,7 +2,7 @@
 
 ## Le projet
 
-SaaS de suivi des vérifications électriques réglementaires : import du rapport PDF annuel de l'organisme de contrôle, extraction automatique des réserves (non-conformités), suivi jusqu'à leur levée, localisation sur le plan du bâtiment, preuves de correction apportées par l'électricien depuis son téléphone.
+**Obsio** : SaaS de suivi des vérifications électriques réglementaires : import du rapport PDF annuel de l'organisme de contrôle, extraction automatique des réserves (non-conformités), suivi jusqu'à leur levée, localisation sur le plan du bâtiment, preuves de correction apportées par l'électricien depuis son téléphone.
 
 La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer un jalon, et réfère-toi à elle pour toute question fonctionnelle ou d'architecture.
 
@@ -21,7 +21,7 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
   - `apps/web` : React + Vite, PWA (service worker, IndexedDB), Konva pour le plan 2D
   - `apps/api` : Node.js, Fastify (routes validées par Zod), Better Auth (plugin organisation)
   - `apps/worker` : worker BullMQ pour l'extraction des rapports
-  - `packages/shared` : types et schémas Zod partagés entre front, API et worker ; rôles Better Auth dans `@saas/shared/permissions`
+  - `packages/shared` : types et schémas Zod partagés entre front, API et worker ; rôles Better Auth dans `@obsio/shared/permissions`
 - PostgreSQL 17 + Drizzle, avec **Row Level Security** : accès aux tables métier uniquement via `withOrganisation()` (`apps/api/src/db/client.ts`)
 - Redis pour BullMQ
 - Stockage objet compatible S3 (RustFS en local : MinIO ne publie plus d'images Docker)
@@ -46,12 +46,12 @@ Prérequis : Node 24+, pnpm 9, Docker.
 cp .env.example .env            # puis remplacer BETTER_AUTH_SECRET (openssl rand -base64 32)
 pnpm install
 docker compose up -d --wait     # PostgreSQL, Redis, RustFS, Mailpit
-pnpm --filter @saas/api db:migrate
+pnpm --filter @obsio/api db:migrate
 pnpm dev                        # API :3000, front :5173, worker
 ```
 
 - Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`
-- Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `saas_test`, migrée automatiquement)
+- Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `obsio_test`, migrée automatiquement)
 - Vérifications : `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm build`
-- Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @saas/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier
+- Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @obsio/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier
 - E-mails envoyés en local : http://localhost:8025 (Mailpit) ; console du stockage : http://localhost:9001

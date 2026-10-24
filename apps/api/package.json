@@ -1,5 +1,5 @@
 {
-  "name": "@saas/api",
+  "name": "@obsio/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",
-    "@saas/shared": "workspace:*",
+    "@obsio/shared": "workspace:*",
     "better-auth": "^1.7.12",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",

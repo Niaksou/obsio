@@ -1,10 +1,10 @@
-# Spécification produit — SaaS vérifications électriques
+# Spécification produit — Obsio
 
 Version du 24 octobre 2026 · Clément Palanca
 
 ## Vision et périmètre
 
-Le produit transforme le rapport annuel de vérification électrique en une liste de réserves suivies jusqu'à leur levée, localisées sur le plan du bâtiment et prouvées.
+Obsio transforme le rapport annuel de vérification électrique en une liste de réserves suivies jusqu'à leur levée, localisées sur le plan du bâtiment et prouvées.
 
 **Problème.** Chaque année, un organisme de contrôle remet un rapport PDF listant les non-conformités. L'employeur doit les corriger et formaliser leur levée dans le registre de sécurité. En pratique, le suivi se fait sur Excel ou pas du tout, et les mêmes réserves reviennent d'une année sur l'autre.
 

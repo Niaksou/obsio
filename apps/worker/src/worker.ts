@@ -1,4 +1,4 @@
-import { EXTRACTION_QUEUE } from '@saas/shared';
+import { EXTRACTION_QUEUE } from '@obsio/shared';
 import { Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';

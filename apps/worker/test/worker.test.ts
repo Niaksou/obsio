@@ -1,4 +1,4 @@
-import { EXTRACTION_QUEUE } from '@saas/shared';
+import { EXTRACTION_QUEUE } from '@obsio/shared';
 import { Queue, QueueEvents } from 'bullmq';
 import { Redis } from 'ioredis';
 import { pino } from 'pino';

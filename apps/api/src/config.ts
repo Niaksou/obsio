@@ -4,7 +4,7 @@ import {
   parseEnv,
   redisEnvSchema,
   smtpEnvSchema,
-} from '@saas/shared';
+} from '@obsio/shared';
 import { z } from 'zod';
 
 const apiEnvSchema = z.object({

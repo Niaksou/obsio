@@ -1,4 +1,4 @@
-import { nodeEnvSchema, parseEnv, redisEnvSchema } from '@saas/shared';
+import { nodeEnvSchema, parseEnv, redisEnvSchema } from '@obsio/shared';
 import { z } from 'zod';
 
 const workerEnvSchema = z.object({

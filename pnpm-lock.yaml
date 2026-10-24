@@ -44,7 +44,7 @@ importers:
       '@fastify/cors':
         specifier: ^11.3.1
         version: 11.3.1
-      '@saas/shared':
+      '@obsio/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       better-auth:
@@ -90,7 +90,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@saas/shared':
+      '@obsio/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       better-auth:
@@ -121,7 +121,7 @@ importers:
 
   apps/worker:
     dependencies:
-      '@saas/shared':
+      '@obsio/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       bullmq:

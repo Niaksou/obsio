@@ -1,4 +1,4 @@
-import { memberRoleSchema } from '@saas/shared';
+import { memberRoleSchema } from '@obsio/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { findMembership, type Guards } from '../auth/guards.js';

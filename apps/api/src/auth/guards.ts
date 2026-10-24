@@ -1,4 +1,4 @@
-import { memberRoleSchema, type MemberRole } from '@saas/shared';
+import { memberRoleSchema, type MemberRole } from '@obsio/shared';
 import { fromNodeHeaders } from 'better-auth/node';
 import { and, eq } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';

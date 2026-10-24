@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { organization } from 'better-auth/plugins';
-import { ac, roles } from '@saas/shared/permissions';
+import { ac, roles } from '@obsio/shared/permissions';
 import type { ApiConfig } from '../config.js';
 import type { Database } from '../db/client.js';
 import * as schema from '../db/schema/index.js';

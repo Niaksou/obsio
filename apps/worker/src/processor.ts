@@ -1,4 +1,4 @@
-import { extractionJobSchemas, type ExtractionJobName } from '@saas/shared';
+import { extractionJobSchemas, type ExtractionJobName } from '@obsio/shared';
 import type { Job } from 'bullmq';
 import type { Logger } from 'pino';
 

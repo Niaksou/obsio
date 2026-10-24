@@ -1,5 +1,5 @@
 {
-  "name": "saas",
+  "name": "obsio",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.14.4",
@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "org:create": "pnpm --filter @saas/api org:create"
+    "org:create": "pnpm --filter @obsio/api org:create"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
