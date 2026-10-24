@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { invitation } from '../src/db/schema/index.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
-import { buildTestApp, lastLinkSentTo, resetDatabase, TestClient } from './helpers.js';
+import { buildTestApp, clientHelpers, resetDatabase, TestClient } from './helpers.js';
 
 const ctx = await buildTestApp();
 
@@ -22,28 +22,7 @@ beforeEach(async () => {
   ctx.emailSender.sent.length = 0;
 });
 
-/** Ouvre un client comme le fait « pnpm org:create », puis son admin s'inscrit et accepte. */
-async function openClient(name: string, adminName: string, adminEmail: string) {
-  const { organisation, invitation } = await provisionOrganisation(ctx, { name, adminEmail });
-  const admin = new TestClient(ctx);
-  await admin.signUpAndVerify(adminName, adminEmail);
-  const accept = await admin.post('/api/auth/organization/accept-invitation', {
-    invitationId: invitation.id,
-  });
-  expect(accept.statusCode).toBe(200);
-  return { admin, organisationId: organisation.id };
-}
-
-async function invite(admin: TestClient, email: string, role: 'admin' | 'membre') {
-  const response = await admin.post('/api/auth/organization/invite-member', { email, role });
-  expect(response.statusCode).toBe(200);
-  return lastLinkSentTo(ctx, email).pathname.split('/').at(-1)!;
-}
-
-async function join(client: TestClient, invitationId: string) {
-  const response = await client.post('/api/auth/organization/accept-invitation', { invitationId });
-  expect(response.statusCode).toBe(200);
-}
+const { openClient, invite, join } = clientHelpers(ctx);
 
 describe('Inscription sur invitation uniquement', () => {
   it("refuse l'inscription d'une adresse sans invitation", async () => {

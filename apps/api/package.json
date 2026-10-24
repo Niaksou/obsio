@@ -15,6 +15,9 @@
     "org:create": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/create-organisation.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1156.0",
+    "@aws-sdk/s3-presigned-post": "^3.1156.0",
+    "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@fastify/cors": "^11.3.1",
     "@obsio/shared": "workspace:*",
     "better-auth": "^1.7.12",

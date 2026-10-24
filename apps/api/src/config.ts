@@ -3,6 +3,7 @@ import {
   nodeEnvSchema,
   parseEnv,
   redisEnvSchema,
+  s3EnvSchema,
   smtpEnvSchema,
 } from '@obsio/shared';
 import { z } from 'zod';
@@ -12,6 +13,7 @@ const apiEnvSchema = z.object({
   ...databaseEnvSchema.shape,
   ...redisEnvSchema.shape,
   ...smtpEnvSchema.shape,
+  ...s3EnvSchema.shape,
   API_PORT: z.coerce.number().int().positive().default(3000),
   API_URL: z.url(),
   WEB_URL: z.url(),

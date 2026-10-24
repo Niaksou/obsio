@@ -65,7 +65,16 @@ export function createGuards(auth: Auth, db: Database) {
     request.organisation = membership;
   }
 
-  return { requireUser, requireOrganisation };
+  /** Exige le rôle admin dans l'organisation active (modification de la structure et des plans). */
+  async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {
+    await requireOrganisation(request, reply);
+    if (reply.sent || !request.organisation) return;
+    if (request.organisation.role !== 'admin') {
+      return reply.code(403).send({ message: 'Réservé aux administrateurs' });
+    }
+  }
+
+  return { requireUser, requireOrganisation, requireAdmin };
 }
 
 export type Guards = ReturnType<typeof createGuards>;

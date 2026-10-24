@@ -11,3 +11,8 @@ export function reportImportKeys(organisationId: string, importId: string) {
     extraction: `${base}/extraction.json`,
   };
 }
+
+/** Préfixe des fichiers de plan d'un étage ; chaque dépôt a son propre nom (pas d'écrasement). */
+export function floorPlanPrefix(organisationId: string, floorId: string) {
+  return `organisations/${organisationId}/floors/${floorId}/plans/`;
+}

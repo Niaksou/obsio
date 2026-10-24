@@ -15,6 +15,8 @@ import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
+import { premisesRoutes } from './routes/premises.js';
+import type { Storage } from './storage.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -28,6 +30,7 @@ export interface AppDependencies {
   db: Database;
   redis: Redis;
   emailSender: EmailSender;
+  storage: Storage;
 }
 
 function loggerOptions(nodeEnv: ApiConfig['NODE_ENV']) {
@@ -38,7 +41,7 @@ function loggerOptions(nodeEnv: ApiConfig['NODE_ENV']) {
   return true;
 }
 
-export async function buildApp({ config, pool, db, redis, emailSender }: AppDependencies) {
+export async function buildApp({ config, pool, db, redis, emailSender, storage }: AppDependencies) {
   const app = Fastify({
     logger: loggerOptions(config.NODE_ENV),
   }).withTypeProvider<ZodTypeProvider>();
@@ -59,6 +62,7 @@ export async function buildApp({ config, pool, db, redis, emailSender }: AppDepe
   await app.register(healthRoutes, { pool, redis });
   await app.register(authRoutes, { auth, apiUrl: config.API_URL });
   await app.register(meRoutes, { db, guards });
+  await app.register(premisesRoutes, { db, guards, storage });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

@@ -1,10 +1,13 @@
 import pg from 'pg';
+import { expect } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadConfig, type ApiConfig } from '../src/config.js';
 import { createDatabase, type Database } from '../src/db/client.js';
 import { organisation } from '../src/db/schema/index.js';
 import { createMemorySender } from '../src/email/sender.js';
 import { createRedis } from '../src/redis.js';
+import { createStorage } from '../src/storage.js';
+import { provisionOrganisation } from '../src/organisations/provision.js';
 
 /** Configuration de test : base obsio_test à la place de la base de développement. */
 export function testConfig(): ApiConfig {
@@ -46,16 +49,20 @@ export async function buildTestApp() {
   const { pool, db } = createDatabase(config.DATABASE_URL);
   const redis = createRedis(config.REDIS_URL);
   const emailSender = createMemorySender();
-  const app = await buildApp({ config, pool, db, redis, emailSender });
+  const storage = createStorage(config);
+  await storage.ensureBucket(config.WEB_URL);
+  const app = await buildApp({ config, pool, db, redis, emailSender, storage });
   return {
     app,
     db,
     redis,
     config,
     emailSender,
+    storage,
     async close() {
       await app.close();
       await Promise.all([pool.end(), redis.quit()]);
+      storage.close();
     },
   };
 }
@@ -68,7 +75,7 @@ export class TestClient {
 
   constructor(private readonly ctx: TestApp) {}
 
-  async request(method: 'GET' | 'POST', url: string, body?: object) {
+  async request(method: 'GET' | 'POST' | 'PATCH' | 'PUT', url: string, body?: object) {
     const response = await this.ctx.app.inject({
       method,
       url,
@@ -93,6 +100,14 @@ export class TestClient {
     return this.request('POST', url, body);
   }
 
+  patch(url: string, body: object) {
+    return this.request('PATCH', url, body);
+  }
+
+  put(url: string, body: object) {
+    return this.request('PUT', url, body);
+  }
+
   /** Inscription, puis clic sur le lien de vérification reçu par e-mail (connecte l'utilisateur). */
   async signUpAndVerify(name: string, email: string) {
     const signUp = await this.post('/api/auth/sign-up/email', {
@@ -112,4 +127,34 @@ export function lastLinkSentTo(ctx: TestApp, email: string): URL {
   const match = sent?.text.match(/https?:\/\/\S+/);
   if (!match) throw new Error(`Aucun lien envoyé à ${email}`);
   return new URL(match[0]);
+}
+
+/** Parcours d'ouverture d'un client et d'invitation, partagés par les tests. */
+export function clientHelpers(ctx: TestApp) {
+  /** Ouvre un client comme le fait « pnpm org:create », puis son admin s'inscrit et accepte. */
+  async function openClient(name: string, adminName: string, adminEmail: string) {
+    const { organisation, invitation } = await provisionOrganisation(ctx, { name, adminEmail });
+    const admin = new TestClient(ctx);
+    await admin.signUpAndVerify(adminName, adminEmail);
+    const accept = await admin.post('/api/auth/organization/accept-invitation', {
+      invitationId: invitation.id,
+    });
+    expect(accept.statusCode).toBe(200);
+    return { admin, organisationId: organisation.id };
+  }
+
+  async function invite(admin: TestClient, email: string, role: 'admin' | 'membre') {
+    const response = await admin.post('/api/auth/organization/invite-member', { email, role });
+    expect(response.statusCode).toBe(200);
+    return lastLinkSentTo(ctx, email).pathname.split('/').at(-1)!;
+  }
+
+  async function join(client: TestClient, invitationId: string) {
+    const response = await client.post('/api/auth/organization/accept-invitation', {
+      invitationId,
+    });
+    expect(response.statusCode).toBe(200);
+  }
+
+  return { openClient, invite, join };
 }
