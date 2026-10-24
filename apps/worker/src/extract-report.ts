@@ -1,4 +1,9 @@
-import { reportImportKeys, type ExtractionOutcome, type ExtractReportJob } from '@obsio/shared';
+import {
+  countReserves,
+  reportImportKeys,
+  type ExtractionOutcome,
+  type ExtractReportJob,
+} from '@obsio/shared';
 import { UnrecoverableError } from 'bullmq';
 import type { Logger } from 'pino';
 import {
@@ -57,5 +62,5 @@ export async function extractReport(data: ExtractReportJob, deps: ExtractReportD
   await storage.put(keys.extraction, JSON.stringify(outcome), 'application/json');
 
   if (outcome.status === 'error') throw new UnrecoverableError(outcome.error);
-  return { status: outcome.status, reserves: outcome.report.reserves.length };
+  return { status: outcome.status, reserves: countReserves(outcome.report) };
 }

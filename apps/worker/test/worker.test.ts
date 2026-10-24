@@ -29,22 +29,31 @@ const trace: ExtractionTrace = {
 };
 
 const report: ProviderReport = {
-  organisme: 'Organisme de test',
-  numeroRapport: null,
-  typeVerification: 'periodique',
-  dateVisite: '2026-03-12',
-  site: { nom: 'Usine', adresse: null },
-  reserves: [
+  documents: [
     {
-      reference: '1',
-      description: 'Absence de protection',
-      preconisation: null,
-      articleReglementaire: null,
-      localisationTexte: 'TGBT',
-      gravite: null,
-      nouvelleOuReconduite: null,
-      pageSource: 1,
-      confiance: 0.9,
+      type: 'periodique',
+      organisme: 'Organisme de test',
+      numeroRapport: null,
+      dateVisite: '2026-03-12',
+      site: { nom: 'Usine', adresse: null },
+      q18: null,
+      q19: null,
+      reserves: [
+        {
+          reference: '1',
+          codeObservation: null,
+          description: 'Absence de protection',
+          preconisation: null,
+          articleReglementaire: null,
+          localisationTexte: 'TGBT',
+          gravite: null,
+          nouvelleOuReconduite: null,
+          pageSource: 1,
+          constatationQ18: null,
+          thermique: null,
+          confiance: 0.9,
+        },
+      ],
     },
   ],
 };

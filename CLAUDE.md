@@ -2,7 +2,7 @@
 
 ## Le projet
 
-**Obsio** : SaaS de suivi des vérifications électriques réglementaires : import du rapport PDF annuel de l'organisme de contrôle, extraction automatique des réserves (non-conformités), suivi jusqu'à leur levée, localisation sur le plan du bâtiment, preuves de correction apportées par l'électricien depuis son téléphone.
+**Obsio** : SaaS de suivi des vérifications électriques réglementaires : import du rapport PDF annuel de l'organisme de contrôle (Code du travail, et comptes rendus Q18 et Q19 demandés par l'assureur), extraction automatique des réserves (non-conformités), suivi jusqu'à leur levée, localisation sur le plan du bâtiment, preuves de correction apportées par l'électricien depuis son téléphone.
 
 La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer un jalon, et réfère-toi à elle pour toute question fonctionnelle ou d'architecture.
 

@@ -4,7 +4,12 @@ import { parseArgs } from 'node:util';
 import { loadConfig } from '../src/config.js';
 import { createMistralProvider } from '../src/extraction/mistral.js';
 import { ExtractionError, type OcrDocument } from '../src/extraction/provider.js';
-import { compareReport, RESERVE_FIELDS, type ReportComparison } from './compare.js';
+import {
+  compareReport,
+  RESERVE_FIELDS,
+  type DocumentComparison,
+  type ReportComparison,
+} from './compare.js';
 import { FIXTURES_DIR, loadFixtures } from './fixtures.js';
 
 // Passe le jeu de test dans l'extraction et compare au résultat attendu : pnpm eval:extraction
@@ -12,7 +17,8 @@ import { FIXTURES_DIR, loadFixtures } from './fixtures.js';
 //   --model <id>     modèle d'extraction à essayer à la place de celui de la configuration
 //   --no-cache       refait l'OCR au lieu de réutiliser le cache
 
-// Seuils provisoires de sortie de J1 (à valider) : rappel, réserves inventées, descriptions fidèles.
+// Critère de sortie de J1 (validé), sur l'ensemble des documents : rappel, réserves inventées,
+// descriptions fidèles.
 const EXIT_CRITERIA = { recall: 0.95, invented: 0, description: 0.9 };
 
 const { values } = parseArgs({
@@ -88,12 +94,14 @@ for (const fixture of fixtures) {
 
 // --- Synthèse
 const done = results.flatMap((r) => (r.comparison ? [r.comparison] : []));
-const sum = (pick: (c: ReportComparison) => number) =>
-  done.reduce((total, c) => total + pick(c), 0);
-const expected = sum((c) => c.expectedCount);
-const matched = sum((c) => c.matched);
-const invented = sum((c) => c.invented.length);
+const allDocuments = done.flatMap((c) => c.documents);
+const sum = (documents: DocumentComparison[], pick: (d: DocumentComparison) => number) =>
+  documents.reduce((total, d) => total + pick(d), 0);
+const expected = sum(allDocuments, (d) => d.expectedCount);
+const matched = sum(allDocuments, (d) => d.matched);
+const invented = sum(allDocuments, (d) => d.invented.length);
 const pct = (n: number, d: number) => (d === 0 ? '—' : `${((100 * n) / d).toFixed(1)} %`);
+const types = [...new Set(allDocuments.map((d) => d.type))];
 
 const lines: string[] = [
   `# Évaluation de l'extraction`,
@@ -104,27 +112,36 @@ const lines: string[] = [
   `- Réserves inventées : ${invented}`,
   `- Jetons consommés : ${results.reduce((t, r) => t + r.tokens, 0)}`,
   '',
+  '| Type de document | Documents | Retrouvées | Inventées | Descriptions fidèles |',
+  '|---|---|---|---|---|',
+  ...types.map((type) => {
+    const docs = allDocuments.filter((d) => d.type === type);
+    const m = sum(docs, (d) => d.matched);
+    return `| ${type} | ${docs.length} | ${m}/${sum(docs, (d) => d.expectedCount)} | ${sum(docs, (d) => d.invented.length)} | ${pct(
+      sum(docs, (d) => d.fieldsCorrect.description),
+      m,
+    )} |`;
+  }),
+  '',
   '| Champ | Corrects | Taux |',
   '|---|---|---|',
-  ...RESERVE_FIELDS.map(
-    (f) =>
-      `| ${f} | ${sum((c) => c.fieldsCorrect[f])}/${matched} | ${pct(
-        sum((c) => c.fieldsCorrect[f]),
-        matched,
-      )} |`,
-  ),
+  ...RESERVE_FIELDS.map((f) => {
+    const correct = sum(allDocuments, (d) => d.fieldsCorrect[f]);
+    return `| ${f} | ${correct}/${matched} | ${pct(correct, matched)} |`;
+  }),
   '',
   '| Rapport | Trouvées | Oubliées | Inventées | Erreurs de champ | En-tête |',
   '|---|---|---|---|---|---|',
   ...results.map(({ id, comparison: c, error }) =>
     c
-      ? `| ${id} | ${c.matched}/${c.expectedCount} | ${c.missing.join(', ') || '—'} | ${c.invented.join(', ') || '—'} | ${c.fieldErrors.length} | ${c.headerErrors.map((e) => e.field).join(', ') || 'ok'} |`
+      ? `| ${id} | ${c.matched}/${c.expectedCount} | ${c.missing.join(', ') || '—'} | ${c.invented.join(', ') || '—'} | ${c.fieldErrors} | ${c.headerErrors.join(', ') || 'ok'} |`
       : `| ${id} | échec : ${error?.split('\n')[0]} | | | | |`,
   ),
 ];
 
 const recall = expected === 0 ? 1 : matched / expected;
-const description = matched === 0 ? 1 : sum((c) => c.fieldsCorrect.description) / matched;
+const description =
+  matched === 0 ? 1 : sum(allDocuments, (d) => d.fieldsCorrect.description) / matched;
 const passed =
   done.length === results.length &&
   recall >= EXIT_CRITERIA.recall &&
@@ -138,17 +155,19 @@ lines.push(
 // Détail des erreurs de champ, pour la relecture.
 lines.push('', '## Détail des erreurs', '');
 for (const { id, comparison: c } of results) {
-  if (!c || (c.fieldErrors.length === 0 && c.headerErrors.length === 0)) continue;
-  lines.push(`### ${id}`, '');
-  for (const e of [
-    ...c.headerErrors.map((h) => ({ reference: 'en-tête', ...h })),
-    ...c.fieldErrors,
-  ]) {
-    lines.push(
-      `- ${e.reference} · ${e.field} : attendu ${JSON.stringify(e.expected)} — obtenu ${JSON.stringify(e.actual)}`,
-    );
+  for (const d of c?.documents ?? []) {
+    if (d.fieldErrors.length === 0 && d.headerErrors.length === 0) continue;
+    lines.push(`### ${id} · ${d.type}`, '');
+    for (const e of [
+      ...d.headerErrors.map((h) => ({ reference: 'en-tête', ...h })),
+      ...d.fieldErrors,
+    ]) {
+      lines.push(
+        `- ${e.reference} · ${e.field} : attendu ${JSON.stringify(e.expected)} — obtenu ${JSON.stringify(e.actual)}`,
+      );
+    }
+    lines.push('');
   }
-  lines.push('');
 }
 
 const summary = lines.join('\n');

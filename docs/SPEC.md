@@ -61,7 +61,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 - Sites, bâtiments, étages ; import d'un plan par étage (PDF ou image).
 - Équipements (tableaux électriques en priorité) placés sur le plan 2D.
 - Import d'un rapport PDF avec extraction automatique et écran de validation.
-- Comptes rendus Q18 (vérification demandée par l'assureur, référentiel APSAD D18) en plus des rapports du Code du travail : modalités à préciser.
+- Vérifications demandées par l'assureur, en plus des rapports du Code du travail : comptes rendus Q18 (référentiel APSAD D18) et thermographie infrarouge Q19 (référentiel APSAD D19). Une même anomalie signalée dans plusieurs documents est une seule réserve avec plusieurs sources.
 - Réserves : statut, gravité, échéance, assignation, commentaires, historique.
 - Détection des réserves reconduites d'un rapport à l'autre.
 - Lien intervenant signé, à durée limitée, limité aux réserves assignées.
@@ -167,10 +167,11 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `Batiment` | nom | appartient à un site ; contient étages |
 | `Etage` | nom, niveau, fichier du plan, échelle | appartient à un bâtiment |
 | `Equipement` | type (TGBT, TD, éclairage de sécurité…), repère (« TD2 »), position x/y sur le plan, alias textuels | placé sur un étage ; porte des réserves |
-| `RapportVerification` | organisme, date de visite, type de vérification, fichier PDF | concerne un site ; produit des réserves |
+| `RapportVerification` | organisme, date de visite, type de document (`periodique`, `initiale`, `q18`, `q19`), numéro, fichier PDF ; pour un Q18, état des 8 constatations standard et conclusion ; pour un Q19, nombre d'anomalies par priorité | concerne un site ; produit des réserves (un PDF importé peut contenir plusieurs documents) |
 | `ImportRapport` | statut (`en_analyse`, `a_valider`, `valide`, `erreur`), versions modèles et prompt, sortie brute | un par rapport importé |
 | `ReserveBrouillon` | champs extraits, confiance, équipement proposé | appartient à un import ; devient une réserve |
-| `Reserve` | référence, description, article, gravité, statut (`ouverte`, `assignee`, `corrigee`, `levee`), échéance, reconduite de | vient d'un rapport ; liée à un équipement |
+| `Reserve` | description, gravité, statut (`ouverte`, `assignee`, `corrigee`, `levee`), échéance, reconduite de | liée à un équipement ; a une ou plusieurs sources |
+| `SourceReserve` | document (rapport du Code du travail, Q18, Q19), référence, code d'observation, texte, article, page, constatation Q18, relevé thermique | relie une réserve à chaque document qui la signale |
 | `Intervenant` | nom, société, e-mail | externe à l'organisation |
 | `Assignation` | réserves, intervenant, échéance, jeton signé, expiration | donne accès aux réserves assignées |
 | `Preuve` | photo(s), commentaire, date, auteur | jointe à une réserve |
@@ -180,6 +181,8 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 
 - Chaque table porte `organisation_id`, filtré par Row Level Security.
 - `Reserve.reconduite_de` pointe vers la réserve de l'année précédente : c'est elle qui donne l'historique d'un équipement.
+- Une anomalie signalée dans plusieurs documents (rapport du Code du travail et Q18, par exemple) est **une seule réserve avec plusieurs sources** : l'électricien la corrige une fois, une seule preuve la lève pour toutes ses sources, et l'export se filtre par origine (dossier pour l'assureur, dossier réglementaire). Le rapprochement est proposé automatiquement (même code d'observation, sinon texte et localisation proches) et confirmé par l'utilisateur à la validation.
+- Q18 : chaque point de non-conformité est une source ; une constatation standard cochée en danger sans point rattaché est proposée comme réserve à la validation (texte de la constatation), jamais créée par l'IA.
 - `Equipement.alias` (« TD2 », « tableau atelier ») améliore le rapprochement automatique au fil des imports.
 - Rien n'est supprimé physiquement : une réserve levée reste consultable, et le journal `Evenement` sert de preuve.
 
@@ -244,8 +247,8 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
-- [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 9 rapports publics (préfectures, communes) de 8 organismes, tous en PDF texte ; il manque au moins un rapport scanné
-- [x] Écrire le résultat attendu pour chacun (pré-rempli, 93 réserves ; 04 et 01 relus)
+- [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 16 rapports publics (préfectures, communes) de 8 organismes, dont 5 comptes rendus Q18 et 5 contrôles Q19, tous en PDF texte ; il manque au moins un rapport scanné
+- [x] Écrire le résultat attendu pour chacun (pré-rempli, 113 réserves dont 14 Q18 et 6 Q19 ; 04 et 01 relus)
 - [x] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod (tâche `extract-report`, testée avec un faux fournisseur ; l'enregistrement en base vient en J3)
 - [ ] Script d'évaluation qui compare extraction et résultat attendu (écrit, pas encore lancé : l'offre gratuite de Mistral n'ouvre ni l'OCR ni mistral-medium)
 - [ ] Critère de sortie (validé) : au moins 95 % des réserves retrouvées, aucune réserve inventée, au moins 90 % des descriptions fidèles
@@ -278,7 +281,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J6 — Pilotage et bêta**
 
-- [ ] Tableau de bord par site : ouvertes, en retard, reconduites
+- [ ] Tableau de bord par site : ouvertes, en retard, reconduites ; alertes quand le dernier Q18 conclut à un risque d'incendie ou contient des constatations « non vérifié »
 - [ ] Export PDF du dossier de preuves
 - [ ] Notifications de retard
 - [ ] Bêta privée avec 2 ou 3 sites réels
@@ -299,6 +302,7 @@ Le risque principal est l'accès à de vrais rapports : sans eux, l'extraction n
 **Questions ouvertes**
 
 - Quel modèle Mistral pour l'extraction (taille, coût) ? À trancher sur le jeu de test.
+- Une anomalie Q19 de priorité 3 (« à surveiller ») est-elle une réserve à lever, ou une simple information ? L'extraction la reprend dans tous les cas.
 - Quel modèle de prix : par site, par bâtiment ou par nombre de réserves suivies ?
 - Qui paie en priorité : l'entreprise utilisatrice ou l'entreprise d'électricité qui l'offre à ses clients ?
 - Durée de conservation des rapports et des preuves après résiliation ?
