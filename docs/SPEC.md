@@ -205,13 +205,13 @@ Mise en œuvre (J0) :
 - Chaque table métier a une RLS activée et forcée (`FORCE ROW LEVEL SECURITY`, qui s'applique aussi au propriétaire) et une politique `organisation_id = app_current_organisation_id()`.
 - L'API accède aux tables métier par `withOrganisation(db, organisationId, fn)`, qui pose `app.organisation_id` pour la seule transaction en cours. Sans organisation posée, aucune ligne n'est visible.
 - Un test vérifie que toute table portant `organisation_id` a une RLS active, forcée et une politique.
-- Exception : les tables `member` et `invitation` de Better Auth n'ont pas de RLS, car Better Auth les lit sans organisation posée (par exemple pour lister les organisations d'un utilisateur). Seul Better Auth y accède ; l'appartenance est relue en base à chaque requête par le garde `requireOrganisation`, pas seulement dans la session.
+- Exception : les tables `member` et `invitation` de Better Auth n'ont pas de RLS, car Better Auth les lit sans organisation posée (par exemple pour lister les organisations d'un utilisateur). Seuls Better Auth et la route `GET /api/invitations/:id` (détail d'une invitation, limité à l'adresse de l'invité connecté) y accèdent ; l'appartenance est relue en base à chaque requête par le garde `requireOrganisation`, pas seulement dans la session.
 
 **Comptes et rôles (J0)**
 
 - Pas d'inscription en libre-service : le produit est vendu sur devis. Une organisation (le compte d'une entreprise cliente) est ouverte par l'éditeur avec `pnpm org:create "<nom>" <e-mail>`, qui crée l'organisation et invite son premier `admin`.
 - L'inscription n'est acceptée que pour une adresse ayant une invitation en attente et non expirée. Un utilisateur ne peut pas créer d'organisation lui-même.
-- Les invitations de l'éditeur sont envoyées au nom d'un compte technique « opérateur » (`OPERATOR_EMAIL`), sans mot de passe ni appartenance.
+- Les invitations de l'éditeur sont envoyées au nom d'un compte technique « opérateur » (`OPERATOR_EMAIL`), sans mot de passe ni appartenance. Comme Better Auth refuse d'afficher une invitation dont l'expéditeur n'est pas membre, la page d'invitation lit son détail par `GET /api/invitations/:id`.
 - L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
 - Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
 - Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
@@ -259,9 +259,9 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J2 — Sites, plans, équipements**
 
-- [ ] CRUD sites, bâtiments, étages
-- [ ] Import d'un plan par étage (PDF, page choisie et convertie en image dans le navigateur, ou image), affichage zoomable (Konva) ; calibrage de l'échelle reporté
-- [ ] Placement et édition des équipements sur le plan
+- [x] CRUD sites, bâtiments, étages (modification réservée à l'admin, archivage sans suppression)
+- [x] Import d'un plan par étage (PDF, page choisie et convertie en image dans le navigateur, ou image), affichage zoomable (Konva) ; calibrage de l'échelle reporté
+- [x] Placement et édition des équipements sur le plan (repères en plaques, glisser-déposer, autres noms pour le rapprochement)
 
 **J3 — Import et validation**
 

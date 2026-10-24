@@ -3,6 +3,7 @@ import {
   equipmentSchema,
   floorDetailSchema,
   floorSchema,
+  invitationDetailsSchema,
   planUploadResponseSchema,
   siteSchema,
   type BuildingInput,
@@ -57,6 +58,7 @@ const meSchema = z.object({
 
 export const api = {
   me: () => request(meSchema, 'GET', '/api/me'),
+  invitation: (id: string) => request(invitationDetailsSchema, 'GET', `/api/invitations/${id}`),
 
   sites: () => request(z.array(siteSchema), 'GET', '/api/sites'),
   site: (id: string) => request(siteSchema, 'GET', `/api/sites/${id}`),

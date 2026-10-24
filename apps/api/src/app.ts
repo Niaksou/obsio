@@ -14,6 +14,7 @@ import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import { healthRoutes } from './routes/health.js';
+import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
 import { premisesRoutes } from './routes/premises.js';
 import type { Storage } from './storage.js';
@@ -62,6 +63,7 @@ export async function buildApp({ config, pool, db, redis, emailSender, storage }
   await app.register(healthRoutes, { pool, redis });
   await app.register(authRoutes, { auth, apiUrl: config.API_URL });
   await app.register(meRoutes, { db, guards });
+  await app.register(invitationRoutes, { db, guards });
   await app.register(premisesRoutes, { db, guards, storage });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).

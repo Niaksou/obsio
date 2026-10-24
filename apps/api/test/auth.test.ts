@@ -81,6 +81,30 @@ describe("Ouverture d'un client (org:create)", () => {
     });
   });
 
+  it("l'admin invité voit le détail de l'invitation de l'opérateur avant de l'accepter", async () => {
+    const { invitation: sent } = await provisionOrganisation(ctx, {
+      name: 'Usine Dupont',
+      adminEmail: 'alice@example.org',
+    });
+    const alice = new TestClient(ctx);
+    await alice.signUpAndVerify('Alice', 'alice@example.org');
+    // Better Auth refuse ce détail : l'opérateur n'est pas membre de l'organisation.
+    const details = await alice.get(`/api/invitations/${sent.id}`);
+    expect(details.statusCode).toBe(200);
+    expect(details.json()).toEqual({
+      id: sent.id,
+      organisationName: 'Usine Dupont',
+      inviterName: ctx.config.OPERATOR_NAME,
+      role: 'admin',
+    });
+
+    const other = new TestClient(ctx);
+    await provisionOrganisation(ctx, { name: 'Autre', adminEmail: 'carol@example.org' });
+    await other.signUpAndVerify('Carol', 'carol@example.org');
+    expect((await other.get(`/api/invitations/${sent.id}`)).statusCode).toBe(404);
+    expect((await new TestClient(ctx).get(`/api/invitations/${sent.id}`)).statusCode).toBe(401);
+  });
+
   it("l'opérateur qui envoie les invitations ne peut pas se connecter", async () => {
     await provisionOrganisation(ctx, { name: 'Usine', adminEmail: 'alice@example.org' });
     const response = await new TestClient(ctx).post('/api/auth/sign-in/email', {

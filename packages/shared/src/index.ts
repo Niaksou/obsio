@@ -5,3 +5,4 @@ export * from './extraction.js';
 export * from './storage.js';
 export * from './equipment.js';
 export * from './premises.js';
+export * from './invitations.js';

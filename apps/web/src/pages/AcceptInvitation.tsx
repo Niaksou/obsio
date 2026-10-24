@@ -1,13 +1,9 @@
+import type { InvitationDetails } from '@obsio/shared';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { authClient, errorMessage } from '../auth-client.js';
+import { api } from '../api.js';
+import { authClient } from '../auth-client.js';
 import { useSubmit } from '../components/useSubmit.js';
-
-interface InvitationDetails {
-  organizationName: string;
-  inviterEmail: string;
-  role: string;
-}
 
 export function AcceptInvitation() {
   const { id = '' } = useParams();
@@ -41,10 +37,7 @@ function InvitationForSession({ invitationId }: { invitationId: string }) {
   const { pending, error, run } = useSubmit();
 
   useEffect(() => {
-    void authClient.organization.getInvitation({ query: { id: invitationId } }).then((result) => {
-      if (result.data) setDetails(result.data);
-      else setLoadError(errorMessage(result.error));
-    });
+    api.invitation(invitationId).then(setDetails, (error: Error) => setLoadError(error.message));
   }, [invitationId]);
 
   async function accept() {
@@ -65,9 +58,9 @@ function InvitationForSession({ invitationId }: { invitationId: string }) {
 
   return (
     <div className="card">
-      <h1>Rejoindre {details.organizationName}</h1>
+      <h1>Rejoindre {details.organisationName}</h1>
       <p>
-        {details.inviterEmail} vous invite à rejoindre l'organisation en tant que{' '}
+        {details.inviterName} vous invite à rejoindre l'organisation en tant que{' '}
         {details.role === 'admin' ? 'administrateur' : 'membre'}.
       </p>
       {error && <p className="error">{error}</p>}
