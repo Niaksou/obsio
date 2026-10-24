@@ -1,0 +1,20 @@
+# Dépendances et builds
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# Environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Rapports PDF réels (ne jamais versionner)
+fixtures/reports/
+
+# Système et éditeurs
+.DS_Store
+*.log
+.idea/
