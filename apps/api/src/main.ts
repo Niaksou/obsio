@@ -1,12 +1,13 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createDatabase } from './db/client.js';
+import { createSmtpSender } from './email/sender.js';
 import { createRedis } from './redis.js';
 
 const config = loadConfig();
-const { pool } = createDatabase(config.DATABASE_URL);
+const { pool, db } = createDatabase(config.DATABASE_URL);
 const redis = createRedis(config.REDIS_URL);
-const app = await buildApp({ config, pool, redis });
+const app = await buildApp({ config, pool, db, redis, emailSender: createSmtpSender(config) });
 
 async function shutdown(signal: string) {
   app.log.info(`${signal} reçu, arrêt en cours`);

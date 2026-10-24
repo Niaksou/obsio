@@ -15,6 +15,13 @@
       "when": 1792852815385,
       "tag": "0001_organisation_site",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792853000668,
+      "tag": "0002_auth",
+      "breakpoints": true
     }
   ]
 }

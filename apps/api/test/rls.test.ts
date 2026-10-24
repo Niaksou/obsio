@@ -71,6 +71,11 @@ describe('Row Level Security', () => {
   });
 });
 
+// Tables internes de Better Auth : il les interroge sans organisation posée (par exemple pour
+// lister les organisations d'un utilisateur). L'application n'y accède que via Better Auth et
+// findMembership. Toute autre table portant organisation_id doit être protégée par la RLS.
+const AUTH_TABLES = ['member', 'invitation'];
+
 describe('Garde-fous de la base', () => {
   it("le rôle de l'application ne contourne pas la RLS", async () => {
     const { rows } = await db.execute<{ rolsuper: boolean; rolbypassrls: boolean }>(
@@ -96,8 +101,11 @@ describe('Garde-fous de la base', () => {
       join pg_attribute a on a.attrelid = c.oid and a.attname = 'organisation_id'
       where c.relkind = 'r'
     `);
-    expect(rows.length).toBeGreaterThan(0);
-    const unprotected = rows.filter((row) => !row.rls || !row.forced || row.policies === 0);
+    const businessTables = rows.filter((row) => !AUTH_TABLES.includes(row.table));
+    expect(businessTables.length).toBeGreaterThan(0);
+    const unprotected = businessTables.filter(
+      (row) => !row.rls || !row.forced || row.policies === 0,
+    );
     expect(unprotected).toEqual([]);
   });
 });
