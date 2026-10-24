@@ -1,9 +1,10 @@
-import { nodeEnvSchema, parseEnv, redisEnvSchema } from '@obsio/shared';
+import { nodeEnvSchema, parseEnv, redisEnvSchema, s3EnvSchema } from '@obsio/shared';
 import { z } from 'zod';
 
 const workerEnvSchema = z.object({
   ...nodeEnvSchema.shape,
   ...redisEnvSchema.shape,
+  ...s3EnvSchema.shape,
   WORKER_CONCURRENCY: z.coerce.number().int().positive().default(2),
   // Extraction : versions figées, à ne changer qu'après un passage du jeu de test.
   MISTRAL_API_KEY: z.string().min(1).optional(),

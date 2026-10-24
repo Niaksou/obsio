@@ -1,5 +1,6 @@
 import { pino } from 'pino';
 import { loadConfig } from './config.js';
+import { createS3Storage } from './storage.js';
 import { startWorker } from './worker.js';
 
 const config = loadConfig();
@@ -8,7 +9,9 @@ const logger = pino(
     ? { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss' } } }
     : {},
 );
-const { worker, close } = startWorker(config, logger);
+const storage = createS3Storage(config);
+if (config.NODE_ENV === 'development') await storage.ensureBucket();
+const { worker, close } = startWorker(config, logger, { storage });
 await worker.waitUntilReady();
 logger.info('Worker démarré');
 

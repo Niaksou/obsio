@@ -1,4 +1,6 @@
-import type { ProviderReport } from '@obsio/shared';
+import type { ExtractionTrace, ProviderReport } from '@obsio/shared';
+
+export type { ExtractionTrace };
 
 /** Texte d'un rapport après OCR, page par page (pages numérotées à partir de 1). */
 export interface OcrDocument {
@@ -6,18 +8,6 @@ export interface OcrDocument {
   pages: { number: number; markdown: string }[];
   /** Réponse brute du service d'OCR, conservée pour la traçabilité. */
   raw: unknown;
-}
-
-/** Ce qu'il faut stocker avec chaque extraction (règle de traçabilité de la spec). */
-export interface ExtractionTrace {
-  provider: string;
-  ocrModel: string;
-  extractionModel: string;
-  promptVersion: string;
-  attempts: number;
-  /** Dernière sortie brute du modèle, telle que reçue. */
-  rawOutput: string;
-  usage: { ocrPages: number; promptTokens: number; completionTokens: number };
 }
 
 export interface ExtractionResult {

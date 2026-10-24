@@ -121,7 +121,7 @@ Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité
 
 L'extraction propose, l'utilisateur valide : aucune réserve ne devient active sans relecture humaine.
 
-1. **Dépôt.** L'API stocke le PDF, crée un `ImportRapport` au statut `en_analyse` et enfile une tâche BullMQ.
+1. **Dépôt.** L'API stocke le PDF sous `organisations/{organisation}/imports/{import}/rapport.pdf` (`reportImportKeys`), crée un `ImportRapport` au statut `en_analyse` et enfile une tâche BullMQ `extract-report`.
 2. **OCR.** Le worker appelle Mistral OCR avec une version de modèle figée (OCR 4 ou plus, pour les blocs classés et leurs positions dans la page). Sortie : markdown par page, tableaux en HTML, blocs positionnés.
 3. **Extraction.** Le texte part vers un modèle Mistral en sortie structurée (schéma JSON). Sortie : en-tête du rapport (organisme, date, site) et liste des réserves.
 4. **Validation technique.** Zod valide le JSON ; en cas d'échec, une nouvelle tentative, puis statut `erreur` visible par l'utilisateur.
@@ -150,6 +150,7 @@ Le contrat de sortie est `extractedReportSchema` (`packages/shared/src/extractio
 
 - Chaque extraction garde la version du modèle OCR, du modèle d'extraction, du prompt, et la sortie brute.
 - Le fournisseur est derrière une interface `ExtractionProvider` pour pouvoir en changer.
+- Le worker range à côté du PDF le résultat de l'OCR (`ocr.json`, réutilisé si la tâche est relancée, car l'OCR est facturé à la page) et le résultat de l'extraction (`extraction.json`, validé par `extractionOutcomeSchema` : rapport ou erreur, avec la traçabilité). Une sortie qui reste invalide après le nouvel essai n'est pas relancée ; les erreurs réseau ou de quota le sont.
 - Un jeu de test de vrais rapports anonymisés, issus de plusieurs organismes de contrôle, avec le résultat attendu, est passé à chaque changement de modèle ou de prompt.
 - Toute extraction corrigée à la main par un utilisateur est candidate au jeu de test.
 
@@ -244,8 +245,8 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 - [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 9 rapports publics (préfectures, communes) de 8 organismes, tous en PDF texte ; il manque au moins un rapport scanné
 - [ ] Écrire le résultat attendu pour chacun (pré-rempli, 93 réserves, à relire)
-- [ ] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod
-- [ ] Script d'évaluation qui compare extraction et résultat attendu
+- [x] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod (tâche `extract-report`, testée avec un faux fournisseur ; l'enregistrement en base vient en J3)
+- [ ] Script d'évaluation qui compare extraction et résultat attendu (écrit, pas encore lancé : l'offre gratuite de Mistral n'ouvre ni l'OCR ni mistral-medium)
 - [ ] Critère de sortie : taux de réserves correctement extraites jugé suffisant pour une relecture rapide
 
 **J2 — Sites, plans, équipements**

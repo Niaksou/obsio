@@ -52,3 +52,37 @@ export const providerReportSchema = extractedReportSchema.extend({
   reserves: z.array(extractedReserveSchema.extend({ confiance: z.number().min(0).max(1) })),
 });
 export type ProviderReport = z.infer<typeof providerReportSchema>;
+
+/** Ce qu'il faut stocker avec chaque extraction (règle de traçabilité de la spec). */
+export const extractionTraceSchema = z.object({
+  provider: z.string(),
+  ocrModel: z.string(),
+  extractionModel: z.string(),
+  promptVersion: z.string(),
+  attempts: z.number().int().nonnegative(),
+  /** Dernière sortie brute du modèle, telle que reçue. */
+  rawOutput: z.string(),
+  usage: z.object({
+    ocrPages: z.number().int().nonnegative(),
+    promptTokens: z.number().int().nonnegative(),
+    completionTokens: z.number().int().nonnegative(),
+  }),
+});
+export type ExtractionTrace = z.infer<typeof extractionTraceSchema>;
+
+/** Résultat d'une extraction, rangé par le worker à côté du PDF (relu par l'API en J3). */
+export const extractionOutcomeSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('success'),
+    finishedAt: z.iso.datetime(),
+    report: providerReportSchema,
+    trace: extractionTraceSchema,
+  }),
+  z.object({
+    status: z.literal('error'),
+    finishedAt: z.iso.datetime(),
+    error: z.string(),
+    trace: extractionTraceSchema,
+  }),
+]);
+export type ExtractionOutcome = z.infer<typeof extractionOutcomeSchema>;

@@ -43,7 +43,7 @@ jobs:
       - name: Services (PostgreSQL, Redis)
         run: |
           cp .env.example .env
-          docker compose up -d --wait postgres redis
+          docker compose up -d --wait postgres redis storage
 
       - name: Tests
         run: pnpm test
