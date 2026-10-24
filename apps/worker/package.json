@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "fixtures:check": "tsx --conditions=source eval/check-fixtures.ts"
   },
   "dependencies": {
     "@obsio/shared": "workspace:*",

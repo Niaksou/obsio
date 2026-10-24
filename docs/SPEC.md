@@ -136,12 +136,15 @@ L'extraction propose, l'utilisateur valide : aucune réserve ne devient active s
 | --- | --- | --- |
 | `reference` | Obs. 12 | Retrouver la réserve dans le rapport papier |
 | `article_reglementaire` | référence du texte cité | Affichage, filtre |
-| `description` | Absence de différentiel 30 mA sur le circuit prises | Texte principal |
+| `description` | Absence de différentiel 30 mA sur le circuit prises | Texte principal (le constat) |
+| `preconisation` | A remplacer par un interrupteur de calibre 63 A | Ce que l'électricien doit faire |
 | `localisation_texte` | TD2 atelier, départ 4 | Proposition d'équipement |
 | `gravite` | à traiter rapidement | Tri, échéance par défaut |
-| `nouvelle_ou_reconduite` | reconduite | Indicateur du tableau de bord |
+| `nouvelle_ou_reconduite` | reconduite | Indicateur du tableau de bord ; lu dans le rapport quand l'organisme le marque (colonne « déjà signalée », astérisque, date de premier signalement, gras, badge) |
 | `page_source` + blocs | page 7 | Surlignage dans le PDF |
 | `confiance` | 0,86 | Mise en avant à la relecture |
+
+Le contrat de sortie est `extractedReportSchema` (`packages/shared/src/extraction.ts`) et les règles de saisie sont dans `docs/extraction-conventions.md`, qui sert aussi au prompt.
 
 **Traçabilité et qualité**
 
@@ -239,8 +242,8 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
-- [ ] Récupérer 5 à 10 rapports réels anonymisés, de plusieurs organismes
-- [ ] Écrire le résultat attendu pour chacun
+- [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 9 rapports publics (préfectures, communes) de 8 organismes, tous en PDF texte ; il manque au moins un rapport scanné
+- [ ] Écrire le résultat attendu pour chacun (pré-rempli, 93 réserves, à relire)
 - [ ] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod
 - [ ] Script d'évaluation qui compare extraction et résultat attendu
 - [ ] Critère de sortie : taux de réserves correctement extraites jugé suffisant pour une relecture rapide
