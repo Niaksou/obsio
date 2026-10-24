@@ -5,6 +5,6 @@ export default defineConfig({
   plugins: [react()],
   // Les variables VITE_* sont lues dans le .env à la racine du monorepo.
   envDir: '../..',
-  resolve: { conditions: ['source'] },
+  resolve: { conditions: ['@obsio/source'] },
   server: { port: 5173, strictPort: true },
 });

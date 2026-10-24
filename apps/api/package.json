@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --conditions=source --env-file-if-exists=../../.env src/main.ts",
+    "dev": "tsx watch --conditions=@obsio/source --env-file-if-exists=../../.env src/main.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=../../.env dist/main.js",
     "typecheck": "tsc --noEmit",
@@ -12,7 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "org:create": "tsx --conditions=source --env-file-if-exists=../../.env src/cli/create-organisation.ts"
+    "org:create": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/create-organisation.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",

@@ -5,12 +5,12 @@
   "type": "module",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
+      "@obsio/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./permissions": {
-      "source": "./src/permissions.ts",
+      "@obsio/source": "./src/permissions.ts",
       "types": "./dist/permissions.d.ts",
       "default": "./dist/permissions.js"
     }

@@ -8,8 +8,8 @@ try {
 }
 
 export default defineConfig({
-  resolve: { conditions: ['source'] },
-  ssr: { resolve: { conditions: ['source'] } },
+  resolve: { conditions: ['@obsio/source'] },
+  ssr: { resolve: { conditions: ['@obsio/source'] } },
   test: {
     env: { NODE_ENV: 'test' },
     // Les tests partagent une même base : on les exécute un fichier à la fois.
