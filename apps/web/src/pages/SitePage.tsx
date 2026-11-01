@@ -5,6 +5,7 @@ import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
 import { ImportsSection } from '../imports/ImportsSection.js';
+import { SiteInspections } from '../inspections/SiteInspections.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { SiteDashboard } from '../reserves/SiteDashboard.js';
@@ -51,6 +52,7 @@ export function SitePage() {
       </div>
       <MutationError error={archive.error} />
       <SiteDashboard siteId={siteId} />
+      <SiteInspections siteId={siteId} isAdmin={isAdmin} />
 
       {buildings.data?.length === 0 && (
         <p className="empty">

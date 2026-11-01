@@ -1,6 +1,4 @@
-import { Queue, Worker } from 'bullmq';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
-import type { Redis } from 'ioredis';
 import type { ApiConfig } from '../config.js';
 import { withOrganisation, type Database } from '../db/client.js';
 import { organisation, reserve, site } from '../db/schema/index.js';
@@ -12,8 +10,6 @@ import { notSuperseded, today } from './queries.js';
 // Relances de retard : chaque matin, les admins reçoivent pour chaque site le nombre de réserves
 // en retard, le jour où une réserve dépasse son échéance, et chaque lundi en récapitulatif.
 
-const NOTIFICATIONS_QUEUE = 'notifications';
-
 function previousDay(day: string) {
   const date = new Date(`${day}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() - 1);
@@ -24,14 +20,14 @@ function isMonday(day: string) {
   return new Date(`${day}T12:00:00Z`).getUTCDay() === 1;
 }
 
-interface Deps {
+export interface NotificationDeps {
   db: Database;
   emailSender: EmailSender;
   config: Pick<ApiConfig, 'WEB_URL'>;
 }
 
 /** Envoie les relances du jour ; renvoie le nombre d'e-mails partis. */
-export async function sendOverdueNotices(deps: Deps, on = today()): Promise<number> {
+export async function sendOverdueNotices(deps: NotificationDeps, on = today()): Promise<number> {
   const yesterday = previousDay(on);
   const weekly = isMonday(on);
   // La table des organisations n'est pas cloisonnée : c'est le seul parcours inter-clients.
@@ -78,35 +74,4 @@ export async function sendOverdueNotices(deps: Deps, on = today()): Promise<numb
     }
   }
   return sent;
-}
-
-/**
- * Planifie la relance chaque jour à 8 h (heure de Paris). Le planificateur BullMQ ne crée qu'une
- * tâche par échéance, même avec plusieurs instances de l'API.
- */
-export async function scheduleOverdueNotices(
-  connection: Redis,
-  deps: Deps,
-  log: { error: (obj: object, msg: string) => void; info: (msg: string) => void },
-) {
-  const queue = new Queue(NOTIFICATIONS_QUEUE, { connection });
-  await queue.upsertJobScheduler(
-    'overdue-daily',
-    { pattern: '0 8 * * *', tz: 'Europe/Paris' },
-    { name: 'overdue-notices', opts: { removeOnComplete: 30, removeOnFail: 30 } },
-  );
-  const worker = new Worker(
-    NOTIFICATIONS_QUEUE,
-    async () => {
-      const sent = await sendOverdueNotices(deps);
-      log.info(`Relances de retard : ${sent} e-mail(s) envoyé(s)`);
-    },
-    { connection: connection.duplicate() },
-  );
-  worker.on('failed', (_job, error) => log.error({ err: error }, 'Relances de retard en échec'));
-  return {
-    async close() {
-      await Promise.all([worker.close(), queue.close()]);
-    },
-  };
 }

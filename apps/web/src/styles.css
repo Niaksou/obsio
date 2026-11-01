@@ -1925,3 +1925,113 @@ label.check input {
     border-bottom: 1px solid var(--line);
   }
 }
+
+/* --- Échéancier des vérifications */
+
+.inspections {
+  margin-top: 32px;
+}
+
+.inspections h2 {
+  margin-bottom: 8px;
+}
+
+.inspection-row {
+  padding: 12px 8px;
+}
+
+.inspection-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+
+.inspection-summary .row-meta {
+  flex-basis: 100%;
+  font-size: 0.875rem;
+}
+
+.inspection-summary button {
+  margin-left: auto;
+}
+
+.inspection-row.disabled .row-title,
+.inspection-row.disabled .inspection-next {
+  color: var(--muted);
+}
+
+.inspection-form {
+  margin-top: 12px;
+  max-width: 640px;
+}
+
+.inspection-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.inspection-status .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--muted);
+}
+
+.inspection-status-a_jour .swatch {
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
+.inspection-status-programmee .swatch {
+  background: var(--action);
+  border-color: var(--action);
+}
+
+.inspection-status-a_programmer,
+.inspection-status-rapport_attendu {
+  color: var(--pending);
+}
+
+.inspection-status-a_programmer .swatch,
+.inspection-status-rapport_attendu .swatch {
+  background: var(--pending);
+  border-color: var(--pending);
+}
+
+.inspection-status-en_retard {
+  color: var(--danger);
+}
+
+.inspection-status-en_retard .swatch {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.inspection-status-inconnue,
+.inspection-status-desactivee {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.inspection-group {
+  margin-top: 28px;
+}
+
+.inspection-group h2 {
+  margin-bottom: 8px;
+}
+
+.inspection-group .count {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.inspection-group .row-link .row-meta {
+  flex-basis: 100%;
+  font-size: 0.875rem;
+}

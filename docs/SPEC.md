@@ -74,7 +74,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 - Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Elle utilisera le niveau et l'échelle des étages.
 - Import BIM (IFC) et détection automatique des murs.
 - Autres vérifications périodiques : incendie, levage, gaz, portes automatiques.
-- Planning des prochaines visites et relances de l'organisme de contrôle.
+- Planning des prochaines visites et relances de l'organisme de contrôle : livré après J6 (voir « Après le MVP »).
 - Facturation en libre-service, multi-langue, API publique, SSO.
 
 ## Architecture technique
@@ -178,6 +178,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `Assignation` | réserves, intervenant, échéance, jeton signé, expiration | donne accès aux réserves assignées |
 | `Preuve` | photo(s), commentaire, date, auteur | jointe à une réserve |
 | `Evenement` | type, auteur, date, avant/après | journal d'audit de chaque réserve |
+| `EcheancierVerification` | type (`periodique`, `q18`, `q19`), suivie ou non, périodicité en mois, visite programmée, contact de l'organisme | un par site et par type ; la dernière visite vient des rapports validés (table `inspection_plan`) |
 
 **Règles notables**
 
@@ -308,6 +309,16 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Export PDF du dossier de preuves (généré par l'API avec pdfkit, filtrable par origine et limité aux réserves levées si besoin)
 - [x] Notifications de retard
 - [ ] Bêta privée avec 2 ou 3 sites réels
+
+**Après le MVP — Échéancier des vérifications**
+
+- [x] Prochaine visite par site et par type (vérification périodique du Code du travail, Q18, Q19) : dernière visite d'après les rapports validés, plus la périodicité ; visite programmée et contact de l'organisme saisis par l'admin ; page « Vérifications » pour tous les sites et section sur la page du site
+- [x] Relances e-mail aux admins, avec les relances de retard de 8 h
+- Décisions prises, à relire (règles par défaut, faute de règle métier confirmée) :
+  - Périodicité proposée : 12 mois pour les trois types, réglable de 1 à 60 mois par site. Un type peut être « non suivi » (par exemple un Q19 que l'assureur n'exige pas).
+  - La vérification initiale fait partir l'échéance de la périodique. Seuls les rapports validés et datés comptent.
+  - États : à jour ; à programmer (échéance à 60 jours ou moins, sans visite programmée) ; programmée ; rapport à importer (visite programmée passée sans rapport plus récent) ; en retard ; aucun rapport. Une visite programmée ne compte plus dès qu'un rapport plus récent est validé.
+  - Relances à jour fixe, sans suivi des envois : 60 et 30 jours avant l'échéance sans visite programmée, le lendemain de l'échéance, 7 jours avant une visite programmée (avec le nombre de réserves de ce type encore en cours, qui seront reconduites) et 7 jours après si le rapport n'est pas importé. Aucun e-mail à l'organisme lui-même.
 
 ## Risques et questions ouvertes
 

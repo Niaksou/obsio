@@ -8,3 +8,4 @@ export * from './premises.js';
 export * from './invitations.js';
 export * from './reports.js';
 export * from './reserves.js';
+export * from './inspections.js';

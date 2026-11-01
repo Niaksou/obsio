@@ -5,7 +5,7 @@ import { createSmtpSender } from './email/sender.js';
 import { ingestImport } from './imports/ingest.js';
 import { createExtractionQueue } from './imports/queue.js';
 import { createRedis } from './redis.js';
-import { scheduleOverdueNotices } from './reserves/overdue.js';
+import { scheduleDailyNotifications } from './notifications.js';
 import { createStorage } from './storage.js';
 
 const config = loadConfig();
@@ -31,12 +31,12 @@ queue.watch(({ organisationId, importId }) => {
   );
 });
 
-const overdue = await scheduleOverdueNotices(redis, { db, emailSender, config }, app.log);
+const notifications = await scheduleDailyNotifications(redis, { db, emailSender, config }, app.log);
 
 async function shutdown(signal: string) {
   app.log.info(`${signal} reçu, arrêt en cours`);
   await app.close();
-  await Promise.all([queue.close(), overdue.close()]);
+  await Promise.all([queue.close(), notifications.close()]);
   await Promise.all([pool.end(), redis.quit()]);
   storage.close();
   process.exit(0);

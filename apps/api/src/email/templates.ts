@@ -129,3 +129,61 @@ function formatDate(iso: string) {
     year: 'numeric',
   });
 }
+
+export type InspectionReminder = 'a_programmer' | 'en_retard' | 'visite' | 'rapport';
+
+export function inspectionReminderEmail(
+  to: string,
+  data: {
+    organisationName: string;
+    siteName: string;
+    kindLabel: string;
+    reminder: InspectionReminder;
+    /** Échéance, ou date de la visite programmée pour « visite » et « rapport ». */
+    date: string;
+    /** Réserves en cours issues de ce type de vérification (pour « visite »). */
+    openReserves: number;
+    url: string;
+  },
+): Email {
+  const where = `${data.kindLabel}, site ${data.siteName} (${data.organisationName})`;
+  const day = formatDate(data.date);
+  const n = data.openReserves;
+  const content = {
+    a_programmer: {
+      subject: `${data.siteName} : vérification à programmer avant le ${day}`,
+      lines: [
+        `${where} : la prochaine visite est attendue avant le ${day}.`,
+        "Contactez l'organisme de contrôle pour convenir d'une date, puis notez-la dans Obsio.",
+      ],
+    },
+    en_retard: {
+      subject: `${data.siteName} : vérification en retard`,
+      lines: [
+        `${where} : l'échéance du ${day} est dépassée et aucune visite n'est programmée.`,
+        "Contactez l'organisme de contrôle au plus vite.",
+      ],
+    },
+    visite: {
+      subject: `${data.siteName} : visite de l'organisme le ${day}`,
+      lines: [
+        `${where} : l'organisme de contrôle vient le ${day}.`,
+        n > 0
+          ? `${n} réserve${n > 1 ? 's' : ''} relevée${n > 1 ? 's' : ''} lors de la visite précédente ${n > 1 ? 'sont' : 'est'} encore en cours : sans correction d'ici là, ${n > 1 ? 'elles seront reconduites' : 'elle sera reconduite'}.`
+          : 'Toutes les réserves de la visite précédente sont corrigées.',
+      ],
+    },
+    rapport: {
+      subject: `${data.siteName} : rapport de vérification à importer`,
+      lines: [
+        `${where} : la visite était prévue le ${day}.`,
+        "Importez le rapport dès que l'organisme l'envoie, pour suivre les nouvelles réserves.",
+      ],
+    },
+  }[data.reminder];
+  return {
+    to,
+    subject: content.subject,
+    ...layout(['Bonjour,', ...content.lines], { label: 'Voir les vérifications', url: data.url }),
+  };
+}

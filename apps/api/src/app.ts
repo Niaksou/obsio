@@ -16,6 +16,7 @@ import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import type { ExtractionQueue } from './imports/queue.js';
 import { dashboardRoutes } from './routes/dashboard.js';
+import { inspectionRoutes } from './routes/inspections.js';
 import { healthRoutes } from './routes/health.js';
 import { importRoutes } from './routes/imports.js';
 import { interventionRoutes } from './routes/intervention.js';
@@ -96,6 +97,7 @@ export async function buildApp({
   await app.register(reserveRoutes, { db, guards, storage, emailSender, config });
   await app.register(interventionRoutes, { db, storage, emailSender, config });
   await app.register(dashboardRoutes, { db, guards, storage });
+  await app.register(inspectionRoutes, { db, guards });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

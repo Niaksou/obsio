@@ -43,6 +43,13 @@
       "when": 1793549458488,
       "tag": "0005_interventions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793559323290,
+      "tag": "0006_inspections",
+      "breakpoints": true
     }
   ]
 }

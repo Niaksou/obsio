@@ -18,6 +18,9 @@ export const keys = {
   reserves: (siteId: string, filters: object) => ['sites', siteId, 'reserves', filters] as const,
   reserve: (id: string) => ['reserves', id] as const,
   dashboard: (siteId: string) => ['sites', siteId, 'reserves', 'dashboard'] as const,
+  /** Échéancier de toute l'organisation ; celui d'un site est une sous-clé. */
+  inspections: ['inspections'] as const,
+  siteInspections: (siteId: string) => ['inspections', siteId] as const,
   contractors: ['contractors'] as const,
   intervention: (token: string) => ['intervention', token] as const,
 };

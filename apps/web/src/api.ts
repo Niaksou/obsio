@@ -31,6 +31,9 @@ import {
   type ReserveFilters,
   type ReserveUpdate,
   type SiteInput,
+  inspectionSchema,
+  type InspectionKind,
+  type UpdateInspection,
 } from '@obsio/shared';
 import { memberRoleSchema } from '@obsio/shared';
 import { z } from 'zod';
@@ -152,6 +155,11 @@ export const api = {
 
   dashboard: (siteId: string) =>
     request(siteDashboardSchema, 'GET', `/api/sites/${siteId}/dashboard`),
+  inspections: () => request(z.array(inspectionSchema), 'GET', '/api/inspections'),
+  siteInspections: (siteId: string) =>
+    request(z.array(inspectionSchema), 'GET', `/api/sites/${siteId}/inspections`),
+  updateInspection: (siteId: string, kind: InspectionKind, input: UpdateInspection) =>
+    request(inspectionSchema, 'PUT', `/api/sites/${siteId}/inspections/${kind}`, input),
 
   contractors: () => request(z.array(contractorSchema), 'GET', '/api/contractors'),
   createContractor: (input: ContractorInput) =>
