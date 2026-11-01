@@ -159,7 +159,7 @@ describe("Plan d'un étage", () => {
       width: 2000,
       height: 1400,
     });
-    expect(confirmed.json().plan).toEqual({ width: 2000, height: 1400 });
+    expect(confirmed.json().plan).toEqual({ width: 2000, height: 1400, scale: null });
 
     const detail = (await membre.get(`/api/floors/${floorId}`)).json();
     expect(detail).toMatchObject({
@@ -217,5 +217,42 @@ describe("Plan d'un étage", () => {
     ).json();
     const absent = { imageKey: notSent.key, sourceKey: null, width: 10, height: 10 };
     expect((await admin.put(`/api/floors/${floorId}/plan`, absent)).statusCode).toBe(400);
+  });
+
+  it("l'admin calibre l'échelle du plan ; remplacer le plan l'efface", async () => {
+    const { floorId } = await createFloor();
+    const scale = (body: object, client = admin, id = floorId) =>
+      client.put(`/api/floors/${id}/plan/scale`, body);
+    // Pas encore de plan : rien à calibrer.
+    expect((await scale({ scale: 0.02 })).statusCode).toBe(404);
+
+    const confirmPlan = async () => {
+      const { image } = (
+        await admin.post(`/api/floors/${floorId}/plan/uploads`, {
+          source: null,
+          image: { contentType: 'image/png', size: png.length },
+        })
+      ).json();
+      expect((await upload(image, png, 'image/png')).ok).toBe(true);
+      return admin.put(`/api/floors/${floorId}/plan`, {
+        imageKey: image.key,
+        sourceKey: null,
+        width: 2000,
+        height: 1400,
+      });
+    };
+    await confirmPlan();
+
+    const calibrated = await scale({ scale: 0.0125 });
+    expect(calibrated.statusCode).toBe(200);
+    expect(calibrated.json().plan).toEqual({ width: 2000, height: 1400, scale: 0.0125 });
+    expect((await membre.get(`/api/floors/${floorId}`)).json().plan.scale).toBe(0.0125);
+
+    expect((await scale({ scale: 0.01 }, membre)).statusCode).toBe(403);
+    expect((await scale({ scale: -1 })).statusCode).toBe(400);
+    const other = await openClient('Usine Martin', 'Chloé', 'chloe@martin.fr');
+    expect((await scale({ scale: 0.5 }, other.admin)).statusCode).toBe(404);
+
+    expect((await confirmPlan()).json().plan.scale).toBeNull();
   });
 });

@@ -6,6 +6,7 @@ import {
   equipmentUpdateSchema,
   floorDetailSchema,
   floorInputSchema,
+  planScaleSchema,
   floorPlanPrefix,
   floorSchema,
   PLAN_IMAGE_MAX_BYTES,
@@ -19,7 +20,7 @@ import {
   siteSchema,
   type PlanPosition,
 } from '@obsio/shared';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -49,7 +50,7 @@ const toFloor = (row: FloorRow) => ({
   level: row.level,
   plan:
     row.planImageKey && row.planWidth && row.planHeight
-      ? { width: row.planWidth, height: row.planHeight }
+      ? { width: row.planWidth, height: row.planHeight, scale: row.scale }
       : null,
 });
 const toEquipment = (row: EquipmentRow) => ({
@@ -397,11 +398,41 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
             planSourceKey: sourceKey,
             planWidth: width,
             planHeight: height,
+            // Une autre image n'a pas la même échelle : à recalibrer.
+            scale: null,
           })
           .where(and(eq(floor.id, request.params.id), isNull(floor.archivedAt)))
           .returning(),
       );
       return row ? toFloor(row) : missing(reply, 'Étage');
+    },
+  );
+
+  app.put(
+    '/api/floors/:id/plan/scale',
+    {
+      preHandler: admin,
+      schema: {
+        params: idParams,
+        body: planScaleSchema,
+        response: { 200: floorSchema, ...notFound },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await scoped(request, (tx) =>
+        tx
+          .update(floor)
+          .set({ scale: request.body.scale })
+          .where(
+            and(
+              eq(floor.id, request.params.id),
+              isNull(floor.archivedAt),
+              isNotNull(floor.planImageKey),
+            ),
+          )
+          .returning(),
+      );
+      return row ? toFloor(row) : missing(reply, 'Plan de l’étage');
     },
   );
 

@@ -12,12 +12,12 @@ export interface SceneFloor {
   id: string;
   name: string;
   level: number;
-  plan: { imageUrl: string; width: number; height: number } | null;
+  /** `scale` : mètres par pixel de l'image, si l'échelle de l'étage est calibrée. */
+  plan: { imageUrl: string; width: number; height: number; scale: number | null } | null;
   equipment: { id: string; name: string; position: { x: number; y: number } }[];
 }
 
-/** Largeur commune des plans en unités de scène (environ des mètres), tant que l'échelle
- * des étages n'est pas calibrée. */
+/** Largeur commune des plans, en mètres, tant que l'échelle des étages n'est pas calibrée. */
 const PLAN_WIDTH = 40;
 const STOREY_HEIGHT = 4;
 
@@ -46,16 +46,21 @@ export function readSceneColors(): SceneColors {
   };
 }
 
-/** Dimensions au sol d'un étage, dans les proportions de l'image de son plan. */
-function footprints(floors: SceneFloor[]) {
+/**
+ * Dimensions au sol de chaque étage, dans les proportions de l'image de son plan : en vrais
+ * mètres si tous les plans sont calibrés, sinon à une largeur commune (des échelles mêlées
+ * donneraient des étages incomparables).
+ */
+export function footprints(floors: SceneFloor[]) {
+  const plans = floors.flatMap((f) => (f.plan ? [f.plan] : []));
+  const calibrated = plans.length > 0 && plans.every((plan) => plan.scale);
+  const widest = calibrated ? Math.max(...plans.map((p) => p.width * p.scale!)) : PLAN_WIDTH;
   return new Map(
-    floors.map((f) => [
-      f.id,
-      {
-        width: PLAN_WIDTH,
-        depth: f.plan ? (PLAN_WIDTH * f.plan.height) / f.plan.width : PLAN_WIDTH * 0.6,
-      },
-    ]),
+    floors.map((f) => {
+      if (!f.plan) return [f.id, { width: widest, depth: widest * 0.6 }];
+      const width = calibrated ? f.plan.width * f.plan.scale! : PLAN_WIDTH;
+      return [f.id, { width, depth: (width * f.plan.height) / f.plan.width }];
+    }),
   );
 }
 
@@ -79,6 +84,8 @@ export function BuildingScene({
 }) {
   const sizes = useMemo(() => footprints(floors), [floors]);
   const span = Math.max(...[...sizes.values()].map((s) => Math.max(s.width, s.depth)), 10);
+  // Repères à la même taille apparente, que le bâtiment fasse 15 ou 150 m.
+  const markerSize = Math.max(...[...sizes.values()].map((s) => s.width)) / PLAN_WIDTH;
   const levels = floors.map((f) => f.level);
   const middle = ((Math.min(...levels) + Math.max(...levels)) / 2) * STOREY_HEIGHT * spread;
 
@@ -99,6 +106,7 @@ export function BuildingScene({
           size={sizes.get(floor.id)!}
           y={floor.level * STOREY_HEIGHT * spread}
           dimmed={focusedFloorId !== null && focusedFloorId !== floor.id}
+          markerSize={markerSize}
           badges={badges}
           colors={colors}
           selectedId={selectedId}
@@ -163,6 +171,7 @@ function FloorSlab({
   size,
   y,
   dimmed,
+  markerSize,
   badges,
   colors,
   selectedId,
@@ -172,6 +181,7 @@ function FloorSlab({
   size: { width: number; depth: number };
   y: number;
   dimmed: boolean;
+  markerSize: number;
   badges: Map<string, ReserveBadge>;
   colors: SceneColors;
   selectedId: string | null;
@@ -209,6 +219,7 @@ function FloorSlab({
               0,
               (item.position.y - 0.5) * size.depth,
             ]}
+            size={markerSize}
             badge={badges.get(item.id)}
             colors={colors}
             selected={item.id === selectedId}
@@ -224,12 +235,14 @@ function FloorSlab({
 
 function Marker({
   position,
+  size,
   badge,
   colors,
   selected,
   onSelect,
 }: {
   position: [number, number, number];
+  size: number;
   badge: ReserveBadge | undefined;
   colors: SceneColors;
   selected: boolean;
@@ -243,6 +256,7 @@ function Marker({
   return (
     <group
       position={position}
+      scale={size}
       onClick={onSelect}
       onPointerOver={(event) => {
         event.stopPropagation();

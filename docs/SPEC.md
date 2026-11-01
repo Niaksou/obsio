@@ -71,7 +71,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 
 **Hors MVP (plus tard)**
 
-- Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Première version livrée après J6 (voir « Après le MVP ») ; l'échelle des étages viendra avec leur calibrage.
+- Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Livrée après J6, avec le calibrage de l'échelle des étages (voir « Après le MVP »).
 - Import BIM (IFC) et détection automatique des murs.
 - Autres vérifications périodiques : incendie, levage, gaz, portes automatiques.
 - Planning des prochaines visites et relances de l'organisme de contrôle : livré après J6 (voir « Après le MVP »).
@@ -324,6 +324,12 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 - [x] Étages empilés selon leur niveau, chacun texturé par l'image de son plan (même largeur pour tous tant que l'échelle n'est pas calibrée), équipements en repères verticaux colorés comme sur le plan 2D (statut le plus urgent, hauteur selon le nombre de réserves, anneau si retard) ; écartement réglable, étage isolable, repère sélectionnable avec ses réserves et le lien vers le plan
 - Choix techniques : three.js et React Three Fiber, chargés seulement à l'ouverture de la vue (`/batiments/:id/3d`) ; aucune nouvelle route d'API (étages, plans signés, équipements et réserves existants) ; message de repli sans WebGL. Pas de cloisons extrudées : un plan PDF ou image n'en décrit pas.
+
+**Après le MVP — Échelle des étages**
+
+- [x] Calibrage par l'admin : deux points cliqués sur une longueur connue du plan (cote, porte, mur), puis la longueur réelle ; l'échelle est stockée en mètres par pixel de l'image (`floor.scale`) et effacée quand le plan est remplacé
+- [x] Barre d'échelle sur le plan, ajustée au zoom, et état « calibrée » dans le cartouche ; outil « Mesurer » pour tout membre une fois l'échelle connue
+- [x] Vue 3D en vrais mètres quand tous les plans du bâtiment sont calibrés ; sinon largeur commune, pour ne pas mêler des étages à des échelles différentes
 
 ## Risques et questions ouvertes
 

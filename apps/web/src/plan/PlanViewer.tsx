@@ -2,7 +2,17 @@ import type { Equipment, PlanPosition } from '@obsio/shared';
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useEffect, useRef, useState } from 'react';
-import { Circle, Group, Image as KonvaImage, Label, Layer, Stage, Tag, Text } from 'react-konva';
+import {
+  Circle,
+  Group,
+  Image as KonvaImage,
+  Label,
+  Layer,
+  Line,
+  Stage,
+  Tag,
+  Text,
+} from 'react-konva';
 import {
   fitView,
   fromImage,
@@ -14,6 +24,7 @@ import {
   type Size,
   type View,
 } from './geometry.js';
+import { scaleBar } from './scale.js';
 
 // Les repères doivent rester saisissables pendant un pincement à deux doigts.
 Konva.hitOnDragEnabled = true;
@@ -69,6 +80,13 @@ interface PlanViewerProps {
   editable: boolean;
   /** Mode « placer » : un clic sur le plan renvoie la position visée. */
   placing: boolean;
+  /** Mode « mesurer » (ou calibrer) : un clic renvoie le point visé, en pixels de l'image. */
+  measuring?: boolean;
+  /** Segment en cours de tracé, en pixels de l'image, et sa cote à afficher. */
+  segment?: { points: Point[]; label: string | null };
+  onMeasurePoint?: (point: Point) => void;
+  /** Mètres par pixel de l'image : affiche une barre d'échelle. */
+  metersPerPixel?: number | null;
   onSelect: (id: string | null) => void;
   onPlace: (position: PlanPosition) => void;
   onMove: (id: string, position: PlanPosition) => void;
@@ -141,6 +159,10 @@ export function PlanViewer({
   draft,
   editable,
   placing,
+  measuring = false,
+  segment,
+  onMeasurePoint,
+  metersPerPixel,
   onSelect,
   onPlace,
   onMove,
@@ -218,7 +240,14 @@ export function PlanViewer({
   function handleStageClick(event: KonvaEventObject<MouseEvent | TouchEvent>) {
     const stage = event.target.getStage();
     const onBackground = event.target === stage || event.target.name() === 'plan';
-    if (!stage || !view || !onBackground) return;
+    if (!stage || !view) return;
+    if (measuring) {
+      const pointer = stage.getPointerPosition();
+      const position = pointer && toPlan(view, pointer, plan);
+      if (position) onMeasurePoint?.(toImage(position, plan));
+      return;
+    }
+    if (!onBackground) return;
     if (!placing) {
       onSelect(null);
       return;
@@ -233,7 +262,7 @@ export function PlanViewer({
   return (
     <div
       ref={containerRef}
-      className={placing ? 'plan-canvas placing' : 'plan-canvas'}
+      className={placing || measuring ? 'plan-canvas placing' : 'plan-canvas'}
       aria-label="Plan de l'étage"
       role="img"
     >
@@ -290,8 +319,14 @@ export function PlanViewer({
               )}
             </Layer>
           )}
+          {segment && segment.points.length > 0 && (
+            <Layer listening={false}>
+              <Segment points={segment.points} label={segment.label} scale={1 / view.scale} />
+            </Layer>
+          )}
         </Stage>
       )}
+      {view && metersPerPixel && <ScaleBar screenPixelsPerMeter={view.scale / metersPerPixel} />}
     </div>
   );
 }
@@ -390,5 +425,66 @@ function Plate({
         </Group>
       )}
     </Group>
+  );
+}
+
+/** Segment de mesure : trait jaune cerné d'encre, extrémités marquées, cote au milieu. */
+function Segment({
+  points,
+  label,
+  scale,
+}: {
+  points: Point[];
+  label: string | null;
+  scale: number;
+}) {
+  const flat = points.flatMap((p) => [p.x, p.y]);
+  const [a, b] = points;
+  return (
+    <>
+      {b && <Line points={flat} stroke={INK} strokeWidth={6 * scale} lineCap="round" />}
+      {b && <Line points={flat} stroke={SAFETY} strokeWidth={3 * scale} lineCap="round" />}
+      {points.map((p, i) => (
+        <Circle
+          key={i}
+          x={p.x}
+          y={p.y}
+          radius={5 * scale}
+          fill={SAFETY}
+          stroke={INK}
+          strokeWidth={1.5 * scale}
+        />
+      ))}
+      {a && b && label && (
+        <Label x={(a.x + b.x) / 2} y={(a.y + b.y) / 2} scaleX={scale} scaleY={scale}>
+          <Tag
+            fill={INK}
+            cornerRadius={2}
+            pointerDirection="down"
+            pointerWidth={8}
+            pointerHeight={6}
+          />
+          <Text
+            text={label}
+            fontFamily={PLATE_FONT}
+            fontStyle="700"
+            fontSize={PLATE_FONT_SIZE}
+            padding={PLATE_PADDING}
+            fill={PAPER}
+          />
+        </Label>
+      )}
+    </>
+  );
+}
+
+/** Barre d'échelle graduée, en bas à gauche, ajustée au zoom. */
+function ScaleBar({ screenPixelsPerMeter }: { screenPixelsPerMeter: number }) {
+  const bar = scaleBar(screenPixelsPerMeter);
+  return (
+    <div className="scale-bar" aria-label={`Échelle : ${bar.label}`}>
+      <span className="scale-bar-line" style={{ width: bar.pixels }} />
+      <span>{bar.label}</span>
+    </div>
   );
 }

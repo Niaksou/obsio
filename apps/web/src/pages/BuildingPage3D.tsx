@@ -82,7 +82,9 @@ function Building({ floors }: { floors: Floor[] }) {
         id: floor.id,
         name: floor.name,
         level: floor.level,
-        plan: plan ? { imageUrl: plan.imageUrl, width: plan.width, height: plan.height } : null,
+        plan: plan
+          ? { imageUrl: plan.imageUrl, width: plan.width, height: plan.height, scale: plan.scale }
+          : null,
         equipment: items[i]!.flatMap((item) =>
           item.position ? [{ id: item.id, name: item.name, position: item.position }] : [],
         ),

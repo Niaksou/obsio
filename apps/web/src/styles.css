@@ -1186,7 +1186,8 @@ fieldset {
   }
 
   .tb-site,
-  .tb-building {
+  .tb-building,
+  .tb-scale {
     display: none;
   }
 
@@ -2117,4 +2118,55 @@ label.check input {
 .legend .overdue-ring {
   border: 3px solid var(--danger);
   background: transparent;
+}
+
+/* --- Échelle du plan : barre graduée, saisie de la cote, cartouche */
+
+.scale-bar {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 2px;
+  padding: 4px 8px 3px;
+  font-family: var(--font-plate);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: rgb(255 255 255 / 0.85);
+  pointer-events: none;
+}
+
+.scale-bar-line {
+  display: block;
+  height: 6px;
+  border: 2px solid var(--ink);
+  border-top: 0;
+}
+
+.calibration-form {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100% - 32px));
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  transform: translateX(-50%);
+}
+
+.with-unit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.with-unit input {
+  flex: 1;
+}
+
+.tb-scale {
+  grid-column: 1 / -1;
 }

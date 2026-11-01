@@ -111,6 +111,8 @@ export const api = {
     request(planUploadResponseSchema, 'POST', `/api/floors/${floorId}/plan/uploads`, input),
   confirmPlan: (floorId: string, input: PlanConfirm) =>
     request(floorSchema, 'PUT', `/api/floors/${floorId}/plan`, input),
+  setPlanScale: (floorId: string, scale: number | null) =>
+    request(floorSchema, 'PUT', `/api/floors/${floorId}/plan/scale`, { scale }),
 
   equipment: (floorId: string) =>
     request(z.array(equipmentSchema), 'GET', `/api/floors/${floorId}/equipment`),

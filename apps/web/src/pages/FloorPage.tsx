@@ -12,7 +12,9 @@ import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { EquipmentPanel } from '../plan/EquipmentPanel.js';
 import { PlanUpload } from '../plan/PlanUpload.js';
+import type { Point } from '../plan/geometry.js';
 import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
+import { formatLength, metersPerPixel, pixelDistance } from '../plan/scale.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { StatusLabel } from '../reserves/status.js';
@@ -21,6 +23,8 @@ import { StatusLabel } from '../reserves/status.js';
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
 
 type Placing = { kind: 'new' } | { kind: 'existing'; id: string } | null;
+/** Outils à deux points : calibrer l'échelle (admin) ou mesurer une distance. */
+type Tool = 'calibrer' | 'mesurer' | null;
 
 export function FloorPage() {
   const floorId = useParams().floorId!;
@@ -55,6 +59,8 @@ function Floor({ floor }: { floor: FloorDetail }) {
   const [placing, setPlacing] = useState<Placing>(null);
   const [draft, setDraft] = useState<PlanPosition | null>(null);
   const [replacingPlan, setReplacingPlan] = useState(false);
+  const [tool, setTool] = useState<Tool>(null);
+  const [points, setPoints] = useState<Point[]>([]);
   const viewer = useRef<PlanViewerHandle | null>(null);
   const setViewer = useCallback((handle: PlanViewerHandle) => {
     viewer.current = handle;
@@ -128,9 +134,39 @@ function Floor({ floor }: { floor: FloorDetail }) {
   }
 
   function select(id: string | null) {
-    if (draft) return;
+    if (draft || tool) return;
     setSelectedId(id);
   }
+
+  const saveScale = useMutation({
+    mutationFn: (scale: number | null) => api.setPlanScale(floor.id, scale),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: keys.floor(floor.id) });
+      await queryClient.invalidateQueries({ queryKey: keys.floors(floor.buildingId) });
+      switchTool(null);
+    },
+  });
+
+  function switchTool(next: Tool) {
+    setTool(next);
+    setPoints([]);
+    saveScale.reset();
+    if (next) {
+      setPlacing(null);
+      setSelectedId(null);
+    }
+  }
+
+  // Un troisième clic recommence le segment.
+  function addPoint(point: Point) {
+    setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
+  }
+
+  const scale = floor.plan?.scale ?? null;
+  const measured =
+    tool === 'mesurer' && scale && points.length === 2
+      ? formatLength(pixelDistance(points[0]!, points[1]!) * scale)
+      : null;
 
   const mutationError = create.error ?? update.error ?? archive.error;
   const showUpload = isAdmin && (!floor.plan || replacingPlan);
@@ -160,9 +196,36 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   className={placing ? 'secondary active' : 'secondary'}
                   aria-pressed={placing?.kind === 'new'}
                   disabled={!!draft}
-                  onClick={() => setPlacing(placing ? null : { kind: 'new' })}
+                  onClick={() => {
+                    switchTool(null);
+                    setPlacing(placing ? null : { kind: 'new' });
+                  }}
                 >
                   {placing ? 'Annuler le placement' : 'Placer un équipement'}
+                </button>
+              )}
+              {scale && (
+                <button
+                  type="button"
+                  className={tool === 'mesurer' ? 'secondary active' : 'secondary'}
+                  aria-pressed={tool === 'mesurer'}
+                  onClick={() => switchTool(tool === 'mesurer' ? null : 'mesurer')}
+                >
+                  {tool === 'mesurer' ? 'Terminer la mesure' : 'Mesurer'}
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  type="button"
+                  className={tool === 'calibrer' ? 'secondary active' : 'quiet'}
+                  aria-pressed={tool === 'calibrer'}
+                  onClick={() => switchTool(tool === 'calibrer' ? null : 'calibrer')}
+                >
+                  {tool === 'calibrer'
+                    ? 'Annuler le calibrage'
+                    : scale
+                      ? 'Recalibrer l’échelle'
+                      : 'Calibrer l’échelle'}
                 </button>
               )}
               {isAdmin && (
@@ -226,6 +289,10 @@ function Floor({ floor }: { floor: FloorDetail }) {
             draft={draft}
             editable={isAdmin}
             placing={!!placing}
+            measuring={tool !== null}
+            segment={{ points, label: measured }}
+            onMeasurePoint={addPoint}
+            metersPerPixel={scale}
             onSelect={select}
             onPlace={place}
             onMove={(id, position) => update.mutate({ id, input: { position } })}
@@ -236,6 +303,29 @@ function Floor({ floor }: { floor: FloorDetail }) {
           <p className="placing-hint" role="status">
             Cliquez sur le plan à l’emplacement de l’équipement.
           </p>
+        )}
+        {tool === 'mesurer' && (
+          <p className="placing-hint" role="status">
+            {measured
+              ? `Distance : ${measured}. Cliquez ailleurs pour une nouvelle mesure.`
+              : 'Cliquez les deux extrémités de la distance à mesurer.'}
+          </p>
+        )}
+        {tool === 'calibrer' && points.length < 2 && (
+          <p className="placing-hint" role="status">
+            Cliquez les deux extrémités d’une longueur connue : une cote du plan, une porte, un mur.
+          </p>
+        )}
+        {tool === 'calibrer' && points.length === 2 && (
+          <CalibrationForm
+            pending={saveScale.isPending}
+            error={saveScale.error}
+            onSubmit={(meters) => {
+              const value = metersPerPixel(points[0]!, points[1]!, meters);
+              if (value) saveScale.mutate(value);
+            }}
+            onRestart={() => setPoints([])}
+          />
         )}
         <TitleBlock floor={floor} />
       </div>
@@ -309,6 +399,61 @@ function TitleBlock({ floor }: { floor: FloorDetail }) {
         <dt>Niveau</dt>
         <dd>{floor.level}</dd>
       </div>
+      {floor.plan && (
+        <div className="tb-scale">
+          <dt>Échelle</dt>
+          <dd>{floor.plan.scale ? 'Calibrée' : 'Non calibrée'}</dd>
+        </div>
+      )}
     </dl>
+  );
+}
+
+/** Longueur réelle du segment tracé, pour en déduire l'échelle du plan. */
+function CalibrationForm({
+  pending,
+  error,
+  onSubmit,
+  onRestart,
+}: {
+  pending: boolean;
+  error: Error | null;
+  onSubmit: (meters: number) => void;
+  onRestart: () => void;
+}) {
+  return (
+    <form
+      className="calibration-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const value = new FormData(event.currentTarget).get('meters');
+        const meters = Number(String(value).replace(',', '.'));
+        if (meters > 0) onSubmit(meters);
+      }}
+    >
+      <label>
+        Longueur réelle du segment
+        <span className="with-unit">
+          <input
+            name="meters"
+            inputMode="decimal"
+            required
+            autoFocus
+            pattern="[0-9]+([,.][0-9]+)?"
+            placeholder="4,50"
+          />
+          m
+        </span>
+      </label>
+      <div className="actions">
+        <button type="submit" disabled={pending}>
+          Enregistrer l’échelle
+        </button>
+        <button type="button" className="secondary" onClick={onRestart}>
+          Retracer
+        </button>
+      </div>
+      {error && <p className="error">{error.message}</p>}
+    </form>
   );
 }

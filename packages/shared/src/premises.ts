@@ -27,7 +27,12 @@ export const buildingInputSchema = z.object({ name });
 export type BuildingInput = z.infer<typeof buildingInputSchema>;
 
 /** Plan d'un étage : dimensions de l'image affichée, en pixels. */
-export const floorPlanSchema = z.object({ width: z.int().positive(), height: z.int().positive() });
+export const floorPlanSchema = z.object({
+  width: z.int().positive(),
+  height: z.int().positive(),
+  /** Mètres par pixel de l'image, une fois l'échelle calibrée sur une cote connue. */
+  scale: z.number().positive().nullable(),
+});
 
 export const floorSchema = z.object({
   id: z.uuid(),
@@ -131,3 +136,9 @@ export const planConfirmSchema = z.object({
   height: z.int().positive().max(20_000),
 });
 export type PlanConfirm = z.infer<typeof planConfirmSchema>;
+
+/** Calibrage de l'échelle d'un plan (null pour l'effacer). */
+export const planScaleSchema = z.object({
+  scale: z.number().positive().max(10).nullable(),
+});
+export type PlanScale = z.infer<typeof planScaleSchema>;
