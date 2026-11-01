@@ -45,6 +45,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
             <NavLink to="/" end>
               Sites
             </NavLink>
+            <NavLink to="/intervenants">Intervenants</NavLink>
             <NavLink to="/organisation">Organisation</NavLink>
           </nav>
         )}

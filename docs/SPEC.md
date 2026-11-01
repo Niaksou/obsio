@@ -184,6 +184,15 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
   - Une réserve reconduite reste en base avec son historique, mais sort des listes de réserves en cours dès qu'une réserve d'un import suivant la reconduit : la nouvelle prend le relais.
   - L'import, la relecture et la validation sont réservés à l'admin ; les membres consultent.
   - En développement, `EXTRACTION_PROVIDER=fixtures` rejoue le résultat attendu d'un PDF du jeu de test pour démontrer l'import sans Mistral ; ce mode est refusé en production.
+- Décisions prises en J4 et J5, à relire :
+  - Statuts : `ouverte` → `assignee` (lien envoyé) → `corrigee` (preuve avec « corrigée », par un membre ou l'intervenant) → `levee` (admin). L'admin peut refuser la correction : la réserve revient à `assignee` si un lien est encore actif, sinon à `ouverte`. Révoquer le dernier lien actif ramène une réserve assignée à `ouverte`.
+  - Une réserve est « en retard » si elle est ouverte ou assignée et que son échéance est passée (date du jour à Paris) ; une réserve corrigée attend l'admin et n'est plus en retard.
+  - L'échéance de l'assignation devient celle des réserves assignées. Une réserve corrigée ou levée ne peut pas être assignée ; une réserve réassignée sort de la vue du lien précédent.
+  - Modification d'une réserve (description, préconisation, échéance, équipement), assignation, révocation et levée : admin. Consultation, commentaires et preuves : tout membre.
+  - Une preuve contient au moins une photo ou un commentaire (6 photos au plus, réduites à 2000 px dans le navigateur). Les preuves ne sont ni modifiées ni supprimées (droits retirés à `app_user`).
+  - Le lien de l'intervenant n'est montré qu'une fois à l'admin (et envoyé par e-mail) : seule l'empreinte SHA-256 du jeton est stockée. L'API le retrouve par une politique RLS dédiée (`assignment_token_lookup`), puis travaille dans le cloisonnement de l'organisation.
+  - Hors ligne : l'application est mise en cache par un service worker écrit à la main (`public/sw.js`, actif en production seulement) ; les preuves passent par une file IndexedDB rejouée au retour du réseau, sans doublon grâce au `clientId` choisi par le téléphone. La vue de l'intervenant garde sa dernière version sur l'appareil.
+  - Limitation de débit : 600 requêtes par minute et par adresse IP sur l'API, 60 sur les liens intervenant (compteurs dans Redis).
 
 - Chaque table porte `organisation_id`, filtré par Row Level Security.
 - `Reserve.reconduite_de` pointe vers la réserve de l'année précédente : c'est elle qui donne l'historique d'un équipement.
@@ -278,16 +287,16 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J4 — Réserves et assignation**
 
-- [ ] Liste, filtres, détail d'une réserve, journal d'audit
-- [ ] Intervenants, assignations, liens signés, e-mails
-- [ ] Repères des réserves sur le plan, colorés par statut
+- [x] Liste, filtres, détail d'une réserve, journal d'audit
+- [x] Intervenants, assignations, liens signés, e-mails
+- [x] Repères des réserves sur le plan, colorés par statut
 
 **J5 — PWA mobile et preuves**
 
-- [ ] Vue intervenant mobile via lien
-- [ ] Prise de photo, commentaire, statut corrigée
-- [ ] File d'envoi hors ligne (service worker, IndexedDB)
-- [ ] Clôture des réserves par le responsable
+- [x] Vue intervenant mobile via lien
+- [x] Prise de photo, commentaire, statut corrigée
+- [x] File d'envoi hors ligne (service worker, IndexedDB) ; à éprouver sur un vrai téléphone en zone sans réseau
+- [x] Clôture des réserves par le responsable
 
 **J6 — Pilotage et bêta**
 

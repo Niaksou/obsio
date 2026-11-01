@@ -4,8 +4,11 @@ import { Layout } from './components/Layout.js';
 import { RequireOrganisation } from './components/RequireOrganisation.js';
 import { RequireSession } from './components/RequireSession.js';
 import { AcceptInvitation } from './pages/AcceptInvitation.js';
+import { ContractorsPage } from './pages/ContractorsPage.js';
 import { ForgotPassword } from './pages/ForgotPassword.js';
 import { Home } from './pages/Home.js';
+import { ReservePage } from './pages/ReservePage.js';
+import { ReservesPage } from './pages/ReservesPage.js';
 import { ResetPassword } from './pages/ResetPassword.js';
 import { SignIn } from './pages/SignIn.js';
 import { SignUp } from './pages/SignUp.js';
@@ -19,6 +22,11 @@ const FloorPage = lazy(() =>
 
 const ImportPage = lazy(() =>
   import('./pages/ImportPage.js').then((module) => ({ default: module.ImportPage })),
+);
+
+// La vue de l'intervenant est un point d'entrée à part (téléphone, sans compte).
+const InterventionPage = lazy(() =>
+  import('./pages/InterventionPage.js').then((module) => ({ default: module.InterventionPage })),
 );
 
 const lazyPage = (page: ReactNode) => (
@@ -37,6 +45,9 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: session(<SitesPage />) },
       { path: '/sites/:siteId', element: session(<SitePage />) },
+      { path: '/sites/:siteId/reserves', element: session(<ReservesPage />) },
+      { path: '/reserves/:reserveId', element: session(<ReservePage />) },
+      { path: '/intervenants', element: session(<ContractorsPage />) },
       { path: '/organisation', element: session(<Home />) },
       { path: '/connexion', element: <SignIn /> },
       { path: '/inscription', element: <SignUp /> },
@@ -56,6 +67,7 @@ const router = createBrowserRouter([
       { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
     ],
   },
+  { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },
 ]);
 
 export function App() {

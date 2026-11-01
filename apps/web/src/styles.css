@@ -1183,3 +1183,645 @@ fieldset {
     margin: 16px;
   }
 }
+
+/* --- Réserves : liste, filtres, sélection pour assigner */
+
+.page-wide {
+  max-width: 1080px;
+}
+
+.main:has(.page-wide) {
+  max-width: 1080px;
+}
+
+.fields label.date {
+  flex: 0 0 180px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
+label.check input {
+  min-height: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.filters label {
+  flex: 0 1 220px;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.segmented button {
+  min-height: 38px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--line);
+}
+
+.segmented button:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--line-soft);
+}
+
+.segmented button[aria-pressed='true'],
+.segmented button[aria-pressed='true']:hover:not(:disabled) {
+  color: #fff;
+  background: var(--ink);
+}
+
+.select-all {
+  margin: 4px 0 8px;
+  color: var(--muted);
+}
+
+.reserve-rows li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reserve-rows li > input[type='checkbox'] {
+  flex: none;
+  min-height: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0 4px 0 8px;
+}
+
+.reserve-rows li.selected {
+  background: rgb(240 196 25 / 0.18);
+}
+
+.reserve-row {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  min-width: 0;
+  padding: 12px 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.reserve-row:hover {
+  background: var(--surface);
+}
+
+.reserve-main {
+  display: grid;
+  flex: 1 1 380px;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reserve-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-weight: 500;
+}
+
+.reserve-main .row-meta {
+  font-size: 0.875rem;
+}
+
+.reserve-side {
+  display: grid;
+  flex: 0 0 200px;
+  align-content: start;
+  gap: 2px;
+  font-size: 0.875rem;
+}
+
+/* Statuts : même code couleur que les pastilles du plan. */
+.reserve-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.reserve-status .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.reserve-status-ouverte .swatch {
+  background: var(--danger);
+}
+
+.reserve-status-assignee .swatch {
+  background: var(--action);
+}
+
+.reserve-status-corrigee .swatch {
+  background: var(--pending);
+}
+
+.reserve-status-levee {
+  color: var(--muted);
+}
+
+.reserve-status-levee .swatch {
+  background: transparent;
+  border: 2px solid var(--muted);
+}
+
+.reserve-status.overdue .swatch {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--danger);
+}
+
+.late {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.selection-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  box-shadow: 0 -2px 10px rgb(24 34 44 / 0.12);
+}
+
+.selection-bar > p {
+  font-weight: 600;
+}
+
+.assign-panel,
+.contractor-form {
+  display: grid;
+  flex: 1;
+  gap: 12px;
+}
+
+.contractor-form {
+  padding: 12px 0;
+}
+
+.link-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link-box input {
+  flex: 1 1 320px;
+  font-family: var(--font-plate);
+}
+
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contractor-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 10px 8px;
+}
+
+.contractor-row > .quiet {
+  margin-left: auto;
+}
+
+.contractor-row .contractor-form {
+  flex-basis: 100%;
+}
+
+/* --- Détail d'une réserve */
+
+.reserve-page {
+  gap: 0;
+}
+
+.reserve-head {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 8px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.reserve-head h1 {
+  max-width: 70ch;
+  font-size: 1.4rem;
+}
+
+.reserve-head > .quiet {
+  justify-self: start;
+  padding-left: 0;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0;
+}
+
+.facts dt {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.facts a {
+  color: var(--ink);
+}
+
+.preconisation {
+  max-width: 70ch;
+}
+
+.edit-reserve,
+.comment-form {
+  display: grid;
+  gap: 12px;
+}
+
+.comment-form {
+  margin-top: 16px;
+}
+
+.comment-form > button {
+  justify-self: start;
+}
+
+.reserve-section {
+  display: grid;
+  gap: 12px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.reserve-section h3 {
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+.review-box {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px;
+  background: rgb(138 90 0 / 0.08);
+  border-left: 4px solid var(--pending);
+}
+
+.sources,
+.proofs,
+.journal {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources li,
+.proofs li {
+  display: grid;
+  gap: 4px;
+  max-width: 75ch;
+}
+
+.journal li {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 2px 16px;
+}
+
+.journal time {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.journal blockquote {
+  grid-column: 2;
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  white-space: pre-wrap;
+}
+
+.assignment-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  padding: 8px;
+}
+
+.assignment-row .status {
+  margin-left: auto;
+}
+
+/* --- Preuves : photos et file d'envoi */
+
+.add-proof summary {
+  width: fit-content;
+  color: var(--action);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.add-proof[open] summary {
+  margin-bottom: 12px;
+}
+
+.proof-form {
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+}
+
+.proof-form > button {
+  min-height: 48px;
+}
+
+.photo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photo-strip img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  background: var(--line-soft);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.photo-strip figure {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.photo-strip figure button {
+  min-height: 28px;
+  padding: 2px 6px;
+  font-size: 0.8125rem;
+}
+
+.photo-add {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  padding: 8px;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--action);
+  background: var(--surface);
+  border: 1px dashed var(--action);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.photo-add:hover {
+  background: rgb(29 90 166 / 0.06);
+}
+
+.photo-strip input:focus-visible + .photo-add {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
+
+.queued {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  background: rgb(240 196 25 / 0.2);
+  border-left: 3px solid var(--safety);
+}
+
+.queued-error {
+  background: rgb(184 50 26 / 0.08);
+  border-left-color: var(--danger);
+}
+
+/* --- Plan : réserves de l'équipement sélectionné */
+
+.equipment-reserves {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.equipment-reserves h3 {
+  font-size: 1rem;
+}
+
+.equipment-reserves ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.equipment-reserves a {
+  display: grid;
+  gap: 2px;
+  padding: 8px 4px;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.equipment-reserves a:hover {
+  background: var(--paper);
+}
+
+/* --- Vue de l'intervenant (téléphone) */
+
+.intervention {
+  min-height: 100%;
+  background: var(--paper);
+}
+
+.intervention-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--header-height);
+  padding: 0 16px;
+  color: var(--muted);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.offline-banner {
+  padding: 10px 16px;
+  font-size: 0.9375rem;
+  background: var(--safety);
+}
+
+.intervention-body {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+}
+
+.intervention-message {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-left: 3px solid var(--ink);
+  white-space: pre-wrap;
+}
+
+.intervention-list {
+  display: grid;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.intervention-list > li {
+  border-bottom: 1px solid var(--line);
+}
+
+.intervention-list > li.open {
+  background: var(--surface);
+}
+
+.intervention-item,
+.intervention-item:hover:not(:disabled) {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 4px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.item-number {
+  flex: none;
+  width: 28px;
+  font-family: var(--font-plate);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.item-main {
+  display: grid;
+  gap: 4px;
+}
+
+.item-text {
+  font-weight: 500;
+}
+
+.item-detail {
+  display: grid;
+  gap: 12px;
+  padding: 0 12px 20px 44px;
+}
+
+.sent-proofs {
+  display: grid;
+  gap: 8px;
+}
+
+.sent-proofs h3 {
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .reserve-side {
+    flex-basis: 100%;
+  }
+
+  .journal li {
+    grid-template-columns: 1fr;
+  }
+
+  .journal blockquote {
+    grid-column: 1;
+  }
+
+  .item-detail {
+    padding-left: 12px;
+  }
+
+  .segmented {
+    width: 100%;
+  }
+
+  .segmented button {
+    flex: 1 1 auto;
+  }
+}
+
+.assign-panel > button {
+  justify-self: start;
+}

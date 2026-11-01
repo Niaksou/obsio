@@ -2,7 +2,7 @@ import type { Equipment, PlanPosition } from '@obsio/shared';
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useEffect, useRef, useState } from 'react';
-import { Image as KonvaImage, Label, Layer, Stage, Tag, Text } from 'react-konva';
+import { Circle, Group, Image as KonvaImage, Label, Layer, Stage, Tag, Text } from 'react-konva';
 import {
   fitView,
   fromImage,
@@ -23,6 +23,34 @@ const INK = '#18222c';
 const PAPER = '#ffffff';
 const SAFETY = '#f0c419';
 const WHEEL_STEP = 1.15;
+const PLATE_FONT_SIZE = 14;
+const PLATE_PADDING = 5;
+const PLATE_SPACING = 0.4;
+const POINTER_HEIGHT = 7;
+
+/** Pastille des réserves d'un équipement : nombre en cours, couleur du statut le plus urgent. */
+export interface ReserveBadge {
+  count: number;
+  status: 'ouverte' | 'assignee' | 'corrigee';
+  overdue: boolean;
+}
+
+export const BADGE_COLORS: Record<ReserveBadge['status'], string> = {
+  ouverte: '#b8321a',
+  assignee: '#1d5aa6',
+  corrigee: '#8a5a00',
+};
+
+let measureContext: CanvasRenderingContext2D | null = null;
+
+/** Largeur d'une plaque, calculée comme Konva le fait, pour accrocher la pastille au coin. */
+function plateWidth(text: string) {
+  measureContext ??= document.createElement('canvas').getContext('2d');
+  if (!measureContext) return 40;
+  measureContext.font = `700 ${PLATE_FONT_SIZE}px ${PLATE_FONT}`;
+  const width = measureContext.measureText(text).width + PLATE_SPACING * text.length;
+  return width + PLATE_PADDING * 2;
+}
 
 export interface PlanViewerHandle {
   fit: () => void;
@@ -32,6 +60,8 @@ interface PlanViewerProps {
   imageUrl: string;
   plan: Size;
   equipment: Equipment[];
+  /** Réserves en cours par équipement. */
+  badges?: Map<string, ReserveBadge>;
   selectedId: string | null;
   /** Position du nouvel équipement en cours de saisie, affichée en attendant l'enregistrement. */
   draft: PlanPosition | null;
@@ -106,6 +136,7 @@ export function PlanViewer({
   imageUrl,
   plan,
   equipment,
+  badges,
   selectedId,
   draft,
   editable,
@@ -245,6 +276,7 @@ export function PlanViewer({
                 <Plate
                   key={item.id}
                   text={item.name}
+                  badge={badges?.get(item.id)}
                   at={toImage(item.position!, plan)}
                   scale={1 / view.scale}
                   selected={item.id === selectedId}
@@ -270,6 +302,7 @@ export function PlanViewer({
  */
 function Plate({
   text,
+  badge,
   at,
   scale,
   selected,
@@ -278,6 +311,7 @@ function Plate({
   onDragEnd,
 }: {
   text: string;
+  badge?: ReserveBadge;
   at: Point;
   scale: number;
   selected: boolean;
@@ -285,8 +319,9 @@ function Plate({
   onSelect?: () => void;
   onDragEnd?: (point: Point) => void;
 }) {
+  const plateHeight = PLATE_FONT_SIZE + PLATE_PADDING * 2;
   return (
-    <Label
+    <Group
       x={at.x}
       y={at.y}
       scaleX={scale}
@@ -308,28 +343,52 @@ function Plate({
         if (container) container.style.cursor = '';
       }}
     >
-      <Tag
-        fill={selected ? SAFETY : INK}
-        stroke={selected ? INK : PAPER}
-        strokeWidth={1}
-        cornerRadius={2}
-        pointerDirection="down"
-        pointerWidth={10}
-        pointerHeight={7}
-        shadowColor={INK}
-        shadowOpacity={0.25}
-        shadowBlur={3}
-        shadowOffsetY={1}
-      />
-      <Text
-        text={text}
-        fontFamily={PLATE_FONT}
-        fontStyle="700"
-        fontSize={14}
-        letterSpacing={0.4}
-        padding={5}
-        fill={selected ? INK : PAPER}
-      />
-    </Label>
+      <Label>
+        <Tag
+          fill={selected ? SAFETY : INK}
+          stroke={selected ? INK : PAPER}
+          strokeWidth={1}
+          cornerRadius={2}
+          pointerDirection="down"
+          pointerWidth={10}
+          pointerHeight={POINTER_HEIGHT}
+          shadowColor={INK}
+          shadowOpacity={0.25}
+          shadowBlur={3}
+          shadowOffsetY={1}
+        />
+        <Text
+          text={text}
+          fontFamily={PLATE_FONT}
+          fontStyle="700"
+          fontSize={PLATE_FONT_SIZE}
+          letterSpacing={PLATE_SPACING}
+          padding={PLATE_PADDING}
+          fill={selected ? INK : PAPER}
+        />
+      </Label>
+      {badge && (
+        // Coin supérieur droit de la plaque ; un retard se voit au double cerclage.
+        <Group x={plateWidth(text) / 2} y={-(POINTER_HEIGHT + plateHeight)}>
+          {badge.overdue && (
+            <Circle radius={12} fill={PAPER} stroke={BADGE_COLORS.ouverte} strokeWidth={2} />
+          )}
+          <Circle radius={9} fill={BADGE_COLORS[badge.status]} stroke={PAPER} strokeWidth={1.5} />
+          <Text
+            text={badge.count > 9 ? '9+' : String(badge.count)}
+            width={18}
+            height={18}
+            offsetX={9}
+            offsetY={9}
+            align="center"
+            verticalAlign="middle"
+            fontFamily={PLATE_FONT}
+            fontStyle="700"
+            fontSize={11}
+            fill={PAPER}
+          />
+        </Group>
+      )}
+    </Group>
   );
 }

@@ -1,6 +1,12 @@
-import type { Equipment, EquipmentInput, FloorDetail, PlanPosition } from '@obsio/shared';
+import type {
+  Equipment,
+  EquipmentInput,
+  FloorDetail,
+  PlanPosition,
+  ReserveListItem,
+} from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
@@ -8,6 +14,8 @@ import { EquipmentPanel } from '../plan/EquipmentPanel.js';
 import { PlanUpload } from '../plan/PlanUpload.js';
 import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
 import { keys, useIsAdmin } from '../queries.js';
+import { reserveBadges } from '../reserves/badges.js';
+import { StatusLabel } from '../reserves/status.js';
 
 /** Les liens signés du plan valent 15 minutes : on ne les renouvelle pas plus souvent. */
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
@@ -33,6 +41,16 @@ function Floor({ floor }: { floor: FloorDetail }) {
   const navigate = useNavigate();
   const equipmentKey = keys.equipment(floor.id);
   const equipment = useQuery({ queryKey: equipmentKey, queryFn: () => api.equipment(floor.id) });
+  const reserveFilters = { open: 'true', floorId: floor.id } as const;
+  const reserves = useQuery({
+    queryKey: keys.reserves(floor.site.id, reserveFilters),
+    queryFn: () => api.reserves(floor.site.id, reserveFilters),
+  });
+  const badges = useMemo(() => reserveBadges(reserves.data ?? []), [reserves.data]);
+  const reserveCounts = useMemo(
+    () => new Map([...badges].map(([id, badge]) => [id, badge.count])),
+    [badges],
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<Placing>(null);
   const [draft, setDraft] = useState<PlanPosition | null>(null);
@@ -203,6 +221,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
             imageUrl={floor.plan.imageUrl}
             plan={floor.plan}
             equipment={items}
+            badges={badges}
             selectedId={selectedId}
             draft={draft}
             editable={isAdmin}
@@ -238,10 +257,35 @@ function Floor({ floor }: { floor: FloorDetail }) {
           onUpdate={(id, input) => update.mutate({ id, input })}
           onArchive={(id) => archive.mutate(id)}
           onStartPlacing={(id) => setPlacing({ kind: 'existing', id })}
+          reserveCounts={reserveCounts}
+          renderReserves={(id) => (
+            <EquipmentReserves
+              reserves={(reserves.data ?? []).filter((r) => r.equipment?.id === id)}
+            />
+          )}
         />
       )}
       {archiveFloor.error && <p className="error">{archiveFloor.error.message}</p>}
     </div>
+  );
+}
+
+function EquipmentReserves({ reserves }: { reserves: ReserveListItem[] }) {
+  return (
+    <section className="equipment-reserves">
+      <h3>Réserves en cours</h3>
+      {reserves.length === 0 && <p className="empty">Aucune réserve en cours.</p>}
+      <ul>
+        {reserves.map((item) => (
+          <li key={item.id}>
+            <Link to={`/reserves/${item.id}`}>
+              <span className="reserve-text">{item.description}</span>
+              <StatusLabel status={item.status} overdue={item.overdue} />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

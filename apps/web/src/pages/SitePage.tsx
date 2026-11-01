@@ -49,6 +49,7 @@ export function SitePage() {
         )}
       </div>
       <MutationError error={archive.error} />
+      <SiteReserves siteId={siteId} />
 
       {buildings.data?.length === 0 && (
         <p className="empty">
@@ -176,5 +177,20 @@ function AddFloor({ buildingId }: { buildingId: string }) {
       </div>
       <MutationError error={create.error} />
     </form>
+  );
+}
+
+/** Accès aux réserves du site (le tableau de bord complet arrive avec J6). */
+function SiteReserves({ siteId }: { siteId: string }) {
+  const reserves = useQuery({
+    queryKey: keys.reserves(siteId, { open: 'true' }),
+    queryFn: () => api.reserves(siteId, { open: 'true' }),
+  });
+  const open = reserves.data?.length ?? 0;
+  return (
+    <Link to={`/sites/${siteId}/reserves`} className="row-link site-reserves">
+      <span className="row-title">Réserves</span>
+      <span className="row-meta">{reserves.data ? `${open} en cours` : '…'}</span>
+    </Link>
   );
 }

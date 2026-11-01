@@ -1,16 +1,23 @@
 import {
+  assignmentCreatedSchema,
   buildingSchema,
+  contractorSchema,
   equipmentSchema,
   floorDetailSchema,
   floorSchema,
   invitationDetailsSchema,
   planUploadResponseSchema,
   presignedPostSchema,
+  interventionSchema,
   reportImportDetailSchema,
   reportImportSchema,
+  reserveDetailSchema,
+  reserveListItemSchema,
   siteEquipmentSchema,
   siteSchema,
+  type AssignmentInput,
   type BuildingInput,
+  type ContractorInput,
   type DraftUpdate,
   type EquipmentInput,
   type EquipmentUpdate,
@@ -18,6 +25,9 @@ import {
   type PlanConfirm,
   type PlanUploadRequest,
   type PresignedPost,
+  type ProofInput,
+  type ReserveFilters,
+  type ReserveUpdate,
   type SiteInput,
 } from '@obsio/shared';
 import { memberRoleSchema } from '@obsio/shared';
@@ -54,6 +64,12 @@ async function request<T>(
     throw new ApiError(response.status, payload?.message ?? 'Une erreur est survenue. Réessayez.');
   }
   return schema.parse(response.status === 204 ? null : await response.json());
+}
+
+/** Filtres en paramètres d'URL, sans les valeurs vides. */
+function query(params: Record<string, string | undefined>) {
+  const entries = Object.entries(params).filter((entry): entry is [string, string] => !!entry[1]);
+  return entries.length ? `?${new URLSearchParams(entries)}` : '';
 }
 
 const meSchema = z.object({
@@ -113,6 +129,41 @@ export const api = {
     request(z.null(), 'PATCH', `/api/drafts/${id}`, input),
   validateImport: (id: string) =>
     request(reportImportSchema, 'POST', `/api/imports/${id}/validate`),
+
+  reserves: (siteId: string, filters: ReserveFilters = {}) =>
+    request(
+      z.array(reserveListItemSchema),
+      'GET',
+      `/api/sites/${siteId}/reserves${query(filters)}`,
+    ),
+  reserve: (id: string) => request(reserveDetailSchema, 'GET', `/api/reserves/${id}`),
+  updateReserve: (id: string, input: ReserveUpdate) =>
+    request(z.null(), 'PATCH', `/api/reserves/${id}`, input),
+  comment: (id: string, text: string) =>
+    request(z.null(), 'POST', `/api/reserves/${id}/comments`, { text }),
+  reservePhotoUpload: (id: string, input: { contentType: string; size: number }) =>
+    request(presignedPostSchema, 'POST', `/api/reserves/${id}/photos`, input),
+  addProof: (id: string, input: ProofInput) =>
+    request(z.null(), 'POST', `/api/reserves/${id}/proofs`, input),
+  review: (id: string, input: { decision: 'lever' | 'refuser'; comment: string | null }) =>
+    request(z.null(), 'POST', `/api/reserves/${id}/review`, input),
+
+  contractors: () => request(z.array(contractorSchema), 'GET', '/api/contractors'),
+  createContractor: (input: ContractorInput) =>
+    request(contractorSchema, 'POST', '/api/contractors', input),
+  updateContractor: (id: string, input: Partial<ContractorInput>) =>
+    request(contractorSchema, 'PATCH', `/api/contractors/${id}`, input),
+  createAssignment: (input: AssignmentInput) =>
+    request(assignmentCreatedSchema, 'POST', '/api/assignments', input),
+  revokeAssignment: (id: string) => request(z.null(), 'POST', `/api/assignments/${id}/revoke`),
+
+  intervention: (token: string) => request(interventionSchema, 'GET', `/api/intervention/${token}`),
+  interventionPhotoUpload: (
+    token: string,
+    input: { reserveId: string; contentType: string; size: number },
+  ) => request(presignedPostSchema, 'POST', `/api/intervention/${token}/photos`, input),
+  interventionProof: (token: string, reserveId: string, input: ProofInput) =>
+    request(z.null(), 'POST', `/api/intervention/${token}/reserves/${reserveId}/proofs`, input),
 
   archive: (kind: 'sites' | 'buildings' | 'floors' | 'equipment', id: string) =>
     request(z.null(), 'POST', `/api/${kind}/${id}/archive`),

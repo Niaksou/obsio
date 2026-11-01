@@ -1,0 +1,11 @@
+{
+  "name": "Obsio",
+  "short_name": "Obsio",
+  "description": "Suivi des réserves des vérifications électriques",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f4f3",
+  "theme_color": "#18222c",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

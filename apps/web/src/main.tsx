@@ -8,6 +8,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ApiError } from './api.js';
 import { App } from './App.js';
+import { onProofSent, startProofQueue } from './offline/proofQueue.js';
+import { keys } from './queries.js';
 import './styles.css';
 
 const queryClient = new QueryClient({
@@ -19,6 +21,22 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Une preuve partie de la file d'envoi rafraîchit la réserve et la vue de l'intervenant.
+onProofSent(({ target }) => {
+  void queryClient.invalidateQueries({ queryKey: keys.reserve(target.reserveId) });
+  if (target.kind === 'intervention') {
+    void queryClient.invalidateQueries({ queryKey: keys.intervention(target.token) });
+  } else {
+    void queryClient.invalidateQueries({ queryKey: ['sites'] });
+  }
+});
+startProofQueue();
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // L'application reste ouvrable sans réseau sur le chantier (voir public/sw.js).
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+}
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Élément #root introuvable');

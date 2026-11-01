@@ -6,7 +6,7 @@ import {
   type EquipmentType,
   type PlanPosition,
 } from '@obsio/shared';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
 
@@ -42,6 +42,10 @@ interface EquipmentPanelProps {
   onArchive: (id: string) => void;
   /** Passe en mode « placer » pour donner une position à cet équipement. */
   onStartPlacing: (id: string) => void;
+  /** Nombre de réserves en cours par équipement. */
+  reserveCounts?: Map<string, number>;
+  /** Réserves de l'équipement sélectionné. */
+  renderReserves?: (equipmentId: string) => ReactNode;
 }
 
 export function EquipmentPanel(props: EquipmentPanelProps) {
@@ -113,6 +117,7 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
         ) : (
           <EquipmentDetails equipment={selected} />
         )}
+        {props.renderReserves?.(selected.id)}
         {error && <p className="error">{error.message}</p>}
       </aside>
     );
@@ -139,6 +144,12 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
                 <span className="plate">{item.name}</span>
                 <span className="row-meta">{EQUIPMENT_TYPE_LABELS[item.type]}</span>
                 {!item.position && <span className="status status-missing">Non placé</span>}
+                {!!props.reserveCounts?.get(item.id) && (
+                  <span className="status">
+                    {props.reserveCounts.get(item.id)} réserve
+                    {props.reserveCounts.get(item.id)! > 1 ? 's' : ''}
+                  </span>
+                )}
               </button>
             </li>
           ))}

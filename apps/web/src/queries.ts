@@ -13,6 +13,12 @@ export const keys = {
   siteEquipment: (siteId: string) => ['sites', siteId, 'equipment'] as const,
   imports: (siteId: string) => ['sites', siteId, 'imports'] as const,
   importDetail: (id: string) => ['imports', id] as const,
+  /** Toutes les listes de réserves d'un site, quels que soient les filtres. */
+  siteReserves: (siteId: string) => ['sites', siteId, 'reserves'] as const,
+  reserves: (siteId: string, filters: object) => ['sites', siteId, 'reserves', filters] as const,
+  reserve: (id: string) => ['reserves', id] as const,
+  contractors: ['contractors'] as const,
+  intervention: (token: string) => ['intervention', token] as const,
 };
 
 export function useMe() {
