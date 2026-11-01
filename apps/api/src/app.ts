@@ -15,6 +15,7 @@ import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import type { ExtractionQueue } from './imports/queue.js';
+import { dashboardRoutes } from './routes/dashboard.js';
 import { healthRoutes } from './routes/health.js';
 import { importRoutes } from './routes/imports.js';
 import { interventionRoutes } from './routes/intervention.js';
@@ -69,6 +70,8 @@ export async function buildApp({
     origin: config.WEB_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    // Nom du fichier du dossier de preuves, lu par le front.
+    exposedHeaders: ['Content-Disposition'],
   });
 
   // Limitation de débit partagée entre les instances (Redis) ; les liens intervenant ont la leur.
@@ -91,6 +94,7 @@ export async function buildApp({
   await app.register(importRoutes, { db, guards, storage, queue });
   await app.register(reserveRoutes, { db, guards, storage, emailSender, config });
   await app.register(interventionRoutes, { db, storage, emailSender, config });
+  await app.register(dashboardRoutes, { db, guards, storage });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

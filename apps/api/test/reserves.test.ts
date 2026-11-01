@@ -1,9 +1,8 @@
 import type { PresignedPost } from '@obsio/shared';
-import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { withOrganisation } from '../src/db/client.js';
-import { reportImport, reserve, reserveSource, user } from '../src/db/schema/index.js';
-import { buildTestApp, clientHelpers, resetDatabase, TestClient } from './helpers.js';
+import { reserveSource } from '../src/db/schema/index.js';
+import { buildTestApp, clientHelpers, resetDatabase, seedReserves, TestClient } from './helpers.js';
 
 const ctx = await buildTestApp();
 const { openClient, invite, join } = clientHelpers(ctx);
@@ -15,37 +14,6 @@ let organisationId: string;
 let siteId: string;
 let td2: string;
 let reserveIds: string[];
-
-/** Réserves déjà validées : on les crée en base plutôt que de rejouer tout un import. */
-async function seedReserves(orgId: string, site: string, adminEmail: string, count: number) {
-  const [author] = await ctx.db.select().from(user).where(eq(user.email, adminEmail));
-  return withOrganisation(ctx.db, orgId, async (tx) => {
-    const [created] = await tx
-      .insert(reportImport)
-      .values({
-        organisationId: orgId,
-        siteId: site,
-        fileName: 'rapport.pdf',
-        pdfKey: 'cle',
-        status: 'valide',
-        createdBy: author!.id,
-      })
-      .returning();
-    const rows = await tx
-      .insert(reserve)
-      .values(
-        Array.from({ length: count }, (_, i) => ({
-          organisationId: orgId,
-          siteId: site,
-          importId: created!.id,
-          description: `Réserve ${i + 1}`,
-          dueDate: i === 0 ? '2020-01-01' : null,
-        })),
-      )
-      .returning();
-    return rows.map((row) => row.id);
-  });
-}
 
 beforeEach(async () => {
   await resetDatabase();
@@ -64,7 +32,7 @@ beforeEach(async () => {
     .id;
   td2 = (await admin.post(`/api/floors/${floorId}/equipment`, { type: 'td', name: 'TD2' })).json()
     .id;
-  reserveIds = await seedReserves(organisationId, siteId, 'alice@dupont.fr', 3);
+  reserveIds = await seedReserves(ctx, organisationId, siteId, 'alice@dupont.fr', 3);
 });
 
 async function uploadPhoto(post: PresignedPost) {
@@ -262,6 +230,7 @@ describe('suivi des réserves', () => {
     const other = await openClient('Usine Martin', 'Chloé', 'chloe@martin.fr');
     const otherSite = (await other.admin.post('/api/sites', { name: 'Site Martin' })).json().id;
     const [otherReserve] = await seedReserves(
+      ctx,
       other.organisationId,
       otherSite,
       'chloe@martin.fr',

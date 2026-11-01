@@ -231,3 +231,50 @@ export const interventionSchema = z.object({
   reserves: z.array(interventionReserveSchema),
 });
 export type Intervention = z.infer<typeof interventionSchema>;
+
+// --- Pilotage (J6)
+
+export const siteDashboardSchema = z.object({
+  counts: z.object({
+    /** Ouvertes ou assignées. */
+    open: z.int(),
+    overdue: z.int(),
+    /** Corrigées, en attente de levée par l'admin. */
+    toVerify: z.int(),
+    /** En cours et déjà relevées lors d'une vérification précédente. */
+    reconduites: z.int(),
+    levees: z.int(),
+  }),
+  floors: z.array(
+    z.object({
+      floorId: z.uuid(),
+      floorName: z.string(),
+      buildingName: z.string(),
+      open: z.int(),
+      overdue: z.int(),
+    }),
+  ),
+  /** Réserves en cours sans équipement rattaché. */
+  unattached: z.int(),
+  /** Dernier compte rendu Q18 validé du site. */
+  q18: z
+    .object({
+      importId: z.uuid(),
+      organisme: z.string(),
+      dateVisite: z.iso.date().nullable(),
+      conclusion: z.enum(['risque', 'pas_de_risque']).nullable(),
+      /** Constatations standard cochées en danger (nouveau ou déjà signalé). */
+      dangers: z.array(z.int()),
+      nonVerifiees: z.array(z.int()),
+    })
+    .nullable(),
+});
+export type SiteDashboard = z.infer<typeof siteDashboardSchema>;
+
+export const proofDossierQuerySchema = z.object({
+  /** Dossier pour l'assureur (Q18, Q19) ou réglementaire (périodique…) ; tout par défaut. */
+  documentType: documentTypeSchema.optional(),
+  /** Réserves levées seulement, ou toutes avec leur état. */
+  scope: z.enum(['levees', 'toutes']).default('toutes'),
+});
+export type ProofDossierQuery = z.input<typeof proofDossierQuerySchema>;

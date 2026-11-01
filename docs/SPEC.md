@@ -192,6 +192,8 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
   - Une preuve contient au moins une photo ou un commentaire (6 photos au plus, réduites à 2000 px dans le navigateur). Les preuves ne sont ni modifiées ni supprimées (droits retirés à `app_user`).
   - Le lien de l'intervenant n'est montré qu'une fois à l'admin (et envoyé par e-mail) : seule l'empreinte SHA-256 du jeton est stockée. L'API le retrouve par une politique RLS dédiée (`assignment_token_lookup`), puis travaille dans le cloisonnement de l'organisation.
   - Hors ligne : l'application est mise en cache par un service worker écrit à la main (`public/sw.js`, actif en production seulement) ; les preuves passent par une file IndexedDB rejouée au retour du réseau, sans doublon grâce au `clientId` choisi par le téléphone. La vue de l'intervenant garde sa dernière version sur l'appareil.
+  - Relances de retard (J6) : chaque jour à 8 h (Paris), une tâche planifiée BullMQ dans l'API envoie aux admins, par site, le nombre de réserves en retard le jour où une réserve dépasse son échéance, et chaque lundi un récapitulatif s'il en reste. Pas de relance à l'intervenant (son lien n'est pas conservé en clair).
+  - Le tableau de bord lit le dernier compte rendu Q18 validé du site (date de visite la plus récente) : alerte si sa conclusion est « risque », et liste des constatations cochées « non vérifié ».
   - Limitation de débit : 600 requêtes par minute et par adresse IP sur l'API, 60 sur les liens intervenant (compteurs dans Redis).
 
 - Chaque table porte `organisation_id`, filtré par Row Level Security.
@@ -300,9 +302,9 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J6 — Pilotage et bêta**
 
-- [ ] Tableau de bord par site : ouvertes, en retard, reconduites ; alertes quand le dernier Q18 conclut à un risque d'incendie ou contient des constatations « non vérifié »
-- [ ] Export PDF du dossier de preuves
-- [ ] Notifications de retard
+- [x] Tableau de bord par site : ouvertes, en retard, reconduites ; alertes quand le dernier Q18 conclut à un risque d'incendie ou contient des constatations « non vérifié »
+- [x] Export PDF du dossier de preuves (généré par l'API avec pdfkit, filtrable par origine et limité aux réserves levées si besoin)
+- [x] Notifications de retard
 - [ ] Bêta privée avec 2 ou 3 sites réels
 
 ## Risques et questions ouvertes

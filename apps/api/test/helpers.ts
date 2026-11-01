@@ -2,8 +2,9 @@ import pg from 'pg';
 import { expect } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadConfig, type ApiConfig } from '../src/config.js';
-import { createDatabase, type Database } from '../src/db/client.js';
-import { organisation } from '../src/db/schema/index.js';
+import { createDatabase, withOrganisation, type Database } from '../src/db/client.js';
+import { eq } from 'drizzle-orm';
+import { organisation, reportImport, reserve, user } from '../src/db/schema/index.js';
 import { createMemorySender } from '../src/email/sender.js';
 import type { ExtractionQueue } from '../src/imports/queue.js';
 import { createRedis } from '../src/redis.js';
@@ -179,4 +180,41 @@ export function clientHelpers(ctx: TestApp) {
   }
 
   return { openClient, invite, join };
+}
+
+/** Réserves déjà validées : on les crée en base plutôt que de rejouer tout un import. */
+export async function seedReserves(
+  ctx: TestApp,
+  orgId: string,
+  site: string,
+  adminEmail: string,
+  count: number,
+) {
+  const [author] = await ctx.db.select().from(user).where(eq(user.email, adminEmail));
+  return withOrganisation(ctx.db, orgId, async (tx) => {
+    const [created] = await tx
+      .insert(reportImport)
+      .values({
+        organisationId: orgId,
+        siteId: site,
+        fileName: 'rapport.pdf',
+        pdfKey: 'cle',
+        status: 'valide',
+        createdBy: author!.id,
+      })
+      .returning();
+    const rows = await tx
+      .insert(reserve)
+      .values(
+        Array.from({ length: count }, (_, i) => ({
+          organisationId: orgId,
+          siteId: site,
+          importId: created!.id,
+          description: `Réserve ${i + 1}`,
+          dueDate: i === 0 ? '2020-01-01' : null,
+        })),
+      )
+      .returning();
+    return rows.map((row) => row.id);
+  });
 }

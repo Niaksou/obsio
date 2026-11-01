@@ -13,6 +13,7 @@ import {
   reportImportSchema,
   reserveDetailSchema,
   reserveListItemSchema,
+  siteDashboardSchema,
   siteEquipmentSchema,
   siteSchema,
   type AssignmentInput,
@@ -25,6 +26,7 @@ import {
   type PlanConfirm,
   type PlanUploadRequest,
   type PresignedPost,
+  type ProofDossierQuery,
   type ProofInput,
   type ReserveFilters,
   type ReserveUpdate,
@@ -67,7 +69,7 @@ async function request<T>(
 }
 
 /** Filtres en paramètres d'URL, sans les valeurs vides. */
-function query(params: Record<string, string | undefined>) {
+function queryString(params: Record<string, string | undefined>) {
   const entries = Object.entries(params).filter((entry): entry is [string, string] => !!entry[1]);
   return entries.length ? `?${new URLSearchParams(entries)}` : '';
 }
@@ -134,7 +136,7 @@ export const api = {
     request(
       z.array(reserveListItemSchema),
       'GET',
-      `/api/sites/${siteId}/reserves${query(filters)}`,
+      `/api/sites/${siteId}/reserves${queryString(filters)}`,
     ),
   reserve: (id: string) => request(reserveDetailSchema, 'GET', `/api/reserves/${id}`),
   updateReserve: (id: string, input: ReserveUpdate) =>
@@ -147,6 +149,9 @@ export const api = {
     request(z.null(), 'POST', `/api/reserves/${id}/proofs`, input),
   review: (id: string, input: { decision: 'lever' | 'refuser'; comment: string | null }) =>
     request(z.null(), 'POST', `/api/reserves/${id}/review`, input),
+
+  dashboard: (siteId: string) =>
+    request(siteDashboardSchema, 'GET', `/api/sites/${siteId}/dashboard`),
 
   contractors: () => request(z.array(contractorSchema), 'GET', '/api/contractors'),
   createContractor: (input: ContractorInput) =>
@@ -168,6 +173,24 @@ export const api = {
   archive: (kind: 'sites' | 'buildings' | 'floors' | 'equipment', id: string) =>
     request(z.null(), 'POST', `/api/${kind}/${id}/archive`),
 };
+
+/** Télécharge le dossier de preuves en PDF (la session passe par le cookie, d'où fetch). */
+export async function downloadProofDossier(siteId: string, query: ProofDossierQuery) {
+  const response = await fetch(
+    `${BASE_URL}/api/sites/${siteId}/proof-dossier${queryString({ ...query })}`,
+    { credentials: 'include' },
+  );
+  if (!response.ok) throw new ApiError(response.status, 'Le dossier n’a pas pu être généré.');
+  const name =
+    response.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ??
+    'dossier-preuves.pdf';
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
 
 /** Envoie un fichier au stockage avec le formulaire signé fourni par l'API. */
 export async function uploadToStorage(post: PresignedPost, file: Blob): Promise<void> {

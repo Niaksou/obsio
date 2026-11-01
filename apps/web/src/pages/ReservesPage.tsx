@@ -10,6 +10,7 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { api } from '../api.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { AssignPanel } from '../reserves/AssignPanel.js';
+import { DossierExport } from '../reserves/DossierExport.js';
 import { equipmentLabel, formatDay, plural, StatusLabel } from '../reserves/status.js';
 
 const VIEWS = {
@@ -170,6 +171,8 @@ export function ReservesPage() {
           ))}
         </ul>
       )}
+
+      <DossierExport siteId={siteId} />
 
       {isAdmin && selected.size > 0 && (
         <div className="selection-bar">

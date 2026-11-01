@@ -17,6 +17,7 @@ export const keys = {
   siteReserves: (siteId: string) => ['sites', siteId, 'reserves'] as const,
   reserves: (siteId: string, filters: object) => ['sites', siteId, 'reserves', filters] as const,
   reserve: (id: string) => ['reserves', id] as const,
+  dashboard: (siteId: string) => ['sites', siteId, 'reserves', 'dashboard'] as const,
   contractors: ['contractors'] as const,
   intervention: (token: string) => ['intervention', token] as const,
 };
