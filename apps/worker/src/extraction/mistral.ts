@@ -5,6 +5,7 @@ import type {
 } from '@mistralai/mistralai/models/components';
 import { providerReportSchema, type ProviderReport } from '@obsio/shared';
 import { z } from 'zod';
+import { mergeDuplicateDocuments } from './normalize.js';
 import { buildUserPrompt, PROMPT_VERSION, SYSTEM_PROMPT } from './prompt.js';
 import {
   ExtractionError,
@@ -118,7 +119,7 @@ export function createMistralProvider(options: MistralProviderOptions): Extracti
         trace.rawOutput = typeof content === 'string' ? content : JSON.stringify(content ?? null);
 
         const result = validate(trace.rawOutput);
-        if ('report' in result) return { report: result.report, trace };
+        if ('report' in result) return { report: mergeDuplicateDocuments(result.report), trace };
 
         // Nouvelle tentative en donnant au modèle les erreurs de validation.
         lastError = result.error;

@@ -273,8 +273,8 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Récupérer 5 à 10 rapports réels, de plusieurs organismes : 16 rapports publics (préfectures, communes) de 8 organismes, dont 5 comptes rendus Q18 et 5 contrôles Q19, tous en PDF texte ; il manque au moins un rapport scanné
 - [x] Écrire le résultat attendu pour chacun (pré-rempli, 113 réserves dont 14 Q18 et 6 Q19 ; 04 et 01 relus)
 - [x] Worker BullMQ : OCR Mistral puis extraction structurée, validation Zod (tâche `extract-report`, testée avec un faux fournisseur ; l'enregistrement en base vient en J3)
-- [ ] Script d'évaluation qui compare extraction et résultat attendu (écrit, pas encore lancé : l'offre gratuite de Mistral n'ouvre ni l'OCR ni mistral-medium)
-- [ ] Critère de sortie (validé) : au moins 95 % des réserves retrouvées, aucune réserve inventée, au moins 90 % des descriptions fidèles
+- [x] Script d'évaluation qui compare extraction et résultat attendu (`eval:extraction`, OCR mis en cache)
+- [x] Critère de sortie (validé) : au moins 95 % des réserves retrouvées, aucune réserve inventée, au moins 90 % des descriptions fidèles. Atteint le 1er novembre 2026 avec mistral-ocr-4-1 et mistral-medium-2604 (prompt reserves-v2) : 113 réserves sur 113, aucune inventée, 97,3 % des descriptions fidèles. Le premier passage avait 2 réserves en double, car le modèle avait scindé un compte rendu Q19 en deux documents (synthèse puis fiches) : le worker fusionne désormais les documents de même type et de même numéro (`mergeDuplicateDocuments`). Points faibles à suivre, sur des résultats attendus pas encore tous relus : descriptions Q18 (78,6 %), localisation (64,6 %), nouvelle ou reconduite (32,7 %). La validation humaine reste la parade.
 
 **J2 — Sites, plans, équipements**
 
