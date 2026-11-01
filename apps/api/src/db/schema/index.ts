@@ -3,3 +3,4 @@ export * from './organisation.js';
 export * from './site.js';
 export * from './premises.js';
 export * from './reports.js';
+export * from './interventions.js';

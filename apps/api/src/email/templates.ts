@@ -59,3 +59,73 @@ export function invitationEmail(
     ),
   };
 }
+
+export function assignmentEmail(
+  to: string,
+  data: {
+    organisationName: string;
+    reserveCount: number;
+    dueDate: string | null;
+    message: string | null;
+    url: string;
+  },
+): Email {
+  const n = data.reserveCount;
+  return {
+    to,
+    subject: `${data.organisationName} : ${n} réserve${n > 1 ? 's' : ''} à corriger`,
+    ...layout(
+      [
+        'Bonjour,',
+        `${data.organisationName} vous confie ${n} réserve${n > 1 ? 's' : ''} électrique${n > 1 ? 's' : ''} à corriger${data.dueDate ? ` avant le ${formatDate(data.dueDate)}` : ''}.`,
+        ...(data.message ? [data.message] : []),
+        'Le lien ci-dessous ouvre la liste sur votre téléphone, sans compte : pour chaque réserve, prenez une photo de la correction, ajoutez un commentaire et indiquez qu’elle est corrigée. Les envois partent dès que le réseau revient.',
+      ],
+      { label: 'Ouvrir mes réserves', url: data.url },
+    ),
+  };
+}
+
+export function correctionEmail(
+  to: string,
+  data: { author: string; description: string; url: string },
+): Email {
+  return {
+    to,
+    subject: `Réserve corrigée par ${data.author}`,
+    ...layout(
+      [
+        'Bonjour,',
+        `${data.author} indique avoir corrigé la réserve suivante : « ${data.description} ».`,
+        'Vérifiez la preuve jointe, puis levez la réserve ou refusez la correction.',
+      ],
+      { label: 'Vérifier la réserve', url: data.url },
+    ),
+  };
+}
+
+export function overdueEmail(
+  to: string,
+  data: { organisationName: string; siteName: string; count: number; url: string },
+): Email {
+  const n = data.count;
+  return {
+    to,
+    subject: `${data.siteName} : ${n} réserve${n > 1 ? 's' : ''} en retard`,
+    ...layout(
+      [
+        'Bonjour,',
+        `${n} réserve${n > 1 ? 's' : ''} du site ${data.siteName} (${data.organisationName}) ${n > 1 ? 'ont' : 'a'} dépassé leur échéance sans être corrigée${n > 1 ? 's' : ''}.`,
+      ],
+      { label: 'Voir les réserves en retard', url: data.url },
+    ),
+  };
+}
+
+function formatDate(iso: string) {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}

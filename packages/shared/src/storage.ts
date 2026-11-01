@@ -16,3 +16,8 @@ export function reportImportKeys(organisationId: string, importId: string) {
 export function floorPlanPrefix(organisationId: string, floorId: string) {
   return `organisations/${organisationId}/floors/${floorId}/plans/`;
 }
+
+/** Préfixe des photos de preuve d'une réserve. */
+export function proofPhotoPrefix(organisationId: string, reserveId: string) {
+  return `organisations/${organisationId}/reserves/${reserveId}/proofs/`;
+}

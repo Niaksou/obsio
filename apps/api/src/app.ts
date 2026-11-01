@@ -1,4 +1,5 @@
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import Fastify from 'fastify';
 import {
   serializerCompiler,
@@ -16,9 +17,11 @@ import type { EmailSender } from './email/sender.js';
 import type { ExtractionQueue } from './imports/queue.js';
 import { healthRoutes } from './routes/health.js';
 import { importRoutes } from './routes/imports.js';
+import { interventionRoutes } from './routes/intervention.js';
 import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
 import { premisesRoutes } from './routes/premises.js';
+import { reserveRoutes } from './routes/reserves.js';
 import type { Storage } from './storage.js';
 
 declare module 'fastify' {
@@ -68,6 +71,15 @@ export async function buildApp({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
+  // Limitation de débit partagée entre les instances (Redis) ; les liens intervenant ont la leur.
+  await app.register(rateLimit, {
+    max: config.NODE_ENV === 'test' ? 10_000 : 600,
+    timeWindow: '1 minute',
+    redis,
+    nameSpace: 'obsio-rate-limit:',
+    skipOnError: true,
+  });
+
   const auth = createAuth({ config, db, emailSender });
   const guards = createGuards(auth, db);
 
@@ -77,6 +89,8 @@ export async function buildApp({
   await app.register(invitationRoutes, { db, guards });
   await app.register(premisesRoutes, { db, guards, storage });
   await app.register(importRoutes, { db, guards, storage, queue });
+  await app.register(reserveRoutes, { db, guards, storage, emailSender, config });
+  await app.register(interventionRoutes, { db, storage, emailSender, config });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

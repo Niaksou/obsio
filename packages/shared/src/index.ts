@@ -7,3 +7,4 @@ export * from './equipment.js';
 export * from './premises.js';
 export * from './invitations.js';
 export * from './reports.js';
+export * from './reserves.js';
