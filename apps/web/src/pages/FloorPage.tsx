@@ -6,7 +6,7 @@ import type {
   ReserveListItem,
 } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
@@ -157,6 +157,19 @@ function Floor({ floor }: { floor: FloorDetail }) {
     }
   }
 
+  // Échap quitte l'outil ou le placement en cours, comme le second clic sur leur bouton.
+  useEffect(() => {
+    if (!tool && !placing) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      setTool(null);
+      setPoints([]);
+      setPlacing(null);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [tool, placing]);
+
   // Un troisième clic recommence le segment.
   function addPoint(point: Point) {
     setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
@@ -201,7 +214,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                     setPlacing(placing ? null : { kind: 'new' });
                   }}
                 >
-                  {placing ? 'Annuler le placement' : 'Placer un équipement'}
+                  Placer un équipement
                 </button>
               )}
               {scale && (
@@ -211,7 +224,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   aria-pressed={tool === 'mesurer'}
                   onClick={() => switchTool(tool === 'mesurer' ? null : 'mesurer')}
                 >
-                  {tool === 'mesurer' ? 'Terminer la mesure' : 'Mesurer'}
+                  Mesurer
                 </button>
               )}
               {isAdmin && (
@@ -221,11 +234,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   aria-pressed={tool === 'calibrer'}
                   onClick={() => switchTool(tool === 'calibrer' ? null : 'calibrer')}
                 >
-                  {tool === 'calibrer'
-                    ? 'Annuler le calibrage'
-                    : scale
-                      ? 'Recalibrer l’échelle'
-                      : 'Calibrer l’échelle'}
+                  {scale ? 'Recalibrer l’échelle' : 'Calibrer l’échelle'}
                 </button>
               )}
               {isAdmin && (
@@ -292,7 +301,8 @@ function Floor({ floor }: { floor: FloorDetail }) {
             measuring={tool !== null}
             segment={{ points, label: measured }}
             onMeasurePoint={addPoint}
-            metersPerPixel={scale}
+            // Pendant un tracé, la cote s'affiche sur le segment : la barre gênerait.
+            metersPerPixel={tool ? null : scale}
             onSelect={select}
             onPlace={place}
             onMove={(id, position) => update.mutate({ id, input: { position } })}
@@ -302,6 +312,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
         {placing && (
           <p className="placing-hint" role="status">
             Cliquez sur le plan à l’emplacement de l’équipement.
+            <span className="keyboard-hint"> Échap pour annuler.</span>
           </p>
         )}
         {tool === 'mesurer' && (
@@ -309,11 +320,13 @@ function Floor({ floor }: { floor: FloorDetail }) {
             {measured
               ? `Distance : ${measured}. Cliquez ailleurs pour une nouvelle mesure.`
               : 'Cliquez les deux extrémités de la distance à mesurer.'}
+            <span className="keyboard-hint"> Échap pour terminer.</span>
           </p>
         )}
         {tool === 'calibrer' && points.length < 2 && (
           <p className="placing-hint" role="status">
             Cliquez les deux extrémités d’une longueur connue : une cote du plan, une porte, un mur.
+            <span className="keyboard-hint"> Échap pour annuler.</span>
           </p>
         )}
         {tool === 'calibrer' && points.length === 2 && (

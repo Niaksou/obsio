@@ -2170,3 +2170,10 @@ label.check input {
 .tb-scale {
   grid-column: 1 / -1;
 }
+
+/* Raccourcis clavier : inutiles à annoncer sur un écran tactile. */
+@media (pointer: coarse) {
+  .keyboard-hint {
+    display: none;
+  }
+}
