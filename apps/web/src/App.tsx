@@ -17,6 +17,14 @@ const FloorPage = lazy(() =>
   import('./pages/FloorPage.js').then((module) => ({ default: module.FloorPage })),
 );
 
+const ImportPage = lazy(() =>
+  import('./pages/ImportPage.js').then((module) => ({ default: module.ImportPage })),
+);
+
+const lazyPage = (page: ReactNode) => (
+  <Suspense fallback={<p className="loading page-message">Chargement…</p>}>{page}</Suspense>
+);
+
 const session = (page: ReactNode) => (
   <RequireSession>
     <RequireOrganisation>{page}</RequireOrganisation>
@@ -43,12 +51,9 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/etages/:floorId',
-        element: session(
-          <Suspense fallback={<p className="loading page-message">Chargement…</p>}>
-            <FloorPage />
-          </Suspense>,
-        ),
+        element: session(lazyPage(<FloorPage />)),
       },
+      { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
     ],
   },
 ]);

@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
+import { ImportsSection } from '../imports/ImportsSection.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys, useIsAdmin } from '../queries.js';
 
@@ -60,6 +61,7 @@ export function SitePage() {
         <BuildingSection key={building.id} building={building} isAdmin={isAdmin} />
       ))}
       {isAdmin && <AddBuilding siteId={siteId} />}
+      <ImportsSection siteId={siteId} isAdmin={isAdmin} />
     </div>
   );
 }

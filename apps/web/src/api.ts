@@ -5,8 +5,13 @@ import {
   floorSchema,
   invitationDetailsSchema,
   planUploadResponseSchema,
+  presignedPostSchema,
+  reportImportDetailSchema,
+  reportImportSchema,
+  siteEquipmentSchema,
   siteSchema,
   type BuildingInput,
+  type DraftUpdate,
   type EquipmentInput,
   type EquipmentUpdate,
   type FloorInput,
@@ -92,6 +97,22 @@ export const api = {
     request(equipmentSchema, 'POST', `/api/floors/${floorId}/equipment`, input),
   updateEquipment: (id: string, input: EquipmentUpdate) =>
     request(equipmentSchema, 'PATCH', `/api/equipment/${id}`, input),
+
+  siteEquipment: (siteId: string) =>
+    request(z.array(siteEquipmentSchema), 'GET', `/api/sites/${siteId}/equipment`),
+
+  imports: (siteId: string) =>
+    request(z.array(reportImportSchema), 'GET', `/api/sites/${siteId}/imports`),
+  importDetail: (id: string) => request(reportImportDetailSchema, 'GET', `/api/imports/${id}`),
+  reportUpload: (siteId: string, input: { fileName: string; size: number }) =>
+    request(presignedPostSchema, 'POST', `/api/sites/${siteId}/imports/upload`, input),
+  createImport: (siteId: string, input: { key: string; fileName: string }) =>
+    request(reportImportSchema, 'POST', `/api/sites/${siteId}/imports`, input),
+  retryImport: (id: string) => request(reportImportSchema, 'POST', `/api/imports/${id}/retry`),
+  updateDraft: (id: string, input: DraftUpdate) =>
+    request(z.null(), 'PATCH', `/api/drafts/${id}`, input),
+  validateImport: (id: string) =>
+    request(reportImportSchema, 'POST', `/api/imports/${id}/validate`),
 
   archive: (kind: 'sites' | 'buildings' | 'floors' | 'equipment', id: string) =>
     request(z.null(), 'POST', `/api/${kind}/${id}/archive`),

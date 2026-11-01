@@ -808,6 +808,330 @@ button.link:hover:not(:disabled) {
   margin: 0;
 }
 
+/* --- Rapports et validation d'un import */
+
+textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 7px 10px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: 2px solid var(--action);
+  outline-offset: -1px;
+}
+
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reports {
+  margin-top: 40px;
+}
+
+.section-title {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.reports .rows {
+  border-top: 0;
+}
+
+.file-drop-inline {
+  min-height: 64px;
+  padding: 16px;
+}
+
+.status-en_analyse {
+  color: var(--action);
+}
+
+.status-a_valider {
+  color: var(--pending);
+}
+
+.status-erreur {
+  color: var(--danger);
+}
+
+.review {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+}
+
+.review > .toolbar .status {
+  margin-left: 0;
+}
+
+.review-message {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  max-width: 640px;
+  margin: 48px auto;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.review-body {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  min-height: 0;
+}
+
+.review-list {
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.review-side {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  min-height: 0;
+}
+
+.review-pdf {
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.review-note {
+  padding: 8px 12px;
+  background: var(--paper);
+  border-left: 3px solid var(--ink);
+}
+
+.review-document + .review-document {
+  margin-top: 24px;
+}
+
+.review-document > h2 {
+  font-size: 1.05rem;
+}
+
+.review-document > .row-meta {
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+}
+
+.q18 {
+  margin: 8px 0;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border-left: 3px solid var(--line);
+}
+
+.q18-risk {
+  border-left-color: var(--danger);
+}
+
+.q18-risk > p:first-child {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.draft-list {
+  margin: 0 -16px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.draft-list li {
+  border-bottom: 1px solid var(--line);
+}
+
+.draft {
+  display: grid;
+  grid-template-columns: 3.5em minmax(0, 1fr);
+  gap: 2px 10px;
+  width: 100%;
+  padding: 10px 16px;
+  color: var(--ink);
+  font-weight: 400;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 0;
+}
+
+.draft:hover:not(:disabled) {
+  background: var(--paper);
+  border-color: transparent;
+  border-left-color: var(--line);
+}
+
+.draft.selected,
+.draft.selected:hover:not(:disabled) {
+  background: var(--paper);
+  border-left-color: var(--ink);
+}
+
+.draft-ref {
+  grid-row: span 2;
+  font-family: var(--font-plate);
+  font-weight: 700;
+}
+
+.draft-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.draft-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+}
+
+.decision {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.decision-a_valider {
+  color: var(--pending);
+}
+
+.decision-retenue {
+  color: var(--action);
+}
+
+.decision-ecartee {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.tag {
+  padding: 0 6px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.tag-warning {
+  color: var(--ink);
+  background: rgb(240 196 25 / 0.35);
+  border-color: var(--safety);
+}
+
+.plate-small {
+  padding: 0 5px 1px;
+  font-size: 0.8125rem;
+}
+
+.draft-editor {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.draft-editor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.draft-editor-head h2 {
+  font-size: 1.1rem;
+}
+
+.draft-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.draft-fields select {
+  width: 100%;
+}
+
+.pdf-page {
+  display: grid;
+  gap: 6px;
+}
+
+.pdf-page-label {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.pdf-page-sheet {
+  position: relative;
+  justify-self: start;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(24 34 44 / 0.2);
+}
+
+.pdf-page-sheet canvas {
+  display: block;
+}
+
+/* Surligneur jaune de sécurité, comme la sélection sur le plan. */
+.pdf-highlight {
+  position: absolute;
+  background: rgb(240 196 25 / 0.4);
+  border-bottom: 2px solid var(--safety);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+@media (max-width: 1100px) {
+  .review-side {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    overflow-y: auto;
+  }
+
+  .draft-editor {
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .review-pdf {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 720px) {
+  .review {
+    height: auto;
+  }
+
+  .review-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .review-list {
+    border-right: 0;
+  }
+}
+
 /* Téléphone : le plan d'abord, le panneau en volet sous le plan. */
 @media (max-width: 720px) {
   .header {

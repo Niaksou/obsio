@@ -127,7 +127,7 @@ L'extraction propose, l'utilisateur valide : aucune réserve ne devient active s
 3. **Extraction.** Le texte part vers un modèle Mistral en sortie structurée (schéma JSON). Sortie : en-tête du rapport (organisme, date, site) et liste des réserves.
 4. **Validation technique.** Zod valide le JSON ; en cas d'échec, une nouvelle tentative, puis statut `erreur` visible par l'utilisateur.
 5. **Rapprochement.** Pour chaque réserve : proposition d'équipement à partir de `localisation_texte`, et détection des reconduites par comparaison avec les réserves ouvertes du site.
-6. **Brouillon.** Les réserves sont stockées en `ReserveBrouillon`, statut de l'import `a_valider`.
+6. **Brouillon.** Les réserves sont stockées en `ReserveBrouillon`, statut de l'import `a_valider`. C'est l'API qui range le résultat (`extraction.json`) en base, dès la fin de la tâche (événements BullMQ) et à chaque consultation de l'import ; le worker n'accède pas à la base.
 7. **Validation humaine.** Écran côte à côte : réserve extraite et passage surligné du PDF. Les réserves à faible confiance sont mises en avant.
 8. **Activation.** À la validation, les brouillons deviennent des `Reserve` actives.
 
@@ -178,6 +178,12 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `Evenement` | type, auteur, date, avant/après | journal d'audit de chaque réserve |
 
 **Règles notables**
+
+- Décisions prises en J3, à relire :
+  - Validation d'un import : chaque brouillon doit être retenu ou écarté un par un, il n'y a pas de « tout retenir ».
+  - Une réserve reconduite reste en base avec son historique, mais sort des listes de réserves en cours dès qu'une réserve d'un import suivant la reconduit : la nouvelle prend le relais.
+  - L'import, la relecture et la validation sont réservés à l'admin ; les membres consultent.
+  - En développement, `EXTRACTION_PROVIDER=fixtures` rejoue le résultat attendu d'un PDF du jeu de test pour démontrer l'import sans Mistral ; ce mode est refusé en production.
 
 - Chaque table porte `organisation_id`, filtré par Row Level Security.
 - `Reserve.reconduite_de` pointe vers la réserve de l'année précédente : c'est elle qui donne l'historique d'un équipement.
@@ -265,10 +271,10 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **J3 — Import et validation**
 
-- [ ] Dépôt du PDF, suivi du statut de l'import
-- [ ] Écran de validation côte à côte avec surlignage dans le PDF
-- [ ] Rapprochement équipement et détection des reconduites
-- [ ] Activation des réserves
+- [x] Dépôt du PDF, suivi du statut de l'import
+- [x] Écran de validation côte à côte avec surlignage dans le PDF (passage retrouvé dans le texte de la page ; pas de surlignage sur un PDF scanné)
+- [x] Rapprochement équipement et détection des reconduites
+- [x] Activation des réserves
 
 **J4 — Réserves et assignation**
 

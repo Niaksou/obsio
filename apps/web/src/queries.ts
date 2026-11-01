@@ -10,6 +10,9 @@ export const keys = {
   floors: (buildingId: string) => ['buildings', buildingId, 'floors'] as const,
   floor: (id: string) => ['floors', id] as const,
   equipment: (floorId: string) => ['floors', floorId, 'equipment'] as const,
+  siteEquipment: (siteId: string) => ['sites', siteId, 'equipment'] as const,
+  imports: (siteId: string) => ['sites', siteId, 'imports'] as const,
+  importDetail: (id: string) => ['imports', id] as const,
 };
 
 export function useMe() {

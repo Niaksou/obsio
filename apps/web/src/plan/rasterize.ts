@@ -20,6 +20,11 @@ export function openPdf(file: File): Promise<PDFDocumentProxy> {
   return file.arrayBuffer().then((data) => getDocument({ data }).promise);
 }
 
+/** PDF servi par un lien signé du stockage (rapport importé). */
+export function openPdfUrl(url: string): Promise<PDFDocumentProxy> {
+  return getDocument({ url }).promise;
+}
+
 /** Échelle de rendu pour que l'image tienne dans les limites, quelles que soient les proportions. */
 export function renderScale(width: number, height: number, maxSide = MAX_SIDE): number {
   const bySide = maxSide / Math.max(width, height);
