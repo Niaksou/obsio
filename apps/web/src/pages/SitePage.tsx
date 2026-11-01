@@ -85,6 +85,11 @@ function BuildingSection({ building, isAdmin }: { building: Building; isAdmin: b
     <section className="building">
       <div className="title-row">
         <h2>{building.name}</h2>
+        {floors.data && floors.data.length > 0 && (
+          <Link to={`/batiments/${building.id}/3d`} className="quiet-link">
+            Vue 3D
+          </Link>
+        )}
         {isAdmin && (
           <ConfirmButton
             label="Archiver"

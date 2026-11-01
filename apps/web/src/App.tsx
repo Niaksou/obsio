@@ -21,6 +21,11 @@ const FloorPage = lazy(() =>
   import('./pages/FloorPage.js').then((module) => ({ default: module.FloorPage })),
 );
 
+// three.js n'est chargé qu'à l'ouverture de la vue 3D.
+const BuildingPage3D = lazy(() =>
+  import('./pages/BuildingPage3D.js').then((module) => ({ default: module.BuildingPage3D })),
+);
+
 const ImportPage = lazy(() =>
   import('./pages/ImportPage.js').then((module) => ({ default: module.ImportPage })),
 );
@@ -67,6 +72,7 @@ const router = createBrowserRouter([
         element: session(lazyPage(<FloorPage />)),
       },
       { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
+      { path: '/batiments/:buildingId/3d', element: session(lazyPage(<BuildingPage3D />)) },
     ],
   },
   { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },

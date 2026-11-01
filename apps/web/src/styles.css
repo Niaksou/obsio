@@ -1135,7 +1135,23 @@ fieldset {
 /* Téléphone : le plan d'abord, le panneau en volet sous le plan. */
 @media (max-width: 720px) {
   .header {
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 0 12px;
+  }
+
+  /* La navigation passe sous la marque et la session, et défile si elle déborde. */
+  .nav {
+    order: 3;
+    flex-basis: calc(100% + 32px);
+    min-height: 44px;
+    margin: 0 -16px;
+    padding: 0 6px;
+    overflow-x: auto;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .nav a {
+    flex: none;
   }
 
   .session > span {
@@ -2034,4 +2050,71 @@ label.check input {
 .inspection-group .row-link .row-meta {
   flex-basis: 100%;
   font-size: 0.875rem;
+}
+
+/* --- Vue 3D d'un bâtiment (mêmes zones que la page d'étage) */
+
+.building-3d .spread {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.floor-list .floor-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 10px 0;
+}
+
+.floor-list .row-meta {
+  flex-basis: 100%;
+  font-size: 0.875rem;
+}
+
+.floor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.building-3d .panel ul:not(.rows) {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.building-3d .panel li + li {
+  margin-top: 6px;
+}
+
+.legend {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+}
+
+.legend > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend dd {
+  margin: 0;
+}
+
+.legend .swatch {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend .overdue-ring {
+  border: 3px solid var(--danger);
+  background: transparent;
 }

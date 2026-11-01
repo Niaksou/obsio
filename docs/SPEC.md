@@ -71,7 +71,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 
 **Hors MVP (plus tard)**
 
-- Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Elle utilisera le niveau et l'échelle des étages.
+- Vue 3D par extrusion des plans (React Three Fiber) : confirmée après le MVP, faute de murs dans un plan PDF ou image. Première version livrée après J6 (voir « Après le MVP ») ; l'échelle des étages viendra avec leur calibrage.
 - Import BIM (IFC) et détection automatique des murs.
 - Autres vérifications périodiques : incendie, levage, gaz, portes automatiques.
 - Planning des prochaines visites et relances de l'organisme de contrôle : livré après J6 (voir « Après le MVP »).
@@ -319,6 +319,11 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
   - La vérification initiale fait partir l'échéance de la périodique. Seuls les rapports validés et datés comptent.
   - États : à jour ; à programmer (échéance à 60 jours ou moins, sans visite programmée) ; programmée ; rapport à importer (visite programmée passée sans rapport plus récent) ; en retard ; aucun rapport. Une visite programmée ne compte plus dès qu'un rapport plus récent est validé.
   - Relances à jour fixe, sans suivi des envois : 60 et 30 jours avant l'échéance sans visite programmée, le lendemain de l'échéance, 7 jours avant une visite programmée (avec le nombre de réserves de ce type encore en cours, qui seront reconduites) et 7 jours après si le rapport n'est pas importé. Aucun e-mail à l'organisme lui-même.
+
+**Après le MVP — Vue 3D d'un bâtiment**
+
+- [x] Étages empilés selon leur niveau, chacun texturé par l'image de son plan (même largeur pour tous tant que l'échelle n'est pas calibrée), équipements en repères verticaux colorés comme sur le plan 2D (statut le plus urgent, hauteur selon le nombre de réserves, anneau si retard) ; écartement réglable, étage isolable, repère sélectionnable avec ses réserves et le lien vers le plan
+- Choix techniques : three.js et React Three Fiber, chargés seulement à l'ouverture de la vue (`/batiments/:id/3d`) ; aucune nouvelle route d'API (étages, plans signés, équipements et réserves existants) ; message de repli sans WebGL. Pas de cloisons extrudées : un plan PDF ou image n'en décrit pas.
 
 ## Risques et questions ouvertes
 
