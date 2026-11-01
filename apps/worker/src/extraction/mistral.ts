@@ -33,7 +33,43 @@ export function inlineTables(page: OCRResponse['pages'][number]): string {
   );
 }
 
-function validate(output: string): { report: ProviderReport } | { error: string } {
+/** Messages de la requête d'extraction, partagés avec l'API batch de l'évaluation. */
+export function extractionMessages(document: OcrDocument): ChatCompletionRequestMessage[] {
+  return [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: buildUserPrompt(document) },
+  ];
+}
+
+/** Corps de la requête d'extraction au format de l'API HTTP (lignes JSONL de l'API batch). */
+export function extractionRequestBody(document: OcrDocument) {
+  return {
+    temperature: 0,
+    messages: extractionMessages(document),
+    response_format: {
+      type: 'json_schema',
+      json_schema: { name: 'rapport', schema: responseSchema, strict: true },
+    },
+  };
+}
+
+export function newExtractionTrace(
+  document: OcrDocument,
+  extractionModel: string,
+): ExtractionTrace {
+  return {
+    provider: 'mistral',
+    ocrModel: document.model,
+    extractionModel,
+    promptVersion: PROMPT_VERSION,
+    attempts: 0,
+    rawOutput: '',
+    usage: { ocrPages: document.pages.length, promptTokens: 0, completionTokens: 0 },
+  };
+}
+
+/** Valide la sortie brute du modèle par le schéma Zod, puis fusionne les documents en double. */
+export function parseExtraction(output: string): { report: ProviderReport } | { error: string } {
   let json: unknown;
   try {
     json = JSON.parse(output);
@@ -41,17 +77,17 @@ function validate(output: string): { report: ProviderReport } | { error: string 
     return { error: "La réponse n'est pas un JSON valide." };
   }
   const parsed = providerReportSchema.safeParse(json);
-  if (parsed.success) return { report: parsed.data };
+  if (parsed.success) return { report: mergeDuplicateDocuments(parsed.data) };
   const issues = parsed.error.issues
     .slice(0, 20)
     .map((i) => `- ${i.path.join('.')} : ${i.message}`);
   return { error: `La réponse ne respecte pas le schéma :\n${issues.join('\n')}` };
 }
 
-export function createMistralProvider(options: MistralProviderOptions): ExtractionProvider {
-  // Nouvelle tentative avec attente croissante sur limite de débit (429) et erreurs serveur.
-  const client = new Mistral({
-    apiKey: options.apiKey,
+/** Client avec nouvelle tentative et attente croissante sur limite de débit (429) et erreurs serveur. */
+export function createMistralClient(apiKey: string): Mistral {
+  return new Mistral({
+    apiKey,
     retryConfig: {
       strategy: 'backoff',
       backoff: {
@@ -63,6 +99,10 @@ export function createMistralProvider(options: MistralProviderOptions): Extracti
       retryConnectionErrors: true,
     },
   });
+}
+
+export function createMistralProvider(options: MistralProviderOptions): ExtractionProvider {
+  const client = createMistralClient(options.apiKey);
   const maxAttempts = options.maxAttempts ?? 2;
 
   return {
@@ -87,19 +127,8 @@ export function createMistralProvider(options: MistralProviderOptions): Extracti
     },
 
     async extractFromOcr(document: OcrDocument) {
-      const messages: ChatCompletionRequestMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildUserPrompt(document) },
-      ];
-      const trace: ExtractionTrace = {
-        provider: 'mistral',
-        ocrModel: document.model,
-        extractionModel: options.extractionModel,
-        promptVersion: PROMPT_VERSION,
-        attempts: 0,
-        rawOutput: '',
-        usage: { ocrPages: document.pages.length, promptTokens: 0, completionTokens: 0 },
-      };
+      const messages = extractionMessages(document);
+      const trace = newExtractionTrace(document, options.extractionModel);
 
       let lastError = '';
       while (trace.attempts < maxAttempts) {
@@ -118,8 +147,8 @@ export function createMistralProvider(options: MistralProviderOptions): Extracti
         const content = response.choices[0]?.message?.content;
         trace.rawOutput = typeof content === 'string' ? content : JSON.stringify(content ?? null);
 
-        const result = validate(trace.rawOutput);
-        if ('report' in result) return { report: mergeDuplicateDocuments(result.report), trace };
+        const result = parseExtraction(trace.rawOutput);
+        if ('report' in result) return { report: result.report, trace };
 
         // Nouvelle tentative en donnant au modèle les erreurs de validation.
         lastError = result.error;

@@ -2,8 +2,19 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadConfig } from '../src/config.js';
-import { createMistralProvider } from '../src/extraction/mistral.js';
-import { ExtractionError, type OcrDocument } from '../src/extraction/provider.js';
+import {
+  createMistralClient,
+  createMistralProvider,
+  extractionRequestBody,
+  newExtractionTrace,
+  parseExtraction,
+} from '../src/extraction/mistral.js';
+import {
+  ExtractionError,
+  type ExtractionResult,
+  type OcrDocument,
+} from '../src/extraction/provider.js';
+import { runChatBatch, type BatchOutput } from './batch.js';
 import {
   compareReport,
   RESERVE_FIELDS,
@@ -16,6 +27,8 @@ import { FIXTURES_DIR, loadFixtures } from './fixtures.js';
 //   --only <texte>   limite aux rapports dont l'identifiant contient ce texte
 //   --model <id>     modèle d'extraction à essayer à la place de celui de la configuration
 //   --no-cache       refait l'OCR au lieu de réutiliser le cache
+//   --batch          extraction par l'API batch de Mistral : moitié prix, résultats en différé ;
+//                    une sortie invalide est refaite en direct (avec les erreurs de validation)
 
 // Critère de sortie de J1 (validé), sur l'ensemble des documents : rappel, réserves inventées,
 // descriptions fidèles.
@@ -26,6 +39,7 @@ const { values } = parseArgs({
     only: { type: 'string' },
     model: { type: 'string' },
     'no-cache': { type: 'boolean', default: false },
+    batch: { type: 'boolean', default: false },
   },
 });
 
@@ -42,7 +56,7 @@ const cacheDir = join(FIXTURES_DIR, '.cache');
 const runDir = join(
   FIXTURES_DIR,
   '.runs',
-  `${new Date().toISOString().replace(/[:.]/g, '-')}_${extractionModel}`,
+  `${new Date().toISOString().replace(/[:.]/g, '-')}_${extractionModel}${values.batch ? '_batch' : ''}`,
 );
 await mkdir(cacheDir, { recursive: true });
 await mkdir(runDir, { recursive: true });
@@ -66,12 +80,53 @@ const results: {
   tokens: number;
 }[] = [];
 
+// OCR de tous les rapports d'abord (cache), pour pouvoir grouper les extractions en un batch.
+const documents = new Map<string, OcrDocument>();
 for (const fixture of fixtures) {
+  try {
+    documents.set(fixture.id, await ocrWithCache(fixture.id, fixture.pdfPath));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    results.push({ id: fixture.id, comparison: null, error: `OCR : ${message}`, tokens: 0 });
+    console.log(`${fixture.id} … ÉCHEC de l'OCR : ${message.split('\n')[0]}`);
+  }
+}
+
+const batchOutputs = values.batch
+  ? await runChatBatch(
+      createMistralClient(config.MISTRAL_API_KEY),
+      extractionModel,
+      [...documents].map(([id, document]) => ({ id, body: extractionRequestBody(document) })),
+    )
+  : null;
+
+/** Résultat du batch s'il est valide ; sinon extraction en direct, qui renvoie les erreurs au modèle. */
+async function extract(
+  document: OcrDocument,
+  output: BatchOutput | undefined,
+): Promise<ExtractionResult> {
+  if (output?.content != null) {
+    const trace = newExtractionTrace(document, extractionModel);
+    trace.attempts = 1;
+    trace.rawOutput = output.content;
+    trace.usage.promptTokens = output.promptTokens;
+    trace.usage.completionTokens = output.completionTokens;
+    const result = parseExtraction(output.content);
+    if ('report' in result) return { report: result.report, trace };
+    process.stdout.write('sortie du batch invalide, reprise en direct … ');
+  } else if (batchOutputs) {
+    process.stdout.write(`${output?.error ?? 'absent du batch'}, reprise en direct … `);
+  }
+  return provider.extractFromOcr(document);
+}
+
+for (const fixture of fixtures) {
+  const document = documents.get(fixture.id);
+  if (!document) continue;
   process.stdout.write(`${fixture.id} … `);
   const outputPath = join(runDir, `${fixture.id.replaceAll('/', '__')}.json`);
   try {
-    const document = await ocrWithCache(fixture.id, fixture.pdfPath);
-    const { report, trace } = await provider.extractFromOcr(document);
+    const { report, trace } = await extract(document, batchOutputs?.get(fixture.id));
     await writeFile(outputPath, JSON.stringify({ report, trace }, null, 2));
     const comparison = compareReport(fixture.expected, report);
     results.push({
@@ -106,7 +161,7 @@ const types = [...new Set(allDocuments.map((d) => d.type))];
 const lines: string[] = [
   `# Évaluation de l'extraction`,
   '',
-  `- OCR : ${config.MISTRAL_OCR_MODEL} · extraction : ${extractionModel}`,
+  `- OCR : ${config.MISTRAL_OCR_MODEL} · extraction : ${extractionModel}${values.batch ? ' (API batch)' : ''}`,
   `- Rapports : ${results.length} (${results.length - done.length} en échec)`,
   `- Réserves retrouvées : ${matched}/${expected} (${pct(matched, expected)})`,
   `- Réserves inventées : ${invented}`,
