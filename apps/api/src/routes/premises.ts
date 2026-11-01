@@ -15,6 +15,7 @@ import {
   planUploadRequestSchema,
   planUploadResponseSchema,
   siteInputSchema,
+  siteEquipmentSchema,
   siteSchema,
   type PlanPosition,
 } from '@obsio/shared';
@@ -405,6 +406,39 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   );
 
   // --- Équipements
+
+  app.get(
+    '/api/sites/:id/equipment',
+    {
+      preHandler: member,
+      schema: { params: idParams, response: { 200: z.array(siteEquipmentSchema), ...notFound } },
+    },
+    async (request, reply) => {
+      const rows = await scoped(request, async (tx) => {
+        if (!(await activeSite(tx, request.params.id))) return null;
+        return tx
+          .select({ equipment, floorName: floor.name, buildingName: building.name })
+          .from(equipment)
+          .innerJoin(floor, eq(floor.id, equipment.floorId))
+          .innerJoin(building, eq(building.id, floor.buildingId))
+          .where(
+            and(
+              eq(building.siteId, request.params.id),
+              isNull(equipment.archivedAt),
+              isNull(floor.archivedAt),
+              isNull(building.archivedAt),
+            ),
+          )
+          .orderBy(asc(building.name), asc(floor.level), asc(equipment.name));
+      });
+      if (!rows) return missing(reply, 'Site');
+      return rows.map((row) => ({
+        ...toEquipment(row.equipment),
+        floorName: row.floorName,
+        buildingName: row.buildingName,
+      }));
+    },
+  );
 
   app.get(
     '/api/floors/:id/equipment',

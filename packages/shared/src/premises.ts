@@ -66,6 +66,13 @@ export const equipmentSchema = z.object({
 });
 export type Equipment = z.infer<typeof equipmentSchema>;
 
+/** Équipement avec son étage et son bâtiment, pour le choisir parmi tout le site. */
+export const siteEquipmentSchema = equipmentSchema.extend({
+  floorName: z.string(),
+  buildingName: z.string(),
+});
+export type SiteEquipment = z.infer<typeof siteEquipmentSchema>;
+
 export const equipmentInputSchema = z.object({
   type: equipmentTypeSchema,
   /** Repère (« TD2 ») ou nom de la machine (« Presse 3 »). */

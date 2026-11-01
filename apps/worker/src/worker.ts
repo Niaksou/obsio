@@ -3,6 +3,7 @@ import { Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import type { Logger } from 'pino';
 import type { WorkerConfig } from './config.js';
+import { createFixturesProvider } from './extraction/fixtures.js';
 import { createMistralProvider } from './extraction/mistral.js';
 import type { ExtractionProvider } from './extraction/provider.js';
 import { createProcessor } from './processor.js';
@@ -16,6 +17,7 @@ export interface WorkerOptions {
 }
 
 function defaultProvider(config: WorkerConfig): ExtractionProvider | null {
+  if (config.EXTRACTION_PROVIDER === 'fixtures') return createFixturesProvider(config.FIXTURES_DIR);
   if (!config.MISTRAL_API_KEY) return null;
   return createMistralProvider({
     apiKey: config.MISTRAL_API_KEY,

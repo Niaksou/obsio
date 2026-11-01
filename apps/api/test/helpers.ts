@@ -5,6 +5,7 @@ import { loadConfig, type ApiConfig } from '../src/config.js';
 import { createDatabase, type Database } from '../src/db/client.js';
 import { organisation } from '../src/db/schema/index.js';
 import { createMemorySender } from '../src/email/sender.js';
+import type { ExtractionQueue } from '../src/imports/queue.js';
 import { createRedis } from '../src/redis.js';
 import { createStorage } from '../src/storage.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
@@ -43,6 +44,25 @@ export async function createOrganisation(db: Database, name: string) {
   return created;
 }
 
+/** File d'extraction factice : les tests jouent le rôle du worker en déposant extraction.json. */
+function createFakeQueue() {
+  const jobs: { organisationId: string; importId: string }[] = [];
+  const failures = new Map<string, string>();
+  const queue: ExtractionQueue & { jobs: typeof jobs; failures: typeof failures } = {
+    jobs,
+    failures,
+    async enqueue(job) {
+      jobs.push(job);
+    },
+    async failure(importId) {
+      return failures.get(importId) ?? null;
+    },
+    watch() {},
+    async close() {},
+  };
+  return queue;
+}
+
 /** Application complète branchée sur la base de test, avec les e-mails gardés en mémoire. */
 export async function buildTestApp() {
   const config = testConfig();
@@ -51,7 +71,8 @@ export async function buildTestApp() {
   const emailSender = createMemorySender();
   const storage = createStorage(config);
   await storage.ensureBucket(config.WEB_URL);
-  const app = await buildApp({ config, pool, db, redis, emailSender, storage });
+  const queue = createFakeQueue();
+  const app = await buildApp({ config, pool, db, redis, emailSender, storage, queue });
   return {
     app,
     db,
@@ -59,6 +80,7 @@ export async function buildTestApp() {
     config,
     emailSender,
     storage,
+    queue,
     async close() {
       await app.close();
       await Promise.all([pool.end(), redis.quit()]);

@@ -188,6 +188,21 @@ describe('Garde-fous de la base', () => {
     expect(rows[0]).toEqual({ rolsuper: false, rolbypassrls: false });
   });
 
+  it("l'application ne peut ni supprimer une réserve ni modifier le journal d'audit", async () => {
+    const { rows } = await db.execute<{ table: string; privilege: string }>(sql`
+      select table_name as table, privilege_type as privilege
+      from information_schema.role_table_grants
+      where grantee = current_user
+        and table_name in ('reserve', 'reserve_source', 'reserve_event')
+        and privilege_type in ('DELETE', 'UPDATE')
+      order by 1, 2
+    `);
+    expect(rows).toEqual([
+      { table: 'reserve', privilege: 'UPDATE' },
+      { table: 'reserve_source', privilege: 'UPDATE' },
+    ]);
+  });
+
   it('toute table portant organisation_id a une RLS active, forcée et une politique', async () => {
     const { rows } = await db.execute<{
       table: string;

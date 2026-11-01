@@ -13,7 +13,9 @@ import { authRoutes } from './auth/routes.js';
 import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
+import type { ExtractionQueue } from './imports/queue.js';
 import { healthRoutes } from './routes/health.js';
+import { importRoutes } from './routes/imports.js';
 import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
 import { premisesRoutes } from './routes/premises.js';
@@ -32,6 +34,7 @@ export interface AppDependencies {
   redis: Redis;
   emailSender: EmailSender;
   storage: Storage;
+  queue: ExtractionQueue;
 }
 
 function loggerOptions(nodeEnv: ApiConfig['NODE_ENV']) {
@@ -42,7 +45,15 @@ function loggerOptions(nodeEnv: ApiConfig['NODE_ENV']) {
   return true;
 }
 
-export async function buildApp({ config, pool, db, redis, emailSender, storage }: AppDependencies) {
+export async function buildApp({
+  config,
+  pool,
+  db,
+  redis,
+  emailSender,
+  storage,
+  queue,
+}: AppDependencies) {
   const app = Fastify({
     logger: loggerOptions(config.NODE_ENV),
   }).withTypeProvider<ZodTypeProvider>();
@@ -65,6 +76,7 @@ export async function buildApp({ config, pool, db, redis, emailSender, storage }
   await app.register(meRoutes, { db, guards });
   await app.register(invitationRoutes, { db, guards });
   await app.register(premisesRoutes, { db, guards, storage });
+  await app.register(importRoutes, { db, guards, storage, queue });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

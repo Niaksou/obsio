@@ -1,6 +1,9 @@
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
+  NoSuchKey,
+  PutObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   NotFound,
@@ -49,6 +52,28 @@ export function createStorage(config: ApiConfig) {
       return getSignedUrl(client, new GetObjectCommand({ Bucket: bucket, Key: key }), {
         expiresIn: DOWNLOAD_EXPIRES_IN,
       });
+    },
+
+    /** Contenu de l'objet, ou null s'il n'existe pas. */
+    async get(key: string): Promise<Buffer | null> {
+      try {
+        const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+        return response.Body ? Buffer.from(await response.Body.transformToByteArray()) : null;
+      } catch (error) {
+        if (error instanceof NoSuchKey) return null;
+        throw error;
+      }
+    },
+
+    async put(key: string, body: Buffer | string, contentType: string) {
+      await client.send(
+        new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }),
+      );
+    },
+
+    /** Seuls les fichiers techniques (résultat d'extraction relancée) sont supprimés. */
+    async remove(key: string) {
+      await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
     },
 
     /** Type de contenu de l'objet, ou null s'il n'existe pas. */

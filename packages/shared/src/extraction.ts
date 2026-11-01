@@ -149,3 +149,6 @@ export const extractionOutcomeSchema = z.discriminatedUnion('status', [
   }),
 ]);
 export type ExtractionOutcome = z.infer<typeof extractionOutcomeSchema>;
+
+export type Q18Summary = z.infer<typeof q18SummarySchema>;
+export type Q19Summary = z.infer<typeof q19SummarySchema>;

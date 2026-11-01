@@ -98,6 +98,7 @@ export const equipment = pgTable(
   (table) => [
     index().on(table.organisationId),
     index().on(table.floorId),
+    unique().on(table.id, table.organisationId),
     foreignKey({
       columns: [table.floorId, table.organisationId],
       foreignColumns: [floor.id, floor.organisationId],

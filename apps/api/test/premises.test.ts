@@ -76,6 +76,9 @@ describe('Sites, bâtiments, étages et équipements', () => {
         position: { x: 0.25, y: 0.75 },
       },
     ]);
+    expect((await membre.get(`/api/sites/${siteId}/equipment`)).json()).toMatchObject([
+      { name: 'Presse 3', floorName: 'Rez-de-chaussée', buildingName: 'Atelier' },
+    ]);
   });
 
   it('un membre ne peut rien créer ni modifier', async () => {
