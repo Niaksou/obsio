@@ -1,0 +1,78 @@
+# Serveur (VPS) : s'ajoute à deploy/compose.yml. Un proxy Caddy prend les ports 80 et 443 et
+# obtient les certificats ; l'application et le stockage ne sont plus exposés directement.
+# Les e-mails partent par un vrai SMTP (Mailpit désactivé) ; la base est sauvegardée chaque jour.
+# Variables : deploy/server.env (modèle : deploy/server.env.example). Guide : docs/deploiement.md
+#
+#   docker compose -f deploy/compose.yml -f deploy/compose.server.yml --env-file deploy/server.env up -d --build --wait
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  proxy:
+    image: caddy:2.10-alpine
+    <<: *restart
+    environment:
+      APP_HOST: ${APP_HOST}
+      STORAGE_HOST: ${STORAGE_HOST}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./server/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      default:
+        # L'API et le worker joignent le stockage par son adresse publique, sans sortir du serveur.
+        aliases: ['${STORAGE_HOST}']
+
+  postgres: *restart
+  redis: *restart
+
+  storage:
+    <<: *restart
+    ports: !reset []
+
+  mailpit:
+    profiles: [local]
+
+  setup:
+    depends_on:
+      proxy: { condition: service_started }
+
+  api: *restart
+  worker: *restart
+
+  web:
+    <<: *restart
+    ports: !reset []
+
+  # Sauvegarde quotidienne de la base dans BACKUP_DIR, sept jours conservés.
+  backup:
+    image: postgres:17-alpine
+    <<: *restart
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${BACKUP_DIR:-/var/backups/obsio}:/backups
+    depends_on:
+      postgres: { condition: service_healthy }
+    entrypoint:
+      - sh
+      - -c
+      - |
+        while true; do
+          file=/backups/obsio-$$(date +%F).dump
+          pg_dump -Fc obsio > "$$file.tmp" && mv "$$file.tmp" "$$file" && echo "Sauvegarde : $$file"
+          find /backups -name 'obsio-*.dump' -mtime +7 -delete
+          sleep 86400
+        done
+
+volumes:
+  caddy-data:
+  caddy-config:

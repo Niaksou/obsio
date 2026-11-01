@@ -1,6 +1,11 @@
 # Une seule origine publique : le front, et l'API sous /api (cookies de session sans CORS).
 {
 	admin off
+	# Sur le serveur, le proxy (deploy/server/Caddyfile) est devant : garder l'adresse du client
+	# qu'il transmet, pour la limitation de débit de l'API.
+	servers {
+		trusted_proxies static private_ranges
+	}
 }
 
 :{$PORT:8080} {

@@ -1,0 +1,13 @@
+# Proxy public du serveur : HTTPS automatique (Let's Encrypt) pour l'application et le stockage.
+# Caddy transmet l'en-tête Host tel quel : les signatures S3 restent valides côté stockage.
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_HOST} {
+	reverse_proxy web:8080
+}
+
+{$STORAGE_HOST} {
+	reverse_proxy storage:9100
+}

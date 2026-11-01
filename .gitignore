@@ -19,3 +19,4 @@ fixtures/reports/
 *.log
 .idea/
 deploy/preprod.env
+deploy/server.env

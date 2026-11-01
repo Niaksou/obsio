@@ -99,9 +99,9 @@ Un front React et une API Node séparés, en TypeScript de bout en bout, avec l'
 │ JSON structurée    │          │ écrit le brouillon   │
 └────────────────────┘          └──────────────────────┘
 
-Hébergement : PaaS en France (Scaleway, Clever Cloud ou OVH), sans Kubernetes au départ.
+Hébergement : un VPS OVH (société française, serveur dans l'Union européenne pour des données réelles) qui fait tout tourner avec Docker Compose, au coût le plus bas ; sans Kubernetes. Les services gérés (PostgreSQL, stockage S3) viendront pour la production, chez le même hébergeur. Procédure : `docs/deploiement.md`.
 
-Livraison : trois images construites par le même `Dockerfile`. `api` (avec les migrations, `node dist/db/migrate.js`, et l'ouverture d'un client, `node dist/cli/create-organisation.js`), `worker`, et `web` (Caddy, qui sert le front et transmet `/api` à l'API : une seule origine publique, donc des cookies de session sans CORS). L'URL publique est fixée au build du front (`VITE_API_URL`). Derrière un proxy, `TRUST_PROXY=true` pour que la limitation de débit voie l'adresse du client. `deploy/compose.yml` monte la pile complète (avec PostgreSQL, Redis, RustFS et Mailpit) pour une préproduction sur une seule machine.
+Livraison : trois images construites par le même `Dockerfile`. `api` (avec les migrations, `node dist/db/migrate.js`, et l'ouverture d'un client, `node dist/cli/create-organisation.js`), `worker`, et `web` (Caddy, qui sert le front et transmet `/api` à l'API : une seule origine publique, donc des cookies de session sans CORS). L'URL publique est fixée au build du front (`VITE_API_URL`). Derrière un proxy, `TRUST_PROXY=true` pour que la limitation de débit voie l'adresse du client. `deploy/compose.yml` monte la pile complète (avec PostgreSQL, Redis, RustFS et Mailpit) pour une préproduction sur une seule machine. Sur le serveur, `deploy/compose.server.yml` s'y ajoute : un proxy Caddy prend les ports 80 et 443 avec HTTPS automatique (Let's Encrypt) pour l'application et pour le stockage, servi sur son propre sous-domaine puisque le navigateur y envoie les fichiers directement ; Mailpit laisse la place au SMTP de Brevo ; sauvegarde quotidienne de la base (`pg_dump`, sept jours).
 ```
 
 Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité par le worker, qui appelle Mistral puis écrit un brouillon en base.
@@ -117,8 +117,8 @@ Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité
 | Fichiers | Stockage objet compatible S3, URLs signées (RustFS en local) | PDF, plans et photos hors de la base |
 | Extraction | Mistral OCR + modèle Mistral en sortie structurée | Hébergé dans l'UE, bon sur les tableaux |
 | Auth | Better Auth (plugin organisation) ; jetons signés pour les intervenants | Organisations, rôles et invitations fournis ; pas de compte pour l'électricien |
-| E-mail | Fournisseur transactionnel hébergé dans l'UE (à choisir) | Notifications et envoi des liens |
-| Hébergement | PaaS en France (Scaleway, Clever Cloud ou OVH) | Peu d'exploitation, argument RGPD |
+| E-mail | Brevo (France), en SMTP | Notifications et envoi des liens ; offre gratuite suffisante au départ |
+| Hébergement | VPS OVH avec Docker Compose (services gérés pour la production) | Coût minimal, société française, argument RGPD |
 
 ## Pipeline d'extraction (Mistral)
 
@@ -266,7 +266,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] PostgreSQL + ORM + migrations, RLS sur une première table (Drizzle, table `site`)
 - [x] Auth, organisations, invitations (Better Auth)
 - [x] CI : lint, tests, build (GitHub Actions)
-- [ ] Déploiement d'un environnement de préproduction : images prêtes (`Dockerfile`, cibles `api`, `worker`, `web`) et pile complète `deploy/compose.yml` éprouvée sur un poste ; reste à choisir l'hébergeur et à y ouvrir un compte
+- [ ] Déploiement d'un environnement de préproduction : images prêtes (`Dockerfile`, cibles `api`, `worker`, `web`) et pile complète `deploy/compose.yml` éprouvée sur un poste ; hébergeur choisi (VPS OVH, domaine `obsio.fr`), pile serveur `deploy/compose.server.yml` éprouvée en local ; reste la mise en ligne (`docs/deploiement.md`)
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
