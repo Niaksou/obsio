@@ -21,6 +21,12 @@ const apiEnvSchema = z.object({
   // Expéditeur des invitations envoyées à l'ouverture d'un client (compte sans connexion possible).
   OPERATOR_EMAIL: z.email(),
   OPERATOR_NAME: z.string().min(1),
+  // Derrière un proxy (Caddy, répartiteur de l'hébergeur) : l'adresse du client est lue dans
+  // X-Forwarded-For, sinon la limitation de débit compterait tout le monde comme le proxy.
+  TRUST_PROXY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 });
 
 export type ApiConfig = z.infer<typeof apiEnvSchema>;

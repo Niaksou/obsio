@@ -100,6 +100,8 @@ Un front React et une API Node séparés, en TypeScript de bout en bout, avec l'
 └────────────────────┘          └──────────────────────┘
 
 Hébergement : PaaS en France (Scaleway, Clever Cloud ou OVH), sans Kubernetes au départ.
+
+Livraison : trois images construites par le même `Dockerfile`. `api` (avec les migrations, `node dist/db/migrate.js`, et l'ouverture d'un client, `node dist/cli/create-organisation.js`), `worker`, et `web` (Caddy, qui sert le front et transmet `/api` à l'API : une seule origine publique, donc des cookies de session sans CORS). L'URL publique est fixée au build du front (`VITE_API_URL`). Derrière un proxy, `TRUST_PROXY=true` pour que la limitation de débit voie l'adresse du client. `deploy/compose.yml` monte la pile complète (avec PostgreSQL, Redis, RustFS et Mailpit) pour une préproduction sur une seule machine.
 ```
 
 Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité par le worker, qui appelle Mistral puis écrit un brouillon en base.
@@ -264,7 +266,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] PostgreSQL + ORM + migrations, RLS sur une première table (Drizzle, table `site`)
 - [x] Auth, organisations, invitations (Better Auth)
 - [x] CI : lint, tests, build (GitHub Actions)
-- [ ] Déploiement d'un environnement de préproduction
+- [ ] Déploiement d'un environnement de préproduction : images prêtes (`Dockerfile`, cibles `api`, `worker`, `web`) et pile complète `deploy/compose.yml` éprouvée sur un poste ; reste à choisir l'hébergeur et à y ouvrir un compte
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 

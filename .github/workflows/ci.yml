@@ -47,3 +47,17 @@ jobs:
 
       - name: Tests
         run: pnpm test
+
+  images:
+    name: Images de production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vérifie seulement que les trois images se construisent (rien n'est publié).
+      - name: Build api, worker, web
+        run: |
+          for target in api worker web; do
+            docker build --target "$target" --build-arg VITE_API_URL=https://preprod.example.test .
+          done

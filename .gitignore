@@ -18,3 +18,4 @@ fixtures/reports/
 .DS_Store
 *.log
 .idea/
+deploy/preprod.env

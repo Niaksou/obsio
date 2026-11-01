@@ -57,4 +57,5 @@ pnpm dev                        # API :3000, front :5173, worker
 - Tests : `pnpm test` (services docker démarrés ; l'API utilise la base `obsio_test`, migrée automatiquement)
 - Vérifications : `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, `pnpm build`
 - Nouvelle migration : modifier `apps/api/src/db/schema/`, puis `pnpm --filter @obsio/api db:generate` ; relire le SQL généré et y ajouter `FORCE ROW LEVEL SECURITY` pour toute nouvelle table métier
+- Préproduction sur une machine : `cp deploy/preprod.env.example deploy/preprod.env` (remplacer les secrets), puis `docker compose -f deploy/compose.yml --env-file deploy/preprod.env up -d --build --wait` ; application sur http://localhost:8080, e-mails sur http://localhost:8125 ; ouvrir un client : `docker compose -f deploy/compose.yml --env-file deploy/preprod.env exec api node dist/cli/create-organisation.js "Nom" email`
 - E-mails envoyés en local : http://localhost:8025 (Mailpit) ; console du stockage : http://localhost:9001

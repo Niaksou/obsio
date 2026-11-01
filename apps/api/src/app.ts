@@ -60,6 +60,7 @@ export async function buildApp({
 }: AppDependencies) {
   const app = Fastify({
     logger: loggerOptions(config.NODE_ENV),
+    trustProxy: config.TRUST_PROXY,
   }).withTypeProvider<ZodTypeProvider>();
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
