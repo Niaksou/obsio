@@ -27,7 +27,22 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       provider: 'pg',
       schema,
     }),
-    advanced: { database: { generateId: 'uuid' } },
+    advanced: {
+      database: { generateId: 'uuid' },
+      // Les proxys (Caddy) sont sur le réseau interne : l'adresse du client est la dernière de
+      // X-Forwarded-For qui n'en fait pas partie. Sans cela, la limitation ci-dessous serait
+      // commune à tous les utilisateurs.
+      ipAddress: {
+        trustedProxies: [
+          '10.0.0.0/8',
+          '172.16.0.0/12',
+          '192.168.0.0/16',
+          '127.0.0.0/8',
+          '::1/128',
+          'fc00::/7',
+        ],
+      },
+    },
     // Actif en production seulement (réglage par défaut) ; par adresse IP du client.
     // Routes sensibles plus strictes : deviner un mot de passe ou inonder une boîte de réception.
     rateLimit: {
