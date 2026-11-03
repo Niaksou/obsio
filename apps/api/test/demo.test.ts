@@ -68,4 +68,11 @@ describe('données de démonstration', () => {
     await expect(seed('alice@demo.fr')).rejects.toBeInstanceOf(DemoError);
     await expect(seed('inconnu@demo.fr')).rejects.toBeInstanceOf(DemoError);
   });
+
+  it('un site archivé n’empêche pas la démonstration', async () => {
+    const { admin } = await openClient('Usine Démo', 'Alice', 'alice@demo.fr');
+    const { id } = (await admin.post('/api/sites', { name: 'Essai' })).json();
+    expect((await admin.post(`/api/sites/${id}/archive`)).statusCode).toBe(204);
+    await expect(seed('alice@demo.fr')).resolves.toMatchObject({ sites: 2 });
+  });
 });

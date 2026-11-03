@@ -1,5 +1,5 @@
 import { floorPlanPrefix, proofPhotoPrefix, reportImportKeys } from '@obsio/shared';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import { withOrganisation, type Database, type Transaction } from '../db/client.js';
 import {
@@ -92,10 +92,13 @@ export async function seedDemo(
   const userId = target.userId;
   const scoped = <T>(fn: (tx: Transaction) => Promise<T>) => withOrganisation(db, orgId, fn);
 
-  const existing = await scoped((tx) => tx.select({ id: site.id }).from(site).limit(1));
+  // Les sites archivés sont masqués partout : ils n'empêchent pas la démonstration.
+  const existing = await scoped((tx) =>
+    tx.select({ id: site.id }).from(site).where(isNull(site.archivedAt)).limit(1),
+  );
   if (existing.length > 0) {
     throw new DemoError(
-      `L'organisation « ${target.name} » contient déjà des sites : la démonstration ne se mélange pas à des données existantes.`,
+      `L'organisation « ${target.name} » contient déjà des sites actifs : la démonstration ne se mélange pas à des données existantes.`,
     );
   }
 
