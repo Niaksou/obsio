@@ -40,9 +40,9 @@ export function readSceneColors(): SceneColors {
     muted: v('--muted'),
     surface: v('--surface'),
     ouverte: v('--danger'),
-    assignee: v('--action'),
+    assignee: v('--cobalt'),
     corrigee: v('--pending'),
-    selection: v('--safety'),
+    selection: v('--copper'),
   };
 }
 

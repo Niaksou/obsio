@@ -1,39 +1,42 @@
 /*
- * Obsio, charte « Armoire » : l'interface emprunte au tableau électrique qu'elle sert à suivre.
- * - Le fond est la tôle grise des coffrets (RAL 7035) ; le travail se fait sur des surfaces
- *   blanches, comme les documents et le plan.
- * - Toute la signalétique est en plaques gravées (repérage) : équipements, statuts des réserves,
- *   rubrique active, boutons principaux. Capitales seulement sur ces plaques.
- * - Le jaune de sécurité, toujours bordé de noir, signale ce qui est sélectionné ou actif :
- *   repère choisi sur le plan, champ au focus, mode placement.
- * - Une rayure vert et jaune de conducteur de terre signe la marque, et seulement elle.
+ * Obsio, charte « Patine » : les couleurs du métal sous la gaine, plutôt que celles du tableau.
+ * - Le vert-de-gris (la patine du cuivre) habille la marque, l'en-tête et le texte ; le fond est
+ *   un céladon pâle, le travail se fait sur des surfaces blanches.
+ * - Le cuivre nu, seul accent chaud, signale ce qui est sélectionné ou actif : focus, rubrique
+ *   courante, repère choisi sur le plan, mode placement.
+ * - Les statuts sont des teintes minérales : grenat (ouverte), cobalt (assignée), ocre
+ *   (corrigée), vert-de-gris (levée), toujours accompagnées de leur libellé.
  * Pas d'ombres décoratives ni de dégradés : les volumes viennent des filets et des aplats.
  */
 :root {
-  --paper: #dce0dc;
-  --paper-deep: #cfd4d0;
+  --paper: #e8ede9;
+  --paper-deep: #dbe3de;
   --surface: #ffffff;
-  --surface-tint: #f1f3f1;
-  --ink: #151c22;
-  --ink-soft: #2a343c;
-  --muted: #4a555d;
-  --line: #b4bcb7;
-  --line-strong: #8c958f;
-  --line-soft: #e3e7e4;
-  --action: #1c5c9e;
-  --action-hover: #154a82;
-  --danger: #b0241b;
-  --danger-hover: #8f1c15;
-  --safety: #f5c400;
-  --pending: #855500;
-  --earth: #2e7d3a;
-  --done: #2d6a3a;
+  --surface-tint: #f2f5f3;
+  --ink: #0e2a28;
+  --ink-soft: #1f403c;
+  --muted: #4a605c;
+  --line: #bccac4;
+  --line-strong: #869893;
+  --line-soft: #e2e9e5;
+  --patina: #0b6b5d;
+  --patina-light: #7fc4b0;
+  --action: var(--patina);
+  --action-hover: #08574b;
+  --copper: #b5541f;
+  --copper-deep: #9a4516;
+  --copper-tint: #f8e2d2;
+  --cobalt: #2c4f86;
+  --danger: #b0203f;
+  --danger-hover: #8c1932;
+  --pending: #8a5600;
+  --done: var(--patina);
   --header-height: 56px;
   --radius: 2px;
   --font-ui: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-plate: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
-  /* Focus : liseré noir et halo jaune, le code de la signalétique de sécurité. */
-  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 0 0 7px var(--safety);
+  /* Focus : filet de cuivre détaché du fond par un liseré blanc. */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--copper);
 
   font-family: var(--font-ui);
   font-size: 16px;
@@ -110,10 +113,10 @@ a:hover {
 
 ::selection {
   color: var(--ink);
-  background: var(--safety);
+  background: var(--copper-tint);
 }
 
-/* --- En-tête : bandeau blanc, filet noir, rubrique active en plaque gravée */
+/* --- En-tête : bandeau vert-de-gris, rubrique active soulignée de cuivre */
 
 .header {
   position: relative;
@@ -123,43 +126,49 @@ a:hover {
   gap: 28px;
   min-height: var(--header-height);
   padding: 0 20px;
-  background: var(--surface);
-  border-bottom: 2px solid var(--ink);
+  color: var(--surface);
+  background: var(--ink);
 }
 
-/* Marque : nom gravé, souligné d'un conducteur de terre vert et jaune. */
+/* Marque : la coupe d'un conducteur, âme de cuivre dans sa gaine patinée. */
 .brand {
-  position: relative;
-  display: inline-block;
-  padding-bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-plate);
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--ink);
+  letter-spacing: 0.02em;
+  color: var(--surface);
   text-decoration: none;
 }
 
-.brand::after {
+.brand::before {
   content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 4px;
-  background: repeating-linear-gradient(90deg, var(--earth) 0 10px, var(--safety) 10px 20px);
-  border-radius: 2px;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  background: var(--copper);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 5px var(--patina-light);
 }
 
 .brand:focus-visible {
   border-radius: var(--radius);
 }
 
+.header :focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ink),
+    0 0 0 4px var(--copper);
+}
+
 .nav {
   display: flex;
-  align-items: center;
-  gap: 2px;
+  align-items: stretch;
+  align-self: stretch;
+  gap: 4px;
 }
 
 .nav a {
@@ -168,23 +177,21 @@ a:hover {
   min-height: 34px;
   padding: 0 12px;
   font-weight: 500;
-  color: var(--muted);
+  color: #b9d3cc;
   text-decoration: none;
-  border-radius: var(--radius);
+  box-shadow: inset 0 -3px 0 transparent;
 }
 
 .nav a:hover {
-  color: var(--ink);
-  background: var(--surface-tint);
+  color: var(--surface);
+  box-shadow: inset 0 -3px 0 var(--ink-soft);
 }
 
 .nav a.active,
 .nav a.active:hover {
-  font-family: var(--font-plate);
   font-weight: 600;
-  letter-spacing: 0.02em;
   color: var(--surface);
-  background: var(--ink);
+  box-shadow: inset 0 -3px 0 var(--copper);
 }
 
 .session {
@@ -193,12 +200,23 @@ a:hover {
   align-items: center;
   margin-left: auto;
   font-size: 0.9375rem;
-  color: var(--muted);
+  color: #b9d3cc;
+}
+
+.session button.link {
+  color: var(--surface);
 }
 
 .session select {
   min-height: 34px;
   padding-block: 4px;
+  color: var(--surface);
+  background: var(--ink-soft);
+  border-color: #3d5f5a;
+}
+
+.session select:hover {
+  border-color: var(--patina-light);
 }
 
 .main {
@@ -254,15 +272,15 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--copper);
   box-shadow:
-    0 0 0 1px var(--ink),
-    0 0 0 4px var(--safety);
+    0 0 0 1px var(--copper),
+    0 0 0 4px var(--copper-tint);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #6b767d;
+  color: #667a76;
 }
 
 input[type='checkbox'],
@@ -327,13 +345,12 @@ button.secondary:hover:not(:disabled) {
   border-color: var(--ink);
 }
 
-/* Mode placement actif : même jaune que la sélection sur le plan. */
+/* Mode placement actif : même cuivre que la sélection sur le plan. */
 button.secondary.active,
 button.secondary.active:hover:not(:disabled) {
-  color: var(--ink);
-  background: var(--safety);
-  border-color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  color: var(--surface);
+  background: var(--copper);
+  border-color: var(--copper-deep);
 }
 
 button.quiet {
@@ -430,7 +447,7 @@ button.link:hover:not(:disabled) {
   padding: 28px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 4px solid var(--ink);
+  border-top: 4px solid var(--patina);
   border-radius: var(--radius);
 }
 
@@ -605,7 +622,7 @@ form.card > button[type='submit'] {
   gap: 14px;
   margin-top: 48px;
   padding-top: 24px;
-  border-top: 2px solid var(--ink);
+  border-top: 2px solid var(--patina);
 }
 
 .inline-form.compact {
@@ -681,8 +698,8 @@ form.card > button[type='submit'] {
   overflow: hidden;
   background-color: var(--paper);
   background-image:
-    linear-gradient(rgb(21 28 34 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(21 28 34 / 0.07) 1px, transparent 1px);
+    linear-gradient(rgb(14 42 40 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(14 42 40 / 0.07) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -713,9 +730,9 @@ form.card > button[type='submit'] {
   max-width: calc(100% - 32px);
   padding: 6px 12px;
   font-weight: 600;
-  color: var(--ink);
-  background: var(--safety);
-  border: 2px solid var(--ink);
+  color: var(--surface);
+  background: var(--copper);
+  border: 1px solid var(--copper-deep);
   border-radius: var(--radius);
   pointer-events: none;
 }
@@ -1197,8 +1214,8 @@ fieldset {
 
 .tag-warning {
   color: var(--ink);
-  background: rgb(245 196 0 / 0.35);
-  border-color: var(--safety);
+  background: var(--copper-tint);
+  border-color: var(--copper);
 }
 
 .plate-small {
@@ -1250,18 +1267,18 @@ fieldset {
   position: relative;
   justify-self: start;
   background: #fff;
-  box-shadow: 0 1px 3px rgb(21 28 34 / 0.2);
+  box-shadow: 0 1px 3px rgb(14 42 40 / 0.2);
 }
 
 .pdf-page-sheet canvas {
   display: block;
 }
 
-/* Surligneur jaune de sécurité, comme la sélection sur le plan. */
+/* Surligneur cuivre, comme la sélection sur le plan. */
 .pdf-highlight {
   position: absolute;
-  background: rgb(245 196 0 / 0.4);
-  border-bottom: 2px solid var(--safety);
+  background: rgb(181 84 31 / 0.22);
+  border-bottom: 2px solid var(--copper);
   mix-blend-mode: multiply;
   pointer-events: none;
 }
@@ -1322,7 +1339,7 @@ fieldset {
     margin: 10px -16px 0;
     padding: 0 10px;
     overflow-x: auto;
-    border-top: 1px solid var(--line-soft);
+    border-top: 1px solid var(--ink-soft);
   }
 
   .nav a {
@@ -1351,7 +1368,7 @@ fieldset {
     max-height: 42dvh;
     border-left: 0;
     border-top: 1px solid var(--line);
-    box-shadow: 0 -2px 8px rgb(21 28 34 / 0.08);
+    box-shadow: 0 -2px 8px rgb(14 42 40 / 0.08);
   }
 
   .title-block {
@@ -1476,8 +1493,8 @@ label.check input {
 }
 
 .reserve-rows li.selected {
-  background: rgb(245 196 0 / 0.16);
-  box-shadow: inset 4px 0 0 var(--safety);
+  background: var(--copper-tint);
+  box-shadow: inset 4px 0 0 var(--copper);
 }
 
 .reserve-row {
@@ -1554,7 +1571,7 @@ label.check input {
 }
 
 .reserve-status-assignee .status-plate {
-  background: var(--action);
+  background: var(--cobalt);
 }
 
 .reserve-status-corrigee .status-plate {
@@ -1588,7 +1605,7 @@ label.check input {
   background: var(--surface);
   border: 1px solid var(--ink);
   border-radius: var(--radius);
-  box-shadow: 0 -2px 10px rgb(21 28 34 / 0.12);
+  box-shadow: 0 -2px 10px rgb(14 42 40 / 0.12);
 }
 
 .selection-bar > p {
@@ -1653,7 +1670,7 @@ label.check input {
   padding: 24px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-top: 4px solid var(--ink);
+  border-top: 4px solid var(--patina);
   border-radius: var(--radius);
 }
 
@@ -1742,7 +1759,7 @@ label.check input {
   gap: 12px;
   margin-top: 20px;
   padding: 16px;
-  background: rgb(133 85 0 / 0.08);
+  background: rgb(138 86 0 / 0.08);
   border-left: 4px solid var(--pending);
 }
 
@@ -1881,12 +1898,12 @@ label.check input {
 .queued {
   padding: 8px 12px;
   font-size: 0.875rem;
-  background: rgb(245 196 0 / 0.2);
-  border-left: 3px solid var(--safety);
+  background: var(--copper-tint);
+  border-left: 3px solid var(--copper);
 }
 
 .queued-error {
-  background: rgb(176 36 27 / 0.08);
+  background: rgb(176 32 63 / 0.08);
   border-left-color: var(--danger);
 }
 
@@ -1946,7 +1963,8 @@ label.check input {
 .offline-banner {
   padding: 10px 16px;
   font-size: 0.9375rem;
-  background: var(--safety);
+  color: var(--surface);
+  background: var(--copper-deep);
 }
 
 .intervention-body {
@@ -1970,7 +1988,7 @@ label.check input {
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  border-top: 2px solid var(--ink);
+  border-top: 2px solid var(--patina);
 }
 
 .intervention-list > li {
@@ -2010,9 +2028,8 @@ label.check input {
 }
 
 li.open .item-number {
-  color: var(--ink);
-  background: var(--safety);
-  box-shadow: inset 0 0 0 2px var(--ink);
+  color: var(--surface);
+  background: var(--copper);
 }
 
 .item-main {
@@ -2245,7 +2262,7 @@ li.open .item-number {
 }
 
 .inspection-status-programmee {
-  background: var(--action);
+  background: var(--cobalt);
 }
 
 .inspection-status-a_programmer,

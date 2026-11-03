@@ -30,9 +30,9 @@ import { scaleBar } from './scale.js';
 Konva.hitOnDragEnabled = true;
 
 const PLATE_FONT = '"Barlow Semi Condensed", "Arial Narrow", sans-serif';
-const INK = '#151c22';
+const INK = '#0e2a28';
 const PAPER = '#ffffff';
-const SAFETY = '#f5c400';
+const COPPER = '#b5541f';
 const WHEEL_STEP = 1.15;
 const PLATE_FONT_SIZE = 14;
 const PLATE_PADDING = 5;
@@ -47,9 +47,9 @@ export interface ReserveBadge {
 }
 
 export const BADGE_COLORS: Record<ReserveBadge['status'], string> = {
-  ouverte: '#b0241b',
-  assignee: '#1c5c9e',
-  corrigee: '#855500',
+  ouverte: '#b0203f',
+  assignee: '#2c4f86',
+  corrigee: '#8a5600',
 };
 
 let measureContext: CanvasRenderingContext2D | null = null;
@@ -380,8 +380,8 @@ function Plate({
     >
       <Label>
         <Tag
-          fill={selected ? SAFETY : INK}
-          stroke={selected ? INK : PAPER}
+          fill={selected ? COPPER : INK}
+          stroke={selected ? COPPER : PAPER}
           strokeWidth={1}
           cornerRadius={2}
           pointerDirection="down"
@@ -399,7 +399,7 @@ function Plate({
           fontSize={PLATE_FONT_SIZE}
           letterSpacing={PLATE_SPACING}
           padding={PLATE_PADDING}
-          fill={selected ? INK : PAPER}
+          fill={PAPER}
         />
       </Label>
       {badge && (
@@ -443,14 +443,14 @@ function Segment({
   return (
     <>
       {b && <Line points={flat} stroke={INK} strokeWidth={6 * scale} lineCap="round" />}
-      {b && <Line points={flat} stroke={SAFETY} strokeWidth={3 * scale} lineCap="round" />}
+      {b && <Line points={flat} stroke={COPPER} strokeWidth={3 * scale} lineCap="round" />}
       {points.map((p, i) => (
         <Circle
           key={i}
           x={p.x}
           y={p.y}
           radius={5 * scale}
-          fill={SAFETY}
+          fill={COPPER}
           stroke={INK}
           strokeWidth={1.5 * scale}
         />
