@@ -40,7 +40,6 @@ git clone git@github.com:Niaksou/obsio.git && cd obsio
 
 ```sh
 sudo sh deploy/server/install.sh
-exit                          # puis se reconnecter, pour utiliser docker sans sudo
 ```
 
 Le script installe les mises à jour (puis les mises à jour de sécurité automatiques, avec redémarrage à 4 h si le noyau change), Docker, la mémoire d'échange (2 Go) et le dossier des sauvegardes `/var/backups/obsio`, et durcit le serveur (fichiers dans `deploy/server/hardening/`) :
@@ -49,7 +48,7 @@ Le script installe les mises à jour (puis les mises à jour de sécurité autom
 - SSH par clé uniquement, réservé à l'utilisateur courant, sans root, algorithmes récents ;
 - noyau durci, pilotes et protocoles inutiles bloqués, journal d'audit (`sudo ausearch -k sudo`) ;
 - conteneurs Docker sans élévation de privilèges, journaux bornés ;
-- **sudo demande le mot de passe** de l'utilisateur (seulement s'il en a un) : une clé SSH volée ne suffit plus à administrer le serveur. À ranger dans un gestionnaire de mots de passe.
+- **sudo demande le mot de passe** de l'utilisateur (seulement s'il en a un) : une clé SSH volée ne suffit plus à administrer le serveur. À ranger dans un gestionnaire de mots de passe. Docker passe aussi par sudo : l'utilisateur n'est pas dans le groupe `docker`, qui équivaut à root.
 
 Contrôle : `sudo lynis audit system` (indice de durcissement autour de 78/100 ; le reste concerne surtout des partitions séparées, impossibles sur un VPS).
 
@@ -71,7 +70,7 @@ Remplacer chaque `changer-moi`, ajuster les adresses si le domaine diffère, et 
 Raccourci, à ajouter une fois pour toutes :
 
 ```sh
-echo "alias obsio='docker compose -f ~/obsio/deploy/compose.yml -f ~/obsio/deploy/compose.server.yml --env-file ~/obsio/deploy/server.env'" >> ~/.bashrc
+echo "alias obsio='sudo docker compose -f ~/obsio/deploy/compose.yml -f ~/obsio/deploy/compose.server.yml --env-file ~/obsio/deploy/server.env'" >> ~/.bashrc
 source ~/.bashrc
 ```
 

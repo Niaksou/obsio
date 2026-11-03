@@ -8,7 +8,7 @@
 # - SSH par clé uniquement, sans root, algorithmes récents
 # - noyau durci (sysctl), journal d'audit (auditd), services réseau inutiles coupés
 # - Docker : pas d'élévation de privilèges dans les conteneurs, journaux bornés
-# - sudo avec mot de passe (si l'utilisateur en a un)
+# - sudo avec mot de passe (si l'utilisateur en a un), Docker uniquement par sudo
 # - 2 Go de mémoire d'échange, pour que la construction des images passe sur un petit serveur
 # - dossier des sauvegardes de la base
 # Fichiers de configuration : deploy/server/hardening/. Relançable sans risque.
@@ -41,8 +41,8 @@ if ! command -v docker >/dev/null 2>&1; then
   apt-get update
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 fi
-# Docker sans sudo pour l'utilisateur courant (effectif à la prochaine connexion).
-[ -n "$user" ] && usermod -aG docker "$user"
+# Le groupe docker équivaut à root : Docker passe par sudo, et donc par le mot de passe.
+if [ -n "$user" ] && id -nG "$user" | grep -qw docker; then gpasswd -d "$user" docker; fi
 install -m 0644 -D "$conf/docker-daemon.json" /etc/docker/daemon.json
 systemctl restart docker
 
@@ -119,5 +119,4 @@ else
 fi
 
 echo
-echo "Serveur prêt. Déconnectez-vous puis reconnectez-vous (pour utiliser docker sans sudo),"
-echo "puis suivez la suite de docs/deploiement.md."
+echo "Serveur prêt. Suite : docs/deploiement.md."
