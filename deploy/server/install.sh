@@ -4,7 +4,7 @@
 #
 # - mises à jour du système, puis mises à jour de sécurité automatiques
 # - Docker et Docker Compose, depuis le dépôt officiel de Docker
-# - pare-feu : seuls SSH, HTTP et HTTPS sont ouverts
+# - pare-feu : seuls SSH, HTTP et HTTPS sont ouverts ; SSH par clé uniquement, sans root
 # - 2 Go de mémoire d'échange, pour que la construction des images passe sur un petit serveur
 # - dossier des sauvegardes de la base
 set -eu
@@ -41,6 +41,18 @@ ufw allow OpenSSH
 ufw allow 80/tcp
 ufw allow 443
 ufw --force enable
+
+echo "== SSH"
+# Connexion par clé uniquement, jamais en root ; seulement si l'utilisateur a déjà une clé,
+# pour ne pas se fermer la porte.
+home="$( [ -n "$user" ] && getent passwd "$user" | cut -d: -f6 || true)"
+if [ -n "$home" ] && [ -s "$home/.ssh/authorized_keys" ]; then
+  printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin no\n' \
+    > /etc/ssh/sshd_config.d/00-obsio.conf
+  sshd -t && systemctl reload ssh
+else
+  echo "Aucune clé SSH pour $user : connexion par mot de passe laissée ouverte." >&2
+fi
 
 echo "== Mémoire d'échange"
 if [ -z "$(swapon --show)" ]; then

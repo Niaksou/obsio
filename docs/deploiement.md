@@ -43,7 +43,7 @@ sudo sh deploy/server/install.sh
 exit                          # puis se reconnecter, pour utiliser docker sans sudo
 ```
 
-Le script installe les mises à jour (puis les mises à jour de sécurité automatiques), Docker, un pare-feu qui n'ouvre que SSH, HTTP et HTTPS, 2 Go de mémoire d'échange, et le dossier des sauvegardes `/var/backups/obsio`.
+Le script installe les mises à jour (puis les mises à jour de sécurité automatiques), Docker, un pare-feu qui n'ouvre que SSH, HTTP et HTTPS, ferme la connexion SSH par mot de passe et en root (si une clé est installée), 2 Go de mémoire d'échange, et le dossier des sauvegardes `/var/backups/obsio`.
 
 ## 4. Configurer
 
@@ -77,6 +77,14 @@ Ouvrir un client (pas d'inscription libre) ; le responsable reçoit l'invitation
 
 ```sh
 obsio exec api node dist/cli/create-organisation.js "Usine Test" responsable@exemple.fr
+```
+
+### Sans Brevo (en test)
+
+Les e-mails peuvent rester sur le serveur, dans Mailpit, au lieu de partir : variables décrites dans `deploy/server.env.example`. Mailpit n'écoute que sur le serveur lui-même ; pour lire les e-mails (liens d'invitation compris), ouvrir un tunnel depuis son poste puis http://localhost:8125 :
+
+```sh
+ssh -N -L 8125:127.0.0.1:8125 debian@IP_DU_VPS
 ```
 
 ## Au quotidien
