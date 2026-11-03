@@ -1,0 +1,13 @@
+# auditd : copié dans /etc/audit/rules.d/obsio.rules par install.sh.
+# Comptes, droits d'administration, SSH, Docker et configuration du système.
+-a always,exit -F arch=b64 -F path=/etc/passwd -F perm=wa -k comptes
+-a always,exit -F arch=b64 -F path=/etc/shadow -F perm=wa -k comptes
+-a always,exit -F arch=b64 -F path=/etc/group -F perm=wa -k comptes
+-a always,exit -F arch=b64 -F path=/etc/sudoers -F perm=wa -k sudo
+-a always,exit -F arch=b64 -F dir=/etc/sudoers.d/ -F perm=wa -k sudo
+-a always,exit -F arch=b64 -F path=/usr/bin/sudo -F perm=x -k sudo
+-a always,exit -F arch=b64 -F dir=/etc/ssh/ -F perm=wa -k ssh
+-a always,exit -F arch=b64 -F dir=/etc/docker/ -F perm=wa -k docker
+-a always,exit -F arch=b64 -F dir=/etc/sysctl.d/ -F perm=wa -k systeme
+-a always,exit -F arch=b64 -F dir=/etc/ufw/ -F perm=wa -k pare-feu
+-a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules

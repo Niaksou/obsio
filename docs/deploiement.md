@@ -43,7 +43,15 @@ sudo sh deploy/server/install.sh
 exit                          # puis se reconnecter, pour utiliser docker sans sudo
 ```
 
-Le script installe les mises à jour (puis les mises à jour de sécurité automatiques), Docker, un pare-feu qui n'ouvre que SSH, HTTP et HTTPS, ferme la connexion SSH par mot de passe et en root (si une clé est installée), 2 Go de mémoire d'échange, et le dossier des sauvegardes `/var/backups/obsio`.
+Le script installe les mises à jour (puis les mises à jour de sécurité automatiques, avec redémarrage à 4 h si le noyau change), Docker, la mémoire d'échange (2 Go) et le dossier des sauvegardes `/var/backups/obsio`, et durcit le serveur (fichiers dans `deploy/server/hardening/`) :
+
+- pare-feu qui n'ouvre que SSH (tentatives limitées), HTTP et HTTPS ; fail2ban bannit les adresses qui insistent ;
+- SSH par clé uniquement, réservé à l'utilisateur courant, sans root, algorithmes récents ;
+- noyau durci, pilotes et protocoles inutiles bloqués, journal d'audit (`sudo ausearch -k sudo`) ;
+- conteneurs Docker sans élévation de privilèges, journaux bornés ;
+- **sudo demande le mot de passe** de l'utilisateur (seulement s'il en a un) : une clé SSH volée ne suffit plus à administrer le serveur. À ranger dans un gestionnaire de mots de passe.
+
+Contrôle : `sudo lynis audit system` (indice de durcissement autour de 78/100 ; le reste concerne surtout des partitions séparées, impossibles sur un VPS).
 
 ## 4. Configurer
 

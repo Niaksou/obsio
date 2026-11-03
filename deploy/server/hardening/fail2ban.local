@@ -1,0 +1,13 @@
+# fail2ban : copié dans /etc/fail2ban/jail.d/obsio.local par install.sh.
+[DEFAULT]
+backend = systemd
+banaction = ufw
+bantime = 1h
+bantime.increment = true
+bantime.maxtime = 1w
+findtime = 10m
+maxretry = 3
+
+[sshd]
+enabled = true
+mode = aggressive

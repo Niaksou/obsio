@@ -37,6 +37,7 @@ services:
     ports: !reset []
 
   mailpit:
+    <<: *restart
     profiles: [local]
 
   setup:
