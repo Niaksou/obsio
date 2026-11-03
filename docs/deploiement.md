@@ -52,6 +52,24 @@ Le script installe les mises à jour (puis les mises à jour de sécurité autom
 
 Contrôle : `sudo lynis audit system` (indice de durcissement autour de 78/100 ; le reste concerne surtout des partitions séparées, impossibles sur un VPS).
 
+### Pare-feu réseau OVH
+
+En plus du pare-feu du serveur (ufw), le pare-feu réseau d'OVH filtre avant le serveur : il ne peut pas être désactivé depuis le serveur, et Docker ne le contourne pas. Espace client : Bare Metal Cloud > Adresses IP > l'IP du VPS > Edge Firewall. Source vide (toutes) et fragments décochés pour chaque règle :
+
+| Séquence | Action | Protocole | Port source | Port de destination | Option TCP | Rôle |
+|---|---|---|---|---|---|---|
+| 0 | PERMIT | ICMP | | | | ping, diagnostic |
+| 1 | PERMIT | TCP | | 22 | | SSH |
+| 2 | PERMIT | TCP | | 80 | | HTTP (certificats) |
+| 3 | PERMIT | TCP | | 443 | | HTTPS |
+| 4 | PERMIT | UDP | | 443 | | HTTP/3 |
+| 5 | PERMIT | TCP | | | ESTABLISHED | réponses aux connexions sortantes |
+| 6 | PERMIT | UDP | 53 | | | réponses DNS |
+| 7 | PERMIT | UDP | 123 | | | heure (NTP) |
+| 19 | DENY | IPv4 | | | | tout le reste |
+
+Ce pare-feu ne suit pas les connexions : sans les règles 5 à 7, le serveur ne recevrait plus les réponses à ses propres requêtes (mises à jour, DNS, Mistral, GitHub). Une fois les règles en place, l'activer avec l'interrupteur en haut de la page. En cas d'erreur, la console KVM de l'espace client reste accessible.
+
 ## 4. Configurer
 
 ```sh
