@@ -140,7 +140,8 @@ const comparable = (
   localisation: extracted.localisationTexte,
 });
 
-async function createDrafts(tx: Transaction, row: ImportRow, report: ProviderReport) {
+/** Documents et brouillons d'une extraction réussie (exporté pour la démonstration). */
+export async function createDrafts(tx: Transaction, row: ImportRow, report: ProviderReport) {
   const candidates = await siteEquipment(tx, row.siteId);
   const open = await openSiteReserves(tx, row.siteId);
   // Brouillons déjà créés pour les documents précédents du fichier (rapprochement multi-sources).

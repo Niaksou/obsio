@@ -112,6 +112,12 @@ Les e-mails peuvent rester sur le serveur, dans Mailpit, au lieu de partir : var
 ssh -N -L 8125:127.0.0.1:8125 debian@IP_DU_VPS
 ```
 
+Pour une démonstration, une fois le compte de l'administrateur créé (lien de l'invitation), remplir son organisation avec des données fictives (deux sites, plans, rapports, réserves à tous les stades, intervenants) ; la commande affiche les liens d'intervention à ouvrir sur un téléphone :
+
+```sh
+obsio exec api node dist/cli/seed-demo.js responsable@exemple.fr
+```
+
 ## Au quotidien
 
 | Besoin | Commande |

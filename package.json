@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "org:create": "pnpm --filter @obsio/api org:create"
+    "org:create": "pnpm --filter @obsio/api org:create",
+    "demo:seed": "pnpm --filter @obsio/api demo:seed"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
