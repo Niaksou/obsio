@@ -33,6 +33,15 @@ x-app-env: &app-env
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
   MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
 
+# Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
+# mémoire et nombre de processus bornés.
+x-locked: &locked
+  cap_drop: [ALL]
+  security_opt: ['no-new-privileges:true']
+  read_only: true
+  tmpfs: ['/tmp']
+  pids_limit: 200
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -95,8 +104,10 @@ services:
     restart: on-failure
 
   api:
+    <<: *locked
     image: obsio-api:preprod
     environment: *app-env
+    mem_limit: 512m
     depends_on:
       setup: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
@@ -107,14 +118,23 @@ services:
       retries: 20
 
   worker:
+    <<: *locked
     build: { context: .., target: worker, args: { VITE_API_URL: '${PUBLIC_URL}' } }
     environment: *app-env
+    mem_limit: 1g
     depends_on:
       redis: { condition: service_healthy }
       setup: { condition: service_completed_successfully }
 
   web:
+    <<: *locked
     build: { context: .., target: web, args: { VITE_API_URL: '${PUBLIC_URL}' } }
+    environment:
+      STORAGE_ORIGIN: ${S3_ENDPOINT}
+    # Le binaire de Caddy porte cette capacité : sans elle, il refuse de démarrer.
+    cap_add: [NET_BIND_SERVICE]
+    tmpfs: ['/tmp', '/config', '/data']
+    mem_limit: 256m
     ports:
       - '${WEB_PORT:-8080}:8080'
     depends_on:

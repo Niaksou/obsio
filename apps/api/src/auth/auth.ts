@@ -28,6 +28,19 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       schema,
     }),
     advanced: { database: { generateId: 'uuid' } },
+    // Actif en production seulement (réglage par défaut) ; par adresse IP du client.
+    // Routes sensibles plus strictes : deviner un mot de passe ou inonder une boîte de réception.
+    rateLimit: {
+      window: 60,
+      max: 100,
+      customRules: {
+        '/sign-in/email': { window: 300, max: 10 },
+        '/sign-up/email': { window: 3600, max: 5 },
+        '/request-password-reset': { window: 3600, max: 5 },
+        '/send-verification-email': { window: 3600, max: 5 },
+        '/reset-password': { window: 3600, max: 10 },
+      },
+    },
     hooks: {
       // Pas d'inscription en libre-service : il faut une invitation en attente pour cette adresse.
       before: createAuthMiddleware(async (ctx) => {

@@ -12,6 +12,12 @@ services:
   proxy:
     image: caddy:2.10-alpine
     <<: *restart
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    read_only: true
+    tmpfs: ['/tmp']
+    pids_limit: 200
+    mem_limit: 256m
     environment:
       APP_HOST: ${APP_HOST}
       STORAGE_HOST: ${STORAGE_HOST}
