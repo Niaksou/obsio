@@ -1,11 +1,10 @@
 import { INSPECTION_STATUS_LABELS, type Inspection, type InspectionStatus } from '@obsio/shared';
 import { formatDay } from '../reserves/status.js';
 
-/** État d'une vérification : pastille et libellé, sur le modèle des statuts de réserve. */
+/** État d'une vérification en plaque gravée, sur le modèle des statuts de réserve. */
 export function InspectionStatusLabel({ status }: { status: InspectionStatus }) {
   return (
-    <span className={`inspection-status inspection-status-${status}`}>
-      <span className="swatch" aria-hidden="true" />
+    <span className={`status-plate inspection-status inspection-status-${status}`}>
       {INSPECTION_STATUS_LABELS[status]}
     </span>
   );

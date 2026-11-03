@@ -20,15 +20,16 @@ export function formatDateTime(iso: string) {
   });
 }
 
-/** Statut d'une réserve : pastille de couleur et libellé, avec le retard s'il y en a. */
+/** Statut d'une réserve en plaque gravée, suivi d'une plaque « en retard » s'il y a lieu. */
 export function StatusLabel({ status, overdue }: { status: ReserveStatus; overdue?: boolean }) {
   return (
-    <span className={`reserve-status reserve-status-${status}${overdue ? ' overdue' : ''}`}>
-      <span className="swatch" aria-hidden="true" />
-      <span>
-        {RESERVE_STATUS_LABELS[status]}
-        {overdue && <span className="late">, en retard</span>}
-      </span>
+    <span className={`reserve-status reserve-status-${status}`}>
+      <span className="status-plate">{RESERVE_STATUS_LABELS[status]}</span>
+      {overdue && (
+        <span className="status-plate status-plate-late">
+          <span className="visually-hidden">, </span>en retard
+        </span>
+      )}
     </span>
   );
 }

@@ -30,9 +30,9 @@ import { scaleBar } from './scale.js';
 Konva.hitOnDragEnabled = true;
 
 const PLATE_FONT = '"Barlow Semi Condensed", "Arial Narrow", sans-serif';
-const INK = '#18222c';
+const INK = '#151c22';
 const PAPER = '#ffffff';
-const SAFETY = '#f0c419';
+const SAFETY = '#f5c400';
 const WHEEL_STEP = 1.15;
 const PLATE_FONT_SIZE = 14;
 const PLATE_PADDING = 5;
@@ -47,9 +47,9 @@ export interface ReserveBadge {
 }
 
 export const BADGE_COLORS: Record<ReserveBadge['status'], string> = {
-  ouverte: '#b8321a',
-  assignee: '#1d5aa6',
-  corrigee: '#8a5a00',
+  ouverte: '#b0241b',
+  assignee: '#1c5c9e',
+  corrigee: '#855500',
 };
 
 let measureContext: CanvasRenderingContext2D | null = null;

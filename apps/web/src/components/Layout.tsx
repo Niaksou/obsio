@@ -1,5 +1,7 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
+
+const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
 
 /** Choix de l'organisation active, affiché seulement si l'utilisateur en a plusieurs. */
 function OrganisationSwitcher() {
@@ -28,6 +30,8 @@ function OrganisationSwitcher() {
 export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
+  // Tout ce qui se trouve dans un site (plans, réserves, rapports) relève de la rubrique Sites.
+  const inSites = SITE_PATHS.test(useLocation().pathname);
 
   async function signOut() {
     await authClient.signOut();
@@ -42,7 +46,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
         </Link>
         {session && (
           <nav className="nav" aria-label="Navigation principale">
-            <NavLink to="/" end>
+            <NavLink to="/" className={() => (inSites ? 'active' : undefined)}>
               Sites
             </NavLink>
             <NavLink to="/verifications">Vérifications</NavLink>

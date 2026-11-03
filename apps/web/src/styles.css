@@ -1,29 +1,47 @@
 /*
- * Obsio : l'élément fort est le plan (pleine largeur, cartouche de dessin technique, repères en
- * plaques gravées de tableau électrique). Tout le reste reste calme : listes en lignes, peu de
- * couleur. Le jaune de sécurité est réservé à la sélection et au placement sur le plan.
+ * Obsio, charte « Armoire » : l'interface emprunte au tableau électrique qu'elle sert à suivre.
+ * - Le fond est la tôle grise des coffrets (RAL 7035) ; le travail se fait sur des surfaces
+ *   blanches, comme les documents et le plan.
+ * - Toute la signalétique est en plaques gravées (repérage) : équipements, statuts des réserves,
+ *   rubrique active, boutons principaux. Capitales seulement sur ces plaques.
+ * - Le jaune de sécurité, toujours bordé de noir, signale ce qui est sélectionné ou actif :
+ *   repère choisi sur le plan, champ au focus, mode placement.
+ * - Une rayure vert et jaune de conducteur de terre signe la marque, et seulement elle.
+ * Pas d'ombres décoratives ni de dégradés : les volumes viennent des filets et des aplats.
  */
 :root {
-  --paper: #f2f4f3;
+  --paper: #dce0dc;
+  --paper-deep: #cfd4d0;
   --surface: #ffffff;
-  --ink: #18222c;
-  --muted: #56626c;
-  --line: #c8d0cd;
-  --line-soft: #dde3e0;
-  --action: #1d5aa6;
-  --action-hover: #174a8a;
-  --danger: #b8321a;
-  --safety: #f0c419;
-  --pending: #8a5a00;
-  --header-height: 52px;
+  --surface-tint: #f1f3f1;
+  --ink: #151c22;
+  --ink-soft: #2a343c;
+  --muted: #4a555d;
+  --line: #b4bcb7;
+  --line-strong: #8c958f;
+  --line-soft: #e3e7e4;
+  --action: #1c5c9e;
+  --action-hover: #154a82;
+  --danger: #b0241b;
+  --danger-hover: #8f1c15;
+  --safety: #f5c400;
+  --pending: #855500;
+  --earth: #2e7d3a;
+  --done: #2d6a3a;
+  --header-height: 56px;
+  --radius: 2px;
   --font-ui: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-plate: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+  /* Focus : liseré noir et halo jaune, le code de la signalétique de sécurité. */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink), 0 0 0 7px var(--safety);
 
   font-family: var(--font-ui);
   font-size: 16px;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
   background: var(--paper);
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -50,16 +68,25 @@ h1,
 h2,
 h3 {
   margin: 0;
-  line-height: 1.2;
-  font-weight: 600;
+  font-family: var(--font-plate);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 1.75rem;
+  font-size: 2.25rem;
 }
 
 h2 {
-  font-size: 1.2rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 p {
@@ -68,71 +95,117 @@ p {
 
 a {
   color: var(--action);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--action);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-/* --- En-tête */
+::selection {
+  color: var(--ink);
+  background: var(--safety);
+}
+
+/* --- En-tête : bandeau blanc, filet noir, rubrique active en plaque gravée */
 
 .header {
+  position: relative;
+  flex: none;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
   min-height: var(--header-height);
-  padding: 0 16px;
+  padding: 0 20px;
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
 }
 
+/* Marque : nom gravé, souligné d'un conducteur de terre vert et jaune. */
 .brand {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px;
   font-family: var(--font-plate);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  line-height: 1;
+  letter-spacing: 0.04em;
   color: var(--ink);
   text-decoration: none;
 }
 
+.brand::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, var(--earth) 0 10px, var(--safety) 10px 20px);
+  border-radius: 2px;
+}
+
+.brand:focus-visible {
+  border-radius: var(--radius);
+}
+
 .nav {
   display: flex;
-  gap: 4px;
-  align-self: stretch;
+  align-items: center;
+  gap: 2px;
 }
 
 .nav a {
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  min-height: 34px;
+  padding: 0 12px;
+  font-weight: 500;
   color: var(--muted);
   text-decoration: none;
-  border-bottom: 2px solid transparent;
+  border-radius: var(--radius);
 }
 
 .nav a:hover {
   color: var(--ink);
+  background: var(--surface-tint);
 }
 
-.nav a.active {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
+.nav a.active,
+.nav a.active:hover {
+  font-family: var(--font-plate);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--surface);
+  background: var(--ink);
 }
 
 .session {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
   margin-left: auto;
+  font-size: 0.9375rem;
   color: var(--muted);
+}
+
+.session select {
+  min-height: 34px;
+  padding-block: 4px;
 }
 
 .main {
   width: 100%;
-  max-width: 880px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 40px 20px 72px;
 }
 
 .main-full {
@@ -146,57 +219,112 @@ a {
 
 label {
   display: grid;
-  gap: 4px;
-  font-weight: 500;
+  gap: 5px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  transition:
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
 }
 
 input,
 select {
-  font: inherit;
-  font-weight: 400;
-  min-height: 40px;
-  padding: 7px 10px;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  min-height: 42px;
+  padding: 8px 11px;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--ink-soft);
 }
 
 input:focus,
-select:focus {
-  outline: 2px solid var(--action);
-  outline-offset: -1px;
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--ink),
+    0 0 0 4px var(--safety);
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: #6b767d;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--ink);
+}
+
+input[type='checkbox']:focus,
+input[type='radio']:focus {
+  box-shadow: none;
+}
+
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+/* Bouton principal : plaque noire gravée en blanc. */
 button {
   font: inherit;
-  font-weight: 500;
-  min-height: 40px;
-  padding: 8px 14px;
-  color: #fff;
-  background: var(--action);
-  border: 1px solid var(--action);
-  border-radius: 3px;
+  font-family: var(--font-plate);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  min-height: 42px;
+  padding: 8px 16px;
+  color: var(--surface);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
   cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    border-color 120ms ease-out;
 }
 
 button:hover:not(:disabled) {
-  background: var(--action-hover);
-  border-color: var(--action-hover);
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 button:disabled {
-  opacity: 0.55;
-  cursor: default;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 button.secondary {
-  color: var(--action);
+  color: var(--ink);
   background: var(--surface);
+  border-color: var(--ink);
 }
 
 button.secondary:hover:not(:disabled) {
-  color: #fff;
+  color: var(--ink);
+  background: var(--surface-tint);
+  border-color: var(--ink);
 }
 
 /* Mode placement actif : même jaune que la sélection sur le plan. */
@@ -205,9 +333,13 @@ button.secondary.active:hover:not(:disabled) {
   color: var(--ink);
   background: var(--safety);
   border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 button.quiet {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--ink);
   background: transparent;
   border-color: transparent;
@@ -224,13 +356,16 @@ button.danger {
 }
 
 button.danger:hover:not(:disabled) {
-  background: #9a2914;
-  border-color: #9a2914;
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
 }
 
 button.link {
   min-height: 0;
   padding: 0;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--action);
   background: none;
   border: 0;
@@ -250,13 +385,15 @@ button.link:hover:not(:disabled) {
 .quiet-link {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 42px;
   padding: 0 10px;
+  font-weight: 500;
   color: var(--ink);
 }
 
 .error {
   color: var(--danger);
+  font-weight: 500;
 }
 
 .hint {
@@ -283,16 +420,28 @@ button.link:hover:not(:disabled) {
   margin: 0 auto;
 }
 
+/* Fiche : surface blanche coiffée d'un filet noir, comme une étiquette de repérage. */
 .card {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 28px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-top: 4px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+form.card {
+  max-width: 440px;
+  margin-top: 6vh;
+}
+
+form.card > button[type='submit'] {
+  min-height: 46px;
+  margin-top: 4px;
 }
 
 .stack .card {
@@ -300,7 +449,7 @@ button.link:hover:not(:disabled) {
 }
 
 .card h1 {
-  font-size: 1.4rem;
+  font-size: 1.875rem;
 }
 
 .card h3 {
@@ -336,10 +485,13 @@ button.link:hover:not(:disabled) {
 
 .badge {
   padding: 1px 8px;
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-family: var(--font-plate);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-tint);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 /* --- Sites, bâtiments, étages */
@@ -359,10 +511,12 @@ button.link:hover:not(:disabled) {
 
 .crumbs a {
   color: var(--muted);
+  text-decoration: none;
 }
 
 .crumbs a:hover {
   color: var(--ink);
+  text-decoration: underline;
 }
 
 .title-row {
@@ -375,32 +529,36 @@ button.link:hover:not(:disabled) {
 
 .page > .title-row,
 .page > h1 {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .building {
-  margin-top: 24px;
+  margin-top: 36px;
 }
 
 .building > .title-row {
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  align-items: baseline;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 2px solid var(--ink);
 }
 
+/* Listes : un bornier blanc posé sur la tôle, une ligne par borne. */
 .rows {
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--line);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 
-.building .rows {
-  border-top: 0;
+.rows > li {
+  border-bottom: 1px solid var(--line-soft);
 }
 
-.rows li {
-  border-bottom: 1px solid var(--line);
+.rows > li:last-child {
+  border-bottom: 0;
 }
 
 .row-link {
@@ -408,13 +566,20 @@ button.link:hover:not(:disabled) {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 16px;
-  padding: 12px 8px;
+  padding: 14px 16px;
   color: var(--ink);
   text-decoration: none;
+  transition: background-color 120ms ease-out;
 }
 
 .row-link:hover {
-  background: var(--surface);
+  background: var(--surface-tint);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.row-link:focus-visible {
+  position: relative;
+  z-index: 1;
 }
 
 .row-title {
@@ -437,10 +602,10 @@ button.link:hover:not(:disabled) {
 
 .inline-form {
   display: grid;
-  gap: 12px;
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
+  gap: 14px;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 2px solid var(--ink);
 }
 
 .inline-form.compact {
@@ -492,13 +657,13 @@ button.link:hover:not(:disabled) {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 16px;
-  padding: 8px 16px;
+  padding: 8px 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 
 .toolbar h1 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .tools {
@@ -516,8 +681,8 @@ button.link:hover:not(:disabled) {
   overflow: hidden;
   background-color: var(--paper);
   background-image:
-    linear-gradient(rgb(200 208 205 / 0.45) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(200 208 205 / 0.45) 1px, transparent 1px);
+    linear-gradient(rgb(21 28 34 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(21 28 34 / 0.07) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -547,10 +712,11 @@ button.link:hover:not(:disabled) {
   transform: translateX(-50%);
   max-width: calc(100% - 32px);
   padding: 6px 12px;
+  font-weight: 600;
   color: var(--ink);
   background: var(--safety);
-  border: 1px solid var(--ink);
-  border-radius: 3px;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
   pointer-events: none;
 }
 
@@ -619,7 +785,7 @@ button.link:hover:not(:disabled) {
   padding: 24px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 .plan-upload {
@@ -637,7 +803,7 @@ button.link:hover:not(:disabled) {
   color: var(--action);
   font-weight: 600;
   border: 1.5px dashed var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
@@ -811,19 +977,8 @@ button.link:hover:not(:disabled) {
 /* --- Rapports et validation d'un import */
 
 textarea {
-  font: inherit;
-  font-weight: 400;
-  padding: 7px 10px;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  padding: 8px 11px;
   resize: vertical;
-}
-
-textarea:focus {
-  outline: 2px solid var(--action);
-  outline-offset: -1px;
 }
 
 fieldset {
@@ -870,6 +1025,17 @@ fieldset {
   height: 100%;
 }
 
+/* La barre d'outils n'a pas de zone nommée ici : elle prend la première ligne, le corps la
+   dernière, l'éventuelle erreur de validation entre les deux. */
+.review > .toolbar {
+  grid-area: auto;
+}
+
+.review > .review-body,
+.review > .review-message {
+  grid-row: 3;
+}
+
 .review > .toolbar .status {
   margin-left: 0;
 }
@@ -883,7 +1049,7 @@ fieldset {
   padding: 24px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 .review-body {
@@ -1031,7 +1197,7 @@ fieldset {
 
 .tag-warning {
   color: var(--ink);
-  background: rgb(240 196 25 / 0.35);
+  background: rgb(245 196 0 / 0.35);
   border-color: var(--safety);
 }
 
@@ -1084,7 +1250,7 @@ fieldset {
   position: relative;
   justify-self: start;
   background: #fff;
-  box-shadow: 0 1px 3px rgb(24 34 44 / 0.2);
+  box-shadow: 0 1px 3px rgb(21 28 34 / 0.2);
 }
 
 .pdf-page-sheet canvas {
@@ -1094,7 +1260,7 @@ fieldset {
 /* Surligneur jaune de sécurité, comme la sélection sur le plan. */
 .pdf-highlight {
   position: absolute;
-  background: rgb(240 196 25 / 0.4);
+  background: rgb(245 196 0 / 0.4);
   border-bottom: 2px solid var(--safety);
   mix-blend-mode: multiply;
   pointer-events: none;
@@ -1137,6 +1303,15 @@ fieldset {
   .header {
     flex-wrap: wrap;
     gap: 0 12px;
+    padding: 12px 16px 0;
+  }
+
+  .main {
+    padding: 24px 16px 56px;
+  }
+
+  h1 {
+    font-size: 1.875rem;
   }
 
   /* La navigation passe sous la marque et la session, et défile si elle déborde. */
@@ -1144,8 +1319,8 @@ fieldset {
     order: 3;
     flex-basis: calc(100% + 32px);
     min-height: 44px;
-    margin: 0 -16px;
-    padding: 0 6px;
+    margin: 10px -16px 0;
+    padding: 0 10px;
     overflow-x: auto;
     border-top: 1px solid var(--line-soft);
   }
@@ -1176,7 +1351,7 @@ fieldset {
     max-height: 42dvh;
     border-left: 0;
     border-top: 1px solid var(--line);
-    box-shadow: 0 -2px 8px rgb(24 34 44 / 0.08);
+    box-shadow: 0 -2px 8px rgb(21 28 34 / 0.08);
   }
 
   .title-block {
@@ -1254,7 +1429,7 @@ label.check input {
   display: flex;
   flex-wrap: wrap;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: var(--surface);
 }
 
@@ -1301,7 +1476,8 @@ label.check input {
 }
 
 .reserve-rows li.selected {
-  background: rgb(240 196 25 / 0.18);
+  background: rgb(245 196 0 / 0.16);
+  box-shadow: inset 4px 0 0 var(--safety);
 }
 
 .reserve-row {
@@ -1346,47 +1522,53 @@ label.check input {
   font-size: 0.875rem;
 }
 
-/* Statuts : même code couleur que les pastilles du plan. */
+/* Statuts en plaques gravées (stratifié coloré, lettres blanches), même code couleur que les
+   pastilles du plan. Le texte porte toujours l'information, la couleur la confirme. */
 .reserve-status {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  gap: 4px;
 }
 
-.reserve-status .swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.status-plate {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 1px 7px;
+  font-family: var(--font-plate);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--surface);
   background: var(--muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
 }
 
-.reserve-status-ouverte .swatch {
+.reserve-status-ouverte .status-plate {
   background: var(--danger);
 }
 
-.reserve-status-assignee .swatch {
+.reserve-status-assignee .status-plate {
   background: var(--action);
 }
 
-.reserve-status-corrigee .swatch {
+.reserve-status-corrigee .status-plate {
   background: var(--pending);
 }
 
-.reserve-status-levee {
-  color: var(--muted);
+.reserve-status-levee .status-plate {
+  background: var(--done);
 }
 
-.reserve-status-levee .swatch {
-  background: transparent;
-  border: 2px solid var(--muted);
-}
-
-.reserve-status.overdue .swatch {
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--danger);
+.reserve-status .status-plate-late {
+  color: var(--danger);
+  background: var(--surface);
+  border-color: var(--danger);
 }
 
 .late {
@@ -1405,8 +1587,8 @@ label.check input {
   padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--ink);
-  border-radius: 3px;
-  box-shadow: 0 -2px 10px rgb(24 34 44 / 0.12);
+  border-radius: var(--radius);
+  box-shadow: 0 -2px 10px rgb(21 28 34 / 0.12);
 }
 
 .selection-bar > p {
@@ -1463,39 +1645,58 @@ label.check input {
   gap: 0;
 }
 
+/* En-tête d'une réserve : fiche blanche, faits rangés en cases comme le cartouche du plan. */
 .reserve-head {
   display: grid;
-  gap: 12px;
-  margin: 12px 0 8px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid var(--ink);
+  gap: 16px;
+  margin: 14px 0 8px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--ink);
+  border-radius: var(--radius);
 }
 
 .reserve-head h1 {
-  max-width: 70ch;
-  font-size: 1.4rem;
+  max-width: 52ch;
+  font-size: 1.875rem;
 }
 
 .reserve-head > .quiet {
   justify-self: start;
-  padding-left: 0;
+  margin-left: -10px;
 }
 
 .facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   margin: 0;
+  border: 1px solid var(--ink);
+}
+
+.facts > div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px 10px;
+  box-shadow:
+    -1px 0 0 var(--ink),
+    0 -1px 0 var(--ink);
 }
 
 .facts dt {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--muted);
 }
 
 .facts dd {
   margin: 0;
-  font-weight: 500;
+  font-family: var(--font-plate);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .facts a {
@@ -1522,9 +1723,13 @@ label.check input {
 
 .reserve-section {
   display: grid;
-  gap: 12px;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--line);
+  gap: 14px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.reserve-section:last-child {
+  border-bottom: 0;
 }
 
 .reserve-section h3 {
@@ -1537,7 +1742,7 @@ label.check input {
   gap: 12px;
   margin-top: 20px;
   padding: 16px;
-  background: rgb(138 90 0 / 0.08);
+  background: rgb(133 85 0 / 0.08);
   border-left: 4px solid var(--pending);
 }
 
@@ -1558,6 +1763,11 @@ label.check input {
   max-width: 75ch;
 }
 
+.sources li {
+  padding: 2px 0 2px 16px;
+  border-left: 3px solid var(--ink);
+}
+
 .journal li {
   display: grid;
   grid-template-columns: 150px 1fr;
@@ -1565,7 +1775,9 @@ label.check input {
 }
 
 .journal time {
-  font-size: 0.875rem;
+  font-family: var(--font-plate);
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -1593,8 +1805,8 @@ label.check input {
 
 .add-proof summary {
   width: fit-content;
-  color: var(--action);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--ink);
   cursor: pointer;
 }
 
@@ -1625,7 +1837,7 @@ label.check input {
   object-fit: cover;
   background: var(--line-soft);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 .photo-strip figure {
@@ -1646,33 +1858,35 @@ label.check input {
   width: 96px;
   height: 96px;
   padding: 8px;
-  font-size: 0.875rem;
+  font-family: var(--font-plate);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
   text-align: center;
-  color: var(--action);
+  color: var(--ink);
   background: var(--surface);
-  border: 1px dashed var(--action);
-  border-radius: 3px;
+  border: 2px dashed var(--ink);
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
 .photo-add:hover {
-  background: rgb(29 90 166 / 0.06);
+  background: var(--surface-tint);
 }
 
 .photo-strip input:focus-visible + .photo-add {
-  outline: 2px solid var(--action);
-  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 .queued {
   padding: 8px 12px;
   font-size: 0.875rem;
-  background: rgb(240 196 25 / 0.2);
+  background: rgb(245 196 0 / 0.2);
   border-left: 3px solid var(--safety);
 }
 
 .queued-error {
-  background: rgb(184 50 26 / 0.08);
+  background: rgb(176 36 27 / 0.08);
   border-left-color: var(--danger);
 }
 
@@ -1772,7 +1986,7 @@ label.check input {
   display: flex;
   gap: 12px;
   width: 100%;
-  padding: 14px 4px;
+  padding: 14px 10px;
   text-align: left;
   color: var(--ink);
   background: transparent;
@@ -1780,13 +1994,25 @@ label.check input {
   border-radius: 0;
 }
 
+/* Numéro d'ordre gravé, comme le repère d'un départ. */
 .item-number {
+  display: grid;
   flex: none;
-  width: 28px;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   font-family: var(--font-plate);
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius);
+}
+
+li.open .item-number {
+  color: var(--ink);
+  background: var(--safety);
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
 
 .item-main {
@@ -1801,7 +2027,7 @@ label.check input {
 .item-detail {
   display: grid;
   gap: 12px;
-  padding: 0 12px 20px 44px;
+  padding: 0 12px 20px 52px;
 }
 
 .sent-proofs {
@@ -1834,6 +2060,11 @@ label.check input {
     width: 100%;
   }
 
+  .reserve-head,
+  .card {
+    padding: 20px 18px;
+  }
+
   .segmented button {
     flex: 1 1 auto;
   }
@@ -1851,47 +2082,60 @@ label.check input {
   margin: 8px 0 16px;
 }
 
+/* Compteurs : afficheurs de tableau ; un voyant (filet haut) s'allume quand il faut agir. */
 .counters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
 }
 
 .counters li + li {
-  border-left: 1px solid var(--line);
+  border-left: 1px solid var(--line-soft);
 }
 
 .counter {
   display: grid;
-  gap: 2px;
-  padding: 14px 16px;
+  gap: 6px;
+  height: 100%;
+  padding: 16px 18px 14px;
   color: var(--ink);
   text-decoration: none;
+  transition: background-color 120ms ease-out;
 }
 
 .counter:hover {
-  background: var(--paper);
+  background: var(--surface-tint);
 }
 
 .counter-value {
   font-family: var(--font-plate);
-  font-size: 2rem;
+  font-size: 2.75rem;
   font-weight: 700;
-  line-height: 1;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
 }
 
 .counter-label {
   font-size: 0.875rem;
+  font-weight: 500;
   color: var(--muted);
+}
+
+.counter-danger {
+  box-shadow: inset 0 4px 0 var(--danger);
 }
 
 .counter-danger .counter-value {
   color: var(--danger);
+}
+
+.counter-pending {
+  box-shadow: inset 0 4px 0 var(--pending);
 }
 
 .counter-pending .counter-value {
@@ -1906,27 +2150,38 @@ label.check input {
 .alert {
   display: grid;
   gap: 4px;
-  padding: 12px 16px;
-  border-left: 4px solid;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 6px solid;
+  border-radius: var(--radius);
 }
 
 .alert ul {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   padding-left: 20px;
 }
 
+.alert li + li {
+  margin-top: 2px;
+}
+
 .alert-title {
-  font-weight: 600;
+  font-family: var(--font-plate);
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 
 .alert-danger {
-  background: rgb(184 50 26 / 0.08);
-  border-color: var(--danger);
+  border-left-color: var(--danger);
+}
+
+.alert-danger .alert-title {
+  color: var(--danger);
 }
 
 .alert-pending {
-  background: rgb(138 90 0 / 0.08);
-  border-color: var(--pending);
+  border-left-color: var(--pending);
 }
 
 .floor-load .status.late {
@@ -1983,56 +2238,30 @@ label.check input {
   max-width: 640px;
 }
 
-.inspection-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
+.inspection-status-a_jour {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--ink);
 }
 
-.inspection-status .swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: transparent;
-  border: 2px solid var(--muted);
-}
-
-.inspection-status-a_jour .swatch {
-  background: var(--muted);
-  border-color: var(--muted);
-}
-
-.inspection-status-programmee .swatch {
+.inspection-status-programmee {
   background: var(--action);
-  border-color: var(--action);
 }
 
 .inspection-status-a_programmer,
 .inspection-status-rapport_attendu {
-  color: var(--pending);
-}
-
-.inspection-status-a_programmer .swatch,
-.inspection-status-rapport_attendu .swatch {
   background: var(--pending);
-  border-color: var(--pending);
 }
 
 .inspection-status-en_retard {
-  color: var(--danger);
-}
-
-.inspection-status-en_retard .swatch {
   background: var(--danger);
-  border-color: var(--danger);
 }
 
 .inspection-status-inconnue,
 .inspection-status-desactivee {
   color: var(--muted);
-  font-weight: 400;
+  background: var(--surface);
+  border-color: var(--line-strong);
 }
 
 .inspection-group {
@@ -2175,5 +2404,18 @@ label.check input {
 @media (pointer: coarse) {
   .keyboard-hint {
     display: none;
+  }
+}
+
+/* Animations réduites : les retours d'état restent, sans transition ni déplacement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+
+  button:active:not(:disabled) {
+    transform: none;
   }
 }
