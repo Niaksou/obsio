@@ -42,9 +42,14 @@ services:
     <<: *restart
     ports: !reset []
 
+  # Sans Brevo seulement (COMPOSE_PROFILES=local) : messages conservés d'un redémarrage à l'autre.
   mailpit:
     <<: *restart
     profiles: [local]
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit-data:/data
 
   setup:
     depends_on:
@@ -83,3 +88,4 @@ services:
 volumes:
   caddy-data:
   caddy-config:
+  mailpit-data:
