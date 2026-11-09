@@ -122,6 +122,8 @@ obsio exec api node dist/cli/seed-demo.js responsable@exemple.fr
 
 Après une mise à jour qui ajoute une variable à `deploy/server.env.example` (par exemple `REDIS_PASSWORD`), l'ajouter à `deploy/server.env` avant de relancer : sans elle, `docker compose` refuse de démarrer et nomme la variable manquante.
 
+Passage au compte de stockage restreint (novembre 2026) : dans `deploy/server.env`, renommer `S3_ACCESS_KEY` et `S3_SECRET_KEY` en `S3_ADMIN_ACCESS_KEY` et `S3_ADMIN_SECRET_KEY` (le compte principal de RustFS ne change pas), puis ajouter un nouveau `S3_ACCESS_KEY` (par exemple `obsio-app`) et un nouveau `S3_SECRET_KEY` (`openssl rand -hex 32`) : `setup` crée ce compte au démarrage.
+
 | Besoin | Commande |
 |---|---|
 | Mettre à jour après un `git push` | `cd ~/obsio && git pull && obsio up -d --build --wait` |

@@ -23,6 +23,10 @@ const apiEnvSchema = z.object({
   OPERATOR_NAME: z.string().min(1),
   // Derrière un proxy (Caddy, répartiteur de l'hébergeur) : l'adresse du client est lue dans
   // X-Forwarded-For, sinon la limitation de débit compterait tout le monde comme le proxy.
+  // Compte principal du stockage, pour le service setup seulement : il crée le compte restreint
+  // de l'application (S3_ACCESS_KEY). Absent en développement, où S3_ACCESS_KEY est le principal.
+  S3_ADMIN_ACCESS_KEY: z.string().min(1).optional(),
+  S3_ADMIN_SECRET_KEY: z.string().min(1).optional(),
   TRUST_PROXY: z
     .enum(['true', 'false'])
     .default('false')

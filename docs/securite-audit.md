@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 111 |
-| Partiel | 28 |
+| Conforme | 113 |
+| Partiel | 26 |
 | À corriger | 27 |
 | Écart proposé | 2 |
 | N/A | 85 |
@@ -30,7 +30,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 3. **Fait.** `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
 4. **Fait.** Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
 5. **Fait.** En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
-6. Moindre privilège : le rôle propriétaire de la base et la clé principale du stockage seulement pour la migration et les commandes de l'éditeur ; un compte de stockage dédié à l'application ; mot de passe Redis (13.2.1, 13.2.2, 13.3.2).
+6. **Fait.** Moindre privilège : le rôle propriétaire de la base et la clé principale du stockage seulement pour la migration et les commandes de l'éditeur ; un compte de stockage dédié à l'application ; mot de passe Redis (13.2.1, 13.2.2, 13.3.2).
 
 **Priorité 2 : avant la bêta**
 
@@ -293,12 +293,12 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | --- | --- | --- | --- |
 | V13.1.1 | 2 | Partiel | Services externes cités dans la spec (Mistral, SMTP, stockage), sans document des flux. |
 | V13.2.1 | 2 | Conforme | PostgreSQL, stockage et Redis (mot de passe exigé, `deploy/compose.yml`) authentifiés. |
-| V13.2.2 | 2 | Partiel | Rôle propriétaire de la base réservé au service `setup` (migrations, suppression d’une organisation) ; l’API et le worker utilisent encore la clé principale du stockage. |
+| V13.2.2 | 2 | Conforme | Rôle propriétaire de la base et compte principal du stockage réservés au service `setup` ; l’API et le worker ont le rôle `app_user` (sans contournement de la RLS) et un compte de stockage limité aux objets du bucket (`apps/api/src/storage-admin.ts`, `test/storage-admin.test.ts`). |
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
 | V13.2.4 | 2 | Partiel | Un seul service externe appelé (Mistral), sans liste blanche réseau. |
 | V13.2.5 | 2 | Partiel | Pare-feu OVH sur l’entrant ; sortant non restreint par destination. |
 | V13.3.1 | 2 | Écart proposé | Secrets dans un fichier d’environnement sur le serveur (droits restreints), pas de coffre-fort. |
-| V13.3.2 | 2 | Partiel | Voir 13.2.2. |
+| V13.3.2 | 2 | Conforme | Chaque service ne reçoit que les secrets dont il a besoin (voir 13.2.2). |
 | V13.4.1 | 1 | Conforme | `.git` exclu des images (`.dockerignore`). |
 | V13.4.2 | 2 | Conforme | `NODE_ENV=production`, pas de mode de débogage. |
 | V13.4.3 | 2 | Conforme | Caddy sans listing de répertoire. |

@@ -34,9 +34,13 @@ x-app-env: &app-env
 
 # Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
 # jamais l'API ni le worker, qui n'en ont pas besoin (moindre privilège, ASVS 13.2.2).
+# Même chose pour le compte principal du stockage : l'API et le worker ont un compte limité au
+# bucket (S3_ACCESS_KEY), créé par setup.
 x-owner-env: &owner-env
   <<: *app-env
   DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/obsio
+  S3_ADMIN_ACCESS_KEY: ${S3_ADMIN_ACCESS_KEY:?S3_ADMIN_ACCESS_KEY manquant}
+  S3_ADMIN_SECRET_KEY: ${S3_ADMIN_SECRET_KEY:?S3_ADMIN_SECRET_KEY manquant}
 
 # Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
 # mémoire et nombre de processus bornés.
@@ -87,8 +91,8 @@ services:
   storage:
     image: rustfs/rustfs:1.0.3
     environment:
-      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
-      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
+      RUSTFS_ACCESS_KEY: ${S3_ADMIN_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${S3_ADMIN_SECRET_KEY}
       # Même port dedans et dehors, pour que l'adresse signée soit identique partout.
       RUSTFS_ADDRESS: ':${STORAGE_PORT:-9100}'
     ports:
