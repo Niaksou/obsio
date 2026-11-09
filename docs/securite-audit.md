@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 144 |
-| Partiel | 17 |
+| Conforme | 145 |
+| Partiel | 16 |
 | À corriger | 11 |
 | Écart proposé | 2 |
 | N/A | 79 |
@@ -48,7 +48,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 15. Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
 17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
-18. Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
+18. **Fait.** Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
 19. SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
 20. `/api` en HTTP : refus plutôt que redirection (4.1.2).
 
@@ -356,7 +356,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V16.4.3 | 2 | À corriger | Aucun envoi vers un système séparé. |
 | V16.5.1 | 2 | Conforme | Gestionnaire d’erreurs (`apps/api/src/errors.ts`) : message générique pour toute erreur 5xx, détail dans le journal ; test `test/errors.test.ts`. |
 | V16.5.2 | 2 | Conforme | Extraction en tâche de fond avec 3 essais, échec affiché à l’utilisateur. |
-| V16.5.3 | 2 | Partiel | Transactions annulées en cas d’erreur ; mais la limitation de débit est levée si Redis est indisponible (`skipOnError`). |
+| V16.5.3 | 2 | Conforme | Transactions annulées en cas d’erreur ; Redis injoignable : limitation de débit et quotas refusent la requête en une seconde au plus (connexion à échec rapide, `apps/api/src/redis.ts`). |
 
 ### V17 — WebRTC
 

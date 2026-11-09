@@ -12,6 +12,8 @@ export const healthRoutes: FastifyPluginAsyncZod<{ pool: pg.Pool; redis: Redis }
   app.get(
     '/health',
     {
+      // Doit répondre même quand Redis, qui porte la limitation, est en panne.
+      config: { rateLimit: false },
       schema: {
         response: {
           200: z.object({ database: checkSchema, redis: checkSchema }),

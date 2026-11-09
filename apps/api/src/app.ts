@@ -41,6 +41,7 @@ export interface AppDependencies {
   config: ApiConfig;
   pool: pg.Pool;
   db: Database;
+  /** Limitation de débit, quotas, santé : connexion à échec rapide (`createFailFastRedis`). */
   redis: Redis;
   emailSender: EmailSender;
   storage: Storage;
@@ -90,7 +91,8 @@ export async function buildApp({
     timeWindow: '1 minute',
     redis,
     nameSpace: 'obsio-rate-limit:',
-    skipOnError: true,
+    // Redis injoignable : la requête est refusée plutôt que de passer sans limite.
+    skipOnError: false,
   });
 
   const quotas = createQuotas(redis);

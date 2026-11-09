@@ -27,7 +27,8 @@ describe('durée des sessions', () => {
       `select (extract(epoch from expires_at - now()) / 3600)::float8 as hours from session`,
     );
     expect(rows[0]!.hours).toBeGreaterThan(1.9);
-    expect(rows[0]!.hours).toBeLessThanOrEqual(2);
+    // Expiration calculée par Node, comparée à l'horloge de PostgreSQL : quelques secondes d'écart.
+    expect(rows[0]!.hours).toBeLessThanOrEqual(2.01);
   });
 
   it('ne dépasse jamais 12 heures, même prolongée', async () => {

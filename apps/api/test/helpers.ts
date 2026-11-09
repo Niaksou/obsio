@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 import { organisation, reportImport, reserve, user } from '../src/db/schema/index.js';
 import { createMemorySender } from '../src/email/sender.js';
 import type { ExtractionQueue } from '../src/imports/queue.js';
-import { createRedis } from '../src/redis.js';
+import { createFailFastRedis } from '../src/redis.js';
 import { createStorage } from '../src/storage.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
 
@@ -82,7 +82,7 @@ function createFakeQueue() {
 export async function buildTestApp() {
   const config = testConfig();
   const { pool, db } = createDatabase(config.DATABASE_URL);
-  const redis = createRedis(config.REDIS_URL);
+  const redis = await createFailFastRedis(config.REDIS_URL);
   const emailSender = createMemorySender();
   const storage = createStorage(config);
   await storage.ensureBucket(config.WEB_URL);

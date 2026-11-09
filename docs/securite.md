@@ -87,7 +87,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 | Dossiers de preuves en PDF, par organisation | 30 par heure | `apps/api/src/quotas.ts` |
 | Taille d'un rapport PDF, d'une photo, d'un plan | Imposée par l'URL signée de dépôt | `packages/shared` |
 
-Un quota d'organisation court sur une fenêtre fixe ouverte par la première opération ; une fois atteint, la réponse 429 donne le délai d'attente et l'événement `limite-depassee` est journalisé. Le refus ne consomme rien. Si Redis est injoignable, l'opération est refusée. L'export d'une organisation passe par la ligne de commande de l'éditeur, sans route web.
+Un quota d'organisation court sur une fenêtre fixe ouverte par la première opération ; une fois atteint, la réponse 429 donne le délai d'attente et l'événement `limite-depassee` est journalisé. Le refus ne consomme rien. Si Redis est injoignable, la limitation de débit et les quotas refusent toute requête (réponse 500 en une seconde au plus), sauf `/health` qui signale la panne. L'export d'une organisation passe par la ligne de commande de l'éditeur, sans route web.
 
 ## Journal de sécurité
 
@@ -119,7 +119,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 144 conformes, 17 partielles, 11 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 145 conformes, 16 partielles, 11 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

@@ -4,13 +4,14 @@ import { createDatabase } from './db/client.js';
 import { createSmtpSender } from './email/sender.js';
 import { ingestImport } from './imports/ingest.js';
 import { createExtractionQueue } from './imports/queue.js';
-import { createRedis } from './redis.js';
+import { createFailFastRedis, createRedis } from './redis.js';
 import { scheduleDailyNotifications } from './notifications.js';
 import { createStorage } from './storage.js';
 
 const config = loadConfig();
 const { pool, db } = createDatabase(config.DATABASE_URL);
 const redis = createRedis(config.REDIS_URL);
+const limitsRedis = await createFailFastRedis(config.REDIS_URL);
 const storage = createStorage(config);
 if (config.NODE_ENV === 'development') await storage.ensureBucket(config.WEB_URL);
 const queue = createExtractionQueue(redis);
@@ -19,7 +20,7 @@ const app = await buildApp({
   config,
   pool,
   db,
-  redis,
+  redis: limitsRedis,
   emailSender,
   storage,
   queue,
@@ -37,7 +38,7 @@ async function shutdown(signal: string) {
   app.log.info(`${signal} reçu, arrêt en cours`);
   await app.close();
   await Promise.all([queue.close(), notifications.close()]);
-  await Promise.all([pool.end(), redis.quit()]);
+  await Promise.all([pool.end(), redis.quit(), limitsRedis.quit()]);
   storage.close();
   process.exit(0);
 }
