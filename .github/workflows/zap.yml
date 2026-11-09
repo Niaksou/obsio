@@ -1,0 +1,40 @@
+name: Scan ZAP
+
+# Scan passif (baseline) d'OWASP ZAP sur la préproduction : il parcourt les pages et lit les
+# réponses (en-têtes, cookies, fuites d'information), sans tenter d'attaque. Lancé à la main
+# depuis l'onglet Actions ; rapport en pièce jointe du passage.
+on:
+  workflow_dispatch:
+    inputs:
+      cible:
+        description: Adresse à analyser
+        default: https://preprod.obsio.fr
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: Scan passif
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # L'image tourne sous l'utilisateur zap : il doit pouvoir écrire le rapport.
+      # -I : les avertissements ne font pas échouer le passage, seules les alertes FAIL.
+      - name: ZAP baseline
+        env:
+          CIBLE: ${{ inputs.cible }}
+        run: |
+          chmod a+w .
+          docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$CIBLE" -m 2 -I -r zap-rapport.html -J zap-rapport.json
+
+      - name: Rapport
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: zap-rapport
+          path: zap-rapport.*

@@ -26,6 +26,8 @@ export const authRoutes: FastifyPluginAsync<{ auth: Auth; apiUrl: string }> = as
       });
       const cookies = response.headers.getSetCookie();
       if (cookies.length > 0) reply.header('set-cookie', cookies);
+      // Réponse de Better Auth relayée telle quelle, avec son propre type de contenu.
+      // nosemgrep: javascript.express.security.audit.xss.direct-response-write.direct-response-write
       return reply.send(response.body ? await response.text() : null);
     },
   });

@@ -1,0 +1,44 @@
+# Mises à jour proposées chaque semaine (docs/securite.md). Les correctifs de sécurité arrivent
+# dès leur publication si les alertes Dependabot sont activées dans les réglages du dépôt.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Une version publiée depuis moins de 7 jours n'est pas proposée : le temps qu'un paquet
+    # piégé soit repéré et retiré. Les correctifs de sécurité ne sont pas retardés.
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: Dépendances
+    groups:
+      # Versions mineures et correctifs regroupés : une seule pull request à relire.
+      mineures:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Une version publiée depuis moins de 7 jours n'est pas proposée : le temps qu'un paquet
+    # piégé soit repéré et retiré. Les correctifs de sécurité ne sont pas retardés.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: CI
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Une version publiée depuis moins de 7 jours n'est pas proposée : le temps qu'un paquet
+    # piégé soit repéré et retiré. Les correctifs de sécurité ne sont pas retardés.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: Images

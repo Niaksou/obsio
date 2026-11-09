@@ -53,6 +53,20 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Nouvel en-tête, nouvelle origine (stockage, API externe) : CSP et en-têtes de `deploy/Caddyfile` mis à jour, sans élargir au-delà du nécessaire.
 - Conteneurs : utilisateur non root, système de fichiers en lecture seule, aucun port exposé inutilement.
 
+## Garde-fous automatiques
+
+Workflow `Sécurité` (`.github/workflows/securite.yml`), à chaque push, sur chaque pull request et chaque lundi :
+
+- **Dépendances** : `pnpm audit`. Échec dès une faille modérée dans les dépendances de production, élevée dans les outils de développement.
+- **Secrets** : gitleaks sur tout l'historique. Un faux positif s'ajoute à `.gitleaksignore` par son empreinte, avec un commentaire.
+- **Analyse statique** : Semgrep, règles OWASP Top 10, TypeScript, Node.js, React et Dockerfile. Un faux positif se marque sur la ligne par `// nosemgrep: <règle>`, précédé de la raison.
+
+Dependabot (`.github/dependabot.yml`) propose chaque semaine les mises à jour des paquets, des actions GitHub et des images Docker, après 7 jours de recul sur chaque version publiée. Les actions GitHub sont épinglées par empreinte de commit.
+
+Scan ZAP (`.github/workflows/zap.yml`) : scan passif de la préproduction, lancé à la main depuis l'onglet Actions ; rapport en pièce jointe du passage.
+
+Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'agit pas d'un vrai problème ; l'écart se note ci-dessous.
+
 ## Audit ASVS niveau 2
 
 À faire : chaque exigence applicable avec son statut (conforme, à corriger, non applicable) et sa preuve (fichier, test ou configuration).
@@ -65,3 +79,4 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 | --- | --- | --- |
 | Serveur de préproduction hors de l'UE | VPS disponible au Canada en attendant l'UE | Avant toute donnée réelle |
 | Fichiers du stockage sans sauvegarde, rien hors du serveur | Préproduction, données de test | Avant la bêta |
+| Réglages de chaîne d'approvisionnement de pnpm 10 absents (`minimumReleaseAge`, `trustPolicy`, `blockExoticSubdeps`) ; règles Semgrep correspondantes écartées | Le dépôt utilise pnpm 9 ; le passage à pnpm 10 change l'exécution des scripts d'installation | Passage à pnpm 10 |
