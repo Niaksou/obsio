@@ -87,6 +87,12 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
         }
       }),
     },
+    // Reconnexion après 2 heures sans activité (prolongée au plus toutes les 5 minutes d'usage) ;
+    // durée maximale de 12 heures fixée par la base (migration 0007_session_lifetime).
+    session: {
+      expiresIn: 2 * 3600,
+      updateAge: 5 * 60,
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,

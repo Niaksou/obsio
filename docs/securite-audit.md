@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 122 |
-| Partiel | 23 |
-| À corriger | 21 |
+| Conforme | 126 |
+| Partiel | 22 |
+| À corriger | 18 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -206,15 +206,15 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V7.1.1 | 2 | À corriger | Durées non documentées (Better Auth : 7 jours, prolongée à chaque jour d’usage). |
-| V7.1.2 | 2 | À corriger | Sessions parallèles illimitées, non documentées. |
+| V7.1.1 | 2 | Conforme | Durées documentées et justifiées dans `docs/securite.md` (« Sessions »). |
+| V7.1.2 | 2 | Conforme | Sessions parallèles permises sans limite, comportement documenté. |
 | V7.1.3 | 2 | N/A | Pas de fédération d’identité. |
 | V7.2.1 | 1 | Conforme | Session vérifiée en base par l’API à chaque requête. |
 | V7.2.2 | 1 | Conforme | Jetons de session générés à la connexion. |
 | V7.2.3 | 1 | Conforme | Jeton aléatoire de 32 caractères (environ 190 bits), signé. |
 | V7.2.4 | 1 | Conforme | Nouvelle session à chaque connexion. |
-| V7.3.1 | 2 | Partiel | Expiration après 7 jours sans activité, durée non justifiée. |
-| V7.3.2 | 2 | À corriger | Pas de durée maximale absolue : la session est prolongée tant qu’elle sert. |
+| V7.3.1 | 2 | Conforme | Reconnexion après 2 heures sans activité (`apps/api/src/auth/auth.ts`, `test/sessions.test.ts`). |
+| V7.3.2 | 2 | Conforme | Durée maximale de 12 heures imposée par un déclencheur en base (migration `0007_session_lifetime`). |
 | V7.4.1 | 1 | Conforme | La déconnexion supprime la session en base. |
 | V7.4.2 | 1 | Conforme | Compte supprimé : sessions supprimées en cascade ; membre retiré : appartenance relue à chaque requête. |
 | V7.4.3 | 2 | Partiel | La réinitialisation ferme toutes les sessions ; pas de changement de mot de passe (6.2.2). |

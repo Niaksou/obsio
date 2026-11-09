@@ -60,6 +60,13 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
   - les mots de passe connus des fuites de données (Have I Been Pwned) : seuls les 5 premiers caractères de l'empreinte SHA-1 sont envoyés à `api.pwnedpasswords.com` ; si le service est injoignable, l'opération est refusée et peut être retentée ;
   - les mots propres au contexte, même avec accents, majuscules ou séparateurs : `obsio`, `motdepasse`, `password`, `azerty`, `qwerty`, `electricite`, `electrique`, `electricien`, `verification`, `conformite`, `reserve`, `apsad`, ainsi que le nom de l'utilisateur et la partie locale de son adresse e-mail (`apps/api/src/auth/password-policy.ts`).
 
+## Sessions
+
+- Reconnexion après **2 heures sans activité** ; la session est prolongée au plus toutes les 5 minutes d'usage (`apps/api/src/auth/auth.ts`).
+- **Durée maximale de 12 heures** après la connexion, quelle que soit l'activité, imposée par la base (déclencheur de la migration `0007_session_lifetime`). Raison : un technicien se reconnecte au plus une fois par journée de travail, et une session volée ne sert pas au-delà.
+- Sessions parallèles permises (poste et téléphone), sans limite de nombre : chacune est visible et peut être fermée par l'utilisateur. Toutes sont fermées à la réinitialisation du mot de passe.
+- Jeton de session aléatoire, signé, dans un cookie `HttpOnly`, `Secure` et `SameSite=Lax` ; session vérifiée en base à chaque requête et supprimée à la déconnexion.
+
 ## Journal de sécurité
 
 L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"securite": true` (`apps/api/src/security-log.ts`), avec l'heure, l'adresse IP, la méthode, l'URL sans ses jetons, l'utilisateur et l'organisation quand ils sont connus :
