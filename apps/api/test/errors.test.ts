@@ -14,7 +14,7 @@ ctx.app.post(
 );
 afterAll(() => ctx.close());
 
-describe("gestion des erreurs de l'API", () => {
+describe("en-têtes et erreurs de l'API", () => {
   it('ne renvoie pas le détail d’une erreur interne', async () => {
     const response = await ctx.app.inject({ method: 'GET', url: '/api/essai/erreur' });
     expect(response.statusCode).toBe(500);
@@ -24,6 +24,15 @@ describe("gestion des erreurs de l'API", () => {
       error: 'Internal Server Error',
       message: 'Erreur interne du serveur. Réessayez plus tard.',
     });
+  });
+
+  it('interdit la mise en cache des réponses', async () => {
+    const health = await ctx.app.inject({ method: 'GET', url: '/health' });
+    const denied = await ctx.app.inject({ method: 'GET', url: '/api/me' });
+    const session = await ctx.app.inject({ method: 'GET', url: '/api/auth/get-session' });
+    for (const response of [health, denied, session]) {
+      expect(response.headers['cache-control']).toBe('no-store');
+    }
   });
 
   it('garde le message d’une erreur de validation', async () => {

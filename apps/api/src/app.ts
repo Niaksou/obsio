@@ -60,6 +60,10 @@ export async function buildApp({
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(handleError);
+  // Réponses de l'API jamais conservées par le navigateur ni par un proxy (ASVS 14.3.2).
+  app.addHook('onSend', async (_request, reply) => {
+    if (!reply.hasHeader('cache-control')) reply.header('cache-control', 'no-store');
+  });
   app.decorateRequest('user', null);
   app.decorateRequest('organisation', null);
 

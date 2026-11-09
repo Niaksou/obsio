@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 
@@ -30,11 +31,14 @@ function OrganisationSwitcher() {
 export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   // Tout ce qui se trouve dans un site (plans, réserves, rapports) relève de la rubrique Sites.
   const inSites = SITE_PATHS.test(useLocation().pathname);
 
   async function signOut() {
     await authClient.signOut();
+    // Les données de l'organisation ne restent pas en mémoire après la déconnexion.
+    queryClient.clear();
     navigate('/connexion', { replace: true });
   }
 

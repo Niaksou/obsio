@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 103 |
-| Partiel | 33 |
-| À corriger | 30 |
+| Conforme | 105 |
+| Partiel | 32 |
+| À corriger | 29 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -27,7 +27,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 1. **Fait.** Erreurs internes renvoyées au navigateur : gestionnaire d'erreurs qui renvoie un message générique et journalise le détail (16.5.1).
 2. **Fait.** Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
-3. `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
+3. **Fait.** `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
 4. Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
 5. En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
 6. Moindre privilège : le rôle propriétaire de la base et la clé principale du stockage seulement pour la migration et les commandes de l'éditeur ; un compte de stockage dédié à l'application ; mot de passe Redis (13.2.1, 13.2.2, 13.3.2).
@@ -315,8 +315,8 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V14.2.2 | 2 | Conforme | Aucun cache serveur des réponses de l’API (Caddy ne met en cache que les fichiers statiques). |
 | V14.2.3 | 2 | Conforme | Aucun traceur ; Mistral est un sous-traitant déclaré (PDF transmis dans la requête). |
 | V14.2.4 | 2 | À corriger | Dépend de 14.1.1. |
-| V14.3.1 | 1 | Partiel | Cookie supprimé à la déconnexion, mais le cache de React Query reste en mémoire jusqu’au rechargement ; pas de `Clear-Site-Data`. |
-| V14.3.2 | 2 | À corriger | Réponses de l’API sans `Cache-Control: no-store`. |
+| V14.3.1 | 1 | Conforme | Cookie de session supprimé et cache de React Query vidé à la déconnexion ; la file hors ligne de l’intervenant ne contient que ses envois en attente. |
+| V14.3.2 | 2 | Conforme | `Cache-Control: no-store` sur toutes les réponses de l’API (hook `onSend`, `test/errors.test.ts`). |
 | V14.3.3 | 2 | Conforme | IndexedDB ne contient que la file d’envoi hors ligne de l’intervenant, vidée après envoi. |
 
 ### V15 — Code et architecture
