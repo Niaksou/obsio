@@ -73,7 +73,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 
 - Reconnexion après **2 heures sans activité** ; la session est prolongée au plus toutes les 5 minutes d'usage (`apps/api/src/auth/auth.ts`).
 - **Durée maximale de 12 heures** après la connexion, quelle que soit l'activité, imposée par la base (déclencheur de la migration `0007_session_lifetime`). Raison : un technicien se reconnecte au plus une fois par journée de travail, et une session volée ne sert pas au-delà.
-- Sessions parallèles permises (poste et téléphone), sans limite de nombre : chacune est visible et peut être fermée par l'utilisateur. Toutes sont fermées à la réinitialisation du mot de passe.
+- Sessions parallèles permises (poste et téléphone), sans limite de nombre : chacune est visible et peut être fermée par l'utilisateur. Toutes sont fermées à la réinitialisation du mot de passe, et quand un admin retire le membre de l'organisation.
 - Jeton de session aléatoire, signé, dans un cookie `HttpOnly`, `Secure` et `SameSite=Lax` ; session vérifiée en base à chaque requête et supprimée à la déconnexion.
 
 ## Limites d'usage
@@ -119,7 +119,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 137 conformes, 20 partielles, 15 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 138 conformes, 19 partielles, 15 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

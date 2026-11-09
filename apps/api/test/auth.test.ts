@@ -233,7 +233,7 @@ describe('Cloisonnement entre organisations', () => {
     });
   });
 
-  it("un membre retiré perd l'accès même si sa session est encore ouverte", async () => {
+  it('un membre retiré perd l’accès et ses sessions sont fermées', async () => {
     const { admin, organisationId } = await openClient('Usine', 'Alice', 'alice@example.org');
     const bob = new TestClient(ctx);
     const invitationId = await invite(admin, 'bob@example.org', 'membre');
@@ -245,7 +245,8 @@ describe('Cloisonnement entre organisations', () => {
       memberIdOrEmail: 'bob@example.org',
     });
     expect(removal.statusCode).toBe(200);
-    expect((await bob.get('/test/organisation')).statusCode).toBe(403);
+    expect((await bob.get('/test/organisation')).statusCode).toBe(401);
+    expect((await bob.get('/api/auth/get-session')).json()).toBeNull();
   });
 
   it('une route protégée exige une session', async () => {

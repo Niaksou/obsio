@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { eq } from 'drizzle-orm';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { haveIBeenPwned, organization, twoFactor } from 'better-auth/plugins';
@@ -135,6 +136,13 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
         requireEmailVerificationOnInvitation: true,
         cancelPendingInvitationsOnReInvite: true,
         invitationExpiresIn: INVITATION_TTL_SECONDS,
+        organizationHooks: {
+          // Un membre retiré est déconnecté partout (ASVS 7.4.5) : son accès à l'organisation
+          // est déjà coupé, mais une session ouverte ne doit pas survivre au retrait.
+          afterRemoveMember: async ({ user }) => {
+            await db.delete(schema.session).where(eq(schema.session.userId, user.id));
+          },
+        },
         sendInvitationEmail: async ({ id, email, organization, inviter }) => {
           await sendInvitation(
             { config, emailSender },
