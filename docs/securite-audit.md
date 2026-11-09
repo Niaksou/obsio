@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 126 |
-| Partiel | 22 |
-| À corriger | 18 |
+| Conforme | 130 |
+| Partiel | 20 |
+| À corriger | 16 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -39,7 +39,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 9. Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
 10. Sessions : durée maximale absolue et délai d'inactivité décidés et documentés ; l'admin ferme les sessions d'un membre qu'il retire (7.1.1, 7.1.2, 7.3.1, 7.3.2, 7.4.5).
 11. **Fait.** Journalisation de sécurité : connexions réussies et échouées, refus d'accès avec l'utilisateur, échecs de validation, opérations de l'éditeur (16.2.1, 16.3.1 à 16.3.4).
-12. Quotas par organisation : imports et extractions par jour, dossiers PDF et exports (2.1.3, 2.3.2, 2.4.1, 15.2.2).
+12. **Fait.** Quotas par organisation : imports et extractions par jour, dossiers PDF et exports (2.1.3, 2.3.2, 2.4.1, 15.2.2).
 
 **Priorité 3 : consolidation**
 
@@ -99,15 +99,15 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | --- | --- | --- | --- |
 | V2.1.1 | 1 | Partiel | Les règles sont les schémas Zod de `@obsio/shared`, partagés par le front et l’API ; aucun document ne les présente. |
 | V2.1.2 | 2 | Partiel | Règles combinées (position sur le plan, périodicité, rattachements) dans le code et la base, non documentées. |
-| V2.1.3 | 2 | À corriger | Limites métier (imports, assignations, envois) ni définies ni documentées. |
+| V2.1.3 | 2 | Conforme | Limites d’usage documentées dans `docs/securite.md` : débit par adresse IP, quotas par organisation, tailles de fichier. |
 | V2.2.1 | 1 | Conforme | Énumérations, formats et bornes Zod. |
 | V2.2.2 | 1 | Conforme | Validation côté API et contraintes en base (`check`, clés étrangères composites). |
 | V2.2.3 | 2 | Conforme | Contrôles croisés en code et en base (`equipment_position`, périodicité de 1 à 60 mois, paires identifiant et organisation). |
 | V2.3.1 | 1 | Conforme | Transitions contrôlées par le serveur : import en analyse, à valider puis validé ; revue seulement d’une réserve corrigée ; réserve levée non modifiable. |
-| V2.3.2 | 2 | À corriger | Aucune limite par organisation (voir 2.1.3 et 2.4.1). |
+| V2.3.2 | 2 | Conforme | Quotas par organisation dans Redis : 20 analyses de rapport par jour, 30 dossiers PDF par heure (`apps/api/src/quotas.ts`). |
 | V2.3.3 | 2 | Conforme | Chaque opération dans une transaction (`withOrganisation`). |
 | V2.3.4 | 2 | Conforme | Validation d’un import sous verrou (`select … for update`). |
-| V2.4.1 | 2 | Partiel | Limitation par adresse IP (600/min pour l’API, 60/min pour les liens intervenant, règles strictes sur l’authentification), mais pas de quota par organisation : un compte peut lancer des extractions Mistral payantes sans limite. |
+| V2.4.1 | 2 | Conforme | Limitation par adresse IP (600/min pour l’API, 60/min pour les liens intervenant, règles strictes sur l’authentification) et quotas par organisation sur les opérations coûteuses (analyse Mistral, dossier PDF), refus si Redis est injoignable. |
 
 ### V3 — Sécurité du front
 
@@ -327,7 +327,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V15.1.2 | 2 | Partiel | `pnpm-lock.yaml` (versions et empreintes), pas de SBOM. |
 | V15.1.3 | 2 | À corriger | Fonctions coûteuses (extraction, dossier PDF, export) non documentées. |
 | V15.2.1 | 1 | Partiel | Aucune faille connue en production (`pnpm audit`), mais pas de délai défini. |
-| V15.2.2 | 2 | Partiel | Extraction en file BullMQ, limitation par adresse IP ; pas de quota par organisation, dossier PDF sans limite propre. |
+| V15.2.2 | 2 | Conforme | Extraction en file BullMQ, limitation par adresse IP, quotas par organisation sur l’analyse et le dossier PDF. |
 | V15.2.3 | 2 | Conforme | Images sans tests ; la démonstration n’est qu’une commande, rien n’est exposé. |
 | V15.3.1 | 1 | Conforme | Schémas de réponse Zod. |
 | V15.3.2 | 2 | N/A | Aucun appel vers une URL externe variable (SDK Mistral, adresse fixe). |

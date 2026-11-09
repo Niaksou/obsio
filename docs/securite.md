@@ -67,6 +67,19 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Sessions parallèles permises (poste et téléphone), sans limite de nombre : chacune est visible et peut être fermée par l'utilisateur. Toutes sont fermées à la réinitialisation du mot de passe.
 - Jeton de session aléatoire, signé, dans un cookie `HttpOnly`, `Secure` et `SameSite=Lax` ; session vérifiée en base à chaque requête et supprimée à la déconnexion.
 
+## Limites d'usage
+
+| Limite | Valeur | Où |
+| --- | --- | --- |
+| Requêtes à l'API, par adresse IP | 600 par minute | `apps/api/src/app.ts` |
+| Requêtes d'un lien intervenant, par adresse IP | 60 par minute | `apps/api/src/routes/intervention.ts` |
+| Connexion, inscription, mot de passe, par adresse IP | Règles strictes de Better Auth | `apps/api/src/auth/auth.ts` |
+| Analyses de rapport (dépôt ou relance, appel à Mistral), par organisation | 20 par jour | `apps/api/src/quotas.ts` |
+| Dossiers de preuves en PDF, par organisation | 30 par heure | `apps/api/src/quotas.ts` |
+| Taille d'un rapport PDF, d'une photo, d'un plan | Imposée par l'URL signée de dépôt | `packages/shared` |
+
+Un quota d'organisation court sur une fenêtre fixe ouverte par la première opération ; une fois atteint, la réponse 429 donne le délai d'attente et l'événement `limite-depassee` est journalisé. Le refus ne consomme rien. Si Redis est injoignable, l'opération est refusée. L'export d'une organisation passe par la ligne de commande de l'éditeur, sans route web.
+
 ## Journal de sécurité
 
 L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"securite": true` (`apps/api/src/security-log.ts`), avec l'heure, l'adresse IP, la méthode, l'URL sans ses jetons, l'utilisateur et l'organisation quand ils sont connus :
@@ -97,7 +110,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 168 exigences applicables : 101 conformes, 32 partielles, 33 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 168 exigences applicables, à ce jour : 130 conformes, 20 partielles, 16 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

@@ -7,6 +7,7 @@ import { withOrganisation, type Database } from '../db/client.js';
 import { organisation, site } from '../db/schema/index.js';
 import { siteDashboard } from '../reserves/dashboard.js';
 import { buildProofDossier } from '../reserves/dossier.js';
+import { QUOTAS, type Quotas } from '../quotas.js';
 import type { Storage } from '../storage.js';
 
 // Pilotage (J6) : tableau de bord d'un site et dossier de preuves en PDF, pour tout membre.
@@ -18,7 +19,8 @@ export const dashboardRoutes: FastifyPluginAsyncZod<{
   db: Database;
   guards: Guards;
   storage: Storage;
-}> = async (app, { db, guards, storage }) => {
+  quotas: Quotas;
+}> = async (app, { db, guards, storage, quotas }) => {
   const member = guards.requireOrganisation;
 
   app.get(
@@ -46,6 +48,7 @@ export const dashboardRoutes: FastifyPluginAsyncZod<{
     },
     async (request, reply) => {
       const organisationId = request.organisation!.id;
+      await quotas.consume(QUOTAS.dossiers, organisationId);
       const pdf = await withOrganisation(db, organisationId, async (tx) => {
         const found = await tx.query.site.findFirst({
           where: and(eq(site.id, request.params.id), isNull(site.archivedAt)),

@@ -23,6 +23,7 @@ import { dashboardRoutes } from './routes/dashboard.js';
 import { inspectionRoutes } from './routes/inspections.js';
 import { healthRoutes } from './routes/health.js';
 import { importRoutes } from './routes/imports.js';
+import { createQuotas } from './quotas.js';
 import { interventionRoutes } from './routes/intervention.js';
 import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
@@ -92,6 +93,7 @@ export async function buildApp({
     skipOnError: true,
   });
 
+  const quotas = createQuotas(redis);
   const auth = createAuth({ config, db, emailSender });
   const guards = createGuards(auth, db);
 
@@ -100,10 +102,10 @@ export async function buildApp({
   await app.register(meRoutes, { db, guards });
   await app.register(invitationRoutes, { db, guards });
   await app.register(premisesRoutes, { db, guards, storage });
-  await app.register(importRoutes, { db, guards, storage, queue });
+  await app.register(importRoutes, { db, guards, storage, queue, quotas });
   await app.register(reserveRoutes, { db, guards, storage, emailSender, config });
   await app.register(interventionRoutes, { db, storage, emailSender, config });
-  await app.register(dashboardRoutes, { db, guards, storage });
+  await app.register(dashboardRoutes, { db, guards, storage, quotas });
   await app.register(inspectionRoutes, { db, guards });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).

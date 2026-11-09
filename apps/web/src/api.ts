@@ -190,7 +190,14 @@ export async function downloadProofDossier(siteId: string, query: ProofDossierQu
     `${BASE_URL}/api/sites/${siteId}/proof-dossier${queryString({ ...query })}`,
     { credentials: 'include' },
   );
-  if (!response.ok) throw new ApiError(response.status, 'Le dossier n’a pas pu être généré.');
+  if (!response.ok) {
+    // Quota atteint : le message de l'API donne le délai d'attente.
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new ApiError(
+      response.status,
+      (response.status === 429 && payload?.message) || 'Le dossier n’a pas pu être généré.',
+    );
+  }
   const name =
     response.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1] ??
     'dossier-preuves.pdf';

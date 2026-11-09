@@ -27,6 +27,7 @@ import {
 import { activateImport, ActivationError } from '../imports/activate.js';
 import { ingestImport, openSiteReserves } from '../imports/ingest.js';
 import type { ExtractionQueue } from '../imports/queue.js';
+import { QUOTAS, type Quotas } from '../quotas.js';
 import type { Storage } from '../storage.js';
 import { verifiedContentType } from '../file-signature.js';
 
@@ -44,7 +45,8 @@ export const importRoutes: FastifyPluginAsyncZod<{
   guards: Guards;
   storage: Storage;
   queue: ExtractionQueue;
-}> = async (app, { db, guards, storage, queue }) => {
+  quotas: Quotas;
+}> = async (app, { db, guards, storage, queue, quotas }) => {
   const { requireOrganisation: member, requireAdmin: admin } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
@@ -93,6 +95,8 @@ export const importRoutes: FastifyPluginAsyncZod<{
     async (request, reply) => {
       const row = await scoped(request, (tx) => activeSite(tx, request.params.id));
       if (!row) return fail(reply, 404, 'Site introuvable');
+      // Prévenu avant le dépôt plutôt qu'après : le quota n'est consommé qu'à l'analyse.
+      await quotas.check(QUOTAS.analyses, request.organisation!.id);
       // L'identifiant de l'import est choisi ici : il fait partie de la clé du PDF.
       const keys = reportImportKeys(request.organisation!.id, crypto.randomUUID());
       return storage.presignedUpload(keys.pdf, 'application/pdf', REPORT_MAX_BYTES);
@@ -121,6 +125,8 @@ export const importRoutes: FastifyPluginAsyncZod<{
       if ((await verifiedContentType(storage, request.body.key)) !== 'application/pdf') {
         return fail(reply, 400, 'PDF du rapport introuvable : relancez le dépôt.');
       }
+      // Consommé avant l'enregistrement : un import enregistré part toujours à l'analyse.
+      await quotas.consume(QUOTAS.analyses, organisationId);
       const created = await scoped(request, async (tx) => {
         if (!(await activeSite(tx, request.params.id))) return null;
         const existing = await tx.query.reportImport.findFirst({
@@ -257,6 +263,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
       );
       if (!row) return fail(reply, 404, 'Import introuvable');
       if (row.status !== 'erreur') return fail(reply, 409, 'Seul un import en erreur se relance.');
+      await quotas.consume(QUOTAS.analyses, organisationId);
       // Le résultat en erreur serait relu tout de suite : on le retire avant de relancer.
       await storage.remove(reportImportKeys(organisationId, row.id).extraction);
       const updated = await scoped(request, async (tx) => {

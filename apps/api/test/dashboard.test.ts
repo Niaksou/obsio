@@ -104,6 +104,15 @@ describe('pilotage', () => {
     expect((await other.admin.get(`/api/sites/${siteId}/proof-dossier`)).statusCode).toBe(404);
   });
 
+  it('limite le nombre de dossiers de preuves par heure et par organisation', async () => {
+    await ctx.redis.set(`obsio-quota:dossiers:${organisationId}`, '30', 'EX', 600);
+    const response = await admin.get(`/api/sites/${siteId}/proof-dossier`);
+    expect(response.statusCode).toBe(429);
+    expect(response.json().message).toBe(
+      'Limite atteinte : 30 dossiers de preuves par heure pour votre organisation. Réessayez dans 10 min.',
+    );
+  });
+
   it('relance le jour où une réserve passe en retard, puis chaque lundi', async () => {
     await withOrganisation(ctx.db, organisationId, (tx) =>
       tx.update(reserve).set({ dueDate: '2026-11-02' }).where(eq(reserve.id, reserveIds[1]!)),

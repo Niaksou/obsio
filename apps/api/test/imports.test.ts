@@ -245,6 +245,21 @@ describe("Import d'un rapport", () => {
     });
   });
 
+  it("limite le nombre d'analyses par jour et par organisation", async () => {
+    await startImport();
+    const key = `obsio-quota:analyses:${organisationId}`;
+    expect(await ctx.redis.get(key)).toBe('1');
+    await ctx.redis.set(key, '20', 'EX', 3600);
+    const refused = await admin.post(`/api/sites/${siteId}/imports/upload`, {
+      fileName: 'rapport.pdf',
+      size: 20,
+    });
+    expect(refused.statusCode).toBe(429);
+    expect(refused.json().message).toBe(
+      'Limite atteinte : 20 analyses de rapport par jour pour votre organisation. Réessayez dans 1 h.',
+    );
+  });
+
   it('réserve le dépôt et la relecture aux admins et cloisonne les organisations', async () => {
     expect(
       (await membre.post(`/api/sites/${siteId}/imports/upload`, { fileName: 'r.pdf', size: 5 }))
