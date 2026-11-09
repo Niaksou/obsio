@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 138 |
-| Partiel | 19 |
-| À corriger | 15 |
+| Conforme | 142 |
+| Partiel | 18 |
+| À corriger | 12 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -36,7 +36,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 7. **Fait.** Double authentification par application (TOTP, plugin `twoFactor` de Better Auth), obligatoire au moins pour les administrateurs (6.3.3, 6.4.3).
 8. **Fait.** Mots de passe compromis et courants refusés (plugin `haveIBeenPwned` de Better Auth, qui n'envoie qu'un début d'empreinte), avec une liste de mots propres à Obsio et à l'organisation (6.1.2, 6.2.4, 6.2.11, 6.2.12).
-9. Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
+9. **Fait.** Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
 10. **Fait.** Sessions : durée maximale absolue et délai d'inactivité décidés et documentés ; l'admin ferme les sessions d'un membre qu'il retire (7.1.1, 7.1.2, 7.3.1, 7.3.2, 7.4.5).
 11. **Fait.** Journalisation de sécurité : connexions réussies et échouées, refus d'accès avec l'utilisateur, échecs de validation, opérations de l'éditeur (16.2.1, 16.3.1 à 16.3.4).
 12. **Fait.** Quotas par organisation : imports et extractions par jour, dossiers PDF et exports (2.1.3, 2.3.2, 2.4.1, 15.2.2).
@@ -170,8 +170,8 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V6.1.2 | 2 | Conforme | Liste des mots interdits documentée dans `docs/securite.md` (section « Mots de passe »). |
 | V6.1.3 | 2 | Conforme | Un seul parcours, e-mail et mot de passe sur invitation, décrit dans la spec. |
 | V6.2.1 | 1 | Conforme | 12 caractères minimum (15 recommandés par l’ASVS). |
-| V6.2.2 | 1 | À corriger | Pas de page de changement de mot de passe, seulement la réinitialisation par e-mail. |
-| V6.2.3 | 1 | À corriger | Dépend de 6.2.2 (Better Auth exige l’ancien mot de passe, l’interface manque). |
+| V6.2.2 | 1 | Conforme | Page « Mon compte » : changement du mot de passe (`apps/web/src/pages/AccountPage.tsx`). |
+| V6.2.3 | 1 | Conforme | Le changement exige le mot de passe actuel (Better Auth) et ferme les autres sessions. |
 | V6.2.4 | 1 | Conforme | Mots de passe divulgués refusés (Have I Been Pwned, plus d’un demi-milliard d’entrées, dont les plus courants). |
 | V6.2.5 | 1 | Conforme | Pas de règle de composition. |
 | V6.2.6 | 1 | Conforme | `type="password"`. |
@@ -217,11 +217,11 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V7.3.2 | 2 | Conforme | Durée maximale de 12 heures imposée par un déclencheur en base (migration `0007_session_lifetime`). |
 | V7.4.1 | 1 | Conforme | La déconnexion supprime la session en base. |
 | V7.4.2 | 1 | Conforme | Compte supprimé : sessions supprimées en cascade ; membre retiré : appartenance relue à chaque requête. |
-| V7.4.3 | 2 | Partiel | La réinitialisation ferme toutes les sessions ; pas de changement de mot de passe (6.2.2). |
+| V7.4.3 | 2 | Conforme | Changement ou réinitialisation du mot de passe : toutes les autres sessions sont fermées. |
 | V7.4.4 | 2 | Conforme | « Se déconnecter » dans l’en-tête. |
 | V7.4.5 | 2 | Conforme | Retirer un membre ferme toutes ses sessions (crochet `afterRemoveMember`, `apps/api/src/auth/auth.ts`). |
 | V7.5.1 | 2 | Conforme | Changement d’adresse e-mail désactivé (défaut de Better Auth). |
-| V7.5.2 | 2 | À corriger | Pas de liste des sessions actives. |
+| V7.5.2 | 2 | Conforme | Page « Mon compte » : sessions ouvertes (appareil, adresse IP, dates), fermeture d’une session ou de toutes les autres. |
 | V7.6.1 | 2 | N/A | Pas de fournisseur d’identité. |
 | V7.6.2 | 2 | Conforme | Session créée seulement par une connexion explicite. |
 

@@ -245,6 +245,14 @@ a:hover {
   white-space: nowrap;
 }
 
+a.session-user {
+  text-decoration: none;
+}
+
+a.session-user:hover {
+  color: var(--ink);
+}
+
 .session select {
   min-height: 36px;
   padding-block: 4px;
@@ -531,6 +539,16 @@ form.card > button[type='submit'] {
 
 .stack .card {
   margin: 0;
+}
+
+/* Formulaire parmi d'autres cartes (organisation, compte) : même largeur qu'elles. */
+.stack form.card {
+  max-width: none;
+  padding: 24px;
+}
+
+.stack form.card h1 {
+  font-size: 1.375rem;
 }
 
 /* Activation de la double authentification */

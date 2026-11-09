@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { provisionOrganisation } from '../src/organisations/provision.js';
-import { buildTestApp, resetDatabase, TestClient } from './helpers.js';
+import { buildTestApp, resetDatabase, TEST_PASSWORD, TestClient } from './helpers.js';
 
 const ctx = await buildTestApp();
 const owner = new pg.Pool({ connectionString: process.env.TEST_DATABASE_OWNER_URL });
@@ -37,5 +37,46 @@ describe('durée des sessions', () => {
     await owner.query(`update session set created_at = now() - interval '13 hours'`);
     await owner.query(`update session set expires_at = now() + interval '2 hours'`);
     expect(await session(client)).toBeNull();
+  });
+});
+
+describe('Mon compte', () => {
+  it('liste ses sessions et ferme celle de son choix', async () => {
+    const poste = await connected();
+    const telephone = new TestClient(ctx);
+    telephone.twoFactorSecret = poste.twoFactorSecret;
+    expect((await telephone.signIn('alice@exemple.fr')).statusCode).toBe(200);
+
+    const sessions = (await poste.get('/api/auth/list-sessions')).json() as { token: string }[];
+    expect(sessions).toHaveLength(2);
+    const current = (await session(poste)).session.token;
+    const other = sessions.find((s) => s.token !== current)!;
+    expect((await poste.post('/api/auth/revoke-session', { token: other.token })).statusCode).toBe(
+      200,
+    );
+    expect(await session(telephone)).toBeNull();
+    expect(await session(poste)).not.toBeNull();
+  });
+
+  it("change son mot de passe avec l'ancien, et ferme ses autres sessions", async () => {
+    const poste = await connected();
+    const telephone = new TestClient(ctx);
+    telephone.twoFactorSecret = poste.twoFactorSecret;
+    await telephone.signIn('alice@exemple.fr');
+
+    const wrong = await poste.post('/api/auth/change-password', {
+      currentPassword: 'pas-le-bon-mot-de-passe',
+      newPassword: 'agrafe-cheval-lanterne-77',
+      revokeOtherSessions: true,
+    });
+    expect(wrong.statusCode).toBe(400);
+    const changed = await poste.post('/api/auth/change-password', {
+      currentPassword: TEST_PASSWORD,
+      newPassword: 'agrafe-cheval-lanterne-77',
+      revokeOtherSessions: true,
+    });
+    expect(changed.statusCode).toBe(200);
+    expect(await session(telephone)).toBeNull();
+    expect(await session(poste)).not.toBeNull();
   });
 });

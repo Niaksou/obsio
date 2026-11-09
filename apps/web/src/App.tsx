@@ -4,6 +4,7 @@ import { Layout } from './components/Layout.js';
 import { RequireOrganisation } from './components/RequireOrganisation.js';
 import { RequireSession } from './components/RequireSession.js';
 import { AcceptInvitation } from './pages/AcceptInvitation.js';
+import { AccountPage } from './pages/AccountPage.js';
 import { ContractorsPage } from './pages/ContractorsPage.js';
 import { ForgotPassword } from './pages/ForgotPassword.js';
 import { Home } from './pages/Home.js';
@@ -56,6 +57,15 @@ const router = createBrowserRouter([
       { path: '/verifications', element: session(<InspectionsPage />) },
       { path: '/intervenants', element: session(<ContractorsPage />) },
       { path: '/organisation', element: session(<Home />) },
+      // Sans organisation active : chacun gère son compte, même s'il n'est membre de rien.
+      {
+        path: '/compte',
+        element: (
+          <RequireSession>
+            <AccountPage />
+          </RequireSession>
+        ),
+      },
       { path: '/connexion', element: <SignIn /> },
       { path: '/inscription', element: <SignUp /> },
       { path: '/mot-de-passe-oublie', element: <ForgotPassword /> },

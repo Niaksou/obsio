@@ -114,7 +114,9 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
         </nav>
         <div className="session">
           <OrganisationSwitcher />
-          <span className="session-user">{session.user.name}</span>
+          <Link to="/compte" className="session-user" title="Mon compte">
+            {session.user.name}
+          </Link>
           <button type="button" className="quiet session-out" onClick={signOut}>
             <LogOut {...iconProps} />
             <span>Se déconnecter</span>
