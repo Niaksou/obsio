@@ -13,15 +13,30 @@ export interface EmailSender {
   send(email: Email): Promise<void>;
 }
 
-export function createSmtpSender(
-  config: Pick<ApiConfig, 'SMTP_HOST' | 'SMTP_PORT' | 'SMTP_USER' | 'SMTP_PASSWORD' | 'MAIL_FROM'>,
-): EmailSender {
-  const transport = nodemailer.createTransport({
+type SmtpConfig = Pick<
+  ApiConfig,
+  'SMTP_HOST' | 'SMTP_PORT' | 'SMTP_USER' | 'SMTP_PASSWORD' | 'MAIL_FROM'
+>;
+
+/**
+ * Relais authentifié (Brevo) : TLS obligatoire, 1.2 au moins (ASVS 12.3.1), sinon l'envoi est
+ * refusé plutôt que de faire passer identifiants et liens en clair. Sans identifiant (Mailpit
+ * sur le poste ou dans le compose), la connexion reste locale et en clair.
+ */
+export function smtpOptions(config: SmtpConfig) {
+  const authenticated = Boolean(config.SMTP_USER);
+  return {
     host: config.SMTP_HOST,
     port: config.SMTP_PORT,
     secure: config.SMTP_PORT === 465,
-    auth: config.SMTP_USER ? { user: config.SMTP_USER, pass: config.SMTP_PASSWORD } : undefined,
-  });
+    requireTLS: authenticated,
+    tls: { minVersion: 'TLSv1.2' as const },
+    auth: authenticated ? { user: config.SMTP_USER!, pass: config.SMTP_PASSWORD } : undefined,
+  };
+}
+
+export function createSmtpSender(config: SmtpConfig): EmailSender {
+  const transport = nodemailer.createTransport(smtpOptions(config));
   return {
     async send(email) {
       await transport.sendMail({ from: config.MAIL_FROM, ...email });

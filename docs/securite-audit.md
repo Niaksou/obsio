@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 142 |
-| Partiel | 18 |
+| Conforme | 143 |
+| Partiel | 17 |
 | À corriger | 12 |
 | Écart proposé | 2 |
 | N/A | 79 |
@@ -46,7 +46,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 13. Documentation de sécurité dans `docs/securite.md` : règles de validation et limites, fichiers acceptés, matrice des autorisations, classification des données, flux réseau, inventaire cryptographique et gestion des clés, délais de correction des dépendances, fonctions coûteuses, inventaire des journaux (2.1.1, 2.1.2, 5.1.1, 6.1.1, 8.1.1, 8.1.2, 11.1.1, 11.1.2, 11.2.2, 13.1.1, 14.1.1, 14.1.2, 14.2.4, 15.1.1, 15.1.3, 16.1.1, 16.2.3).
 14. Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
 15. Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
-16. SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
+16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
 17. Cookie de session avec le préfixe `__Host-` (3.3.3).
 18. Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
 19. SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
@@ -282,7 +282,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V12.1.3 | 2 | N/A | Pas de certificat client. |
 | V12.2.1 | 1 | Conforme | HTTPS partout, HSTS. |
 | V12.2.2 | 1 | Conforme | Certificats Let’s Encrypt. |
-| V12.3.1 | 2 | Partiel | Mistral en HTTPS ; SMTP en STARTTLS opportuniste (`requireTLS` absent) ; services internes en clair (12.3.3). |
+| V12.3.1 | 2 | Conforme | Mistral en HTTPS ; relais SMTP authentifié en TLS 1.2 au moins, obligatoire (`requireTLS`) ; services internes traités en 12.3.3. |
 | V12.3.2 | 2 | Conforme | Certificats vérifiés par Node.js (comportement par défaut). |
 | V12.3.3 | 2 | Écart proposé | PostgreSQL, Redis et stockage en clair sur le réseau Docker interne d’un seul serveur. |
 | V12.3.4 | 2 | N/A | Pas de TLS interne (12.3.3). |
