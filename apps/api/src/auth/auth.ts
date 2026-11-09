@@ -35,6 +35,16 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
     }),
     advanced: {
       database: { generateId: 'uuid' },
+      // En HTTPS, cookies préfixés `__Host-` (ASVS 3.3.3) : Secure, Path=/ et sans Domain, donc
+      // ni posés ni écrasés par un sous-domaine. Better Auth ne propose que `__Secure-` : on
+      // coupe son préfixe et on impose Secure. En HTTP (développement), noms ordinaires.
+      ...(config.API_URL.startsWith('https://')
+        ? {
+            useSecureCookies: false,
+            cookiePrefix: '__Host-obsio',
+            defaultCookieAttributes: { secure: true },
+          }
+        : {}),
       // Les proxys (Caddy) sont sur le réseau interne : l'adresse du client est la dernière de
       // X-Forwarded-For qui n'en fait pas partie. Sans cela, la limitation ci-dessous serait
       // commune à tous les utilisateurs.

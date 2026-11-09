@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 143 |
+| Conforme | 144 |
 | Partiel | 17 |
-| À corriger | 12 |
+| À corriger | 11 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -47,7 +47,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 14. Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
 15. Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
-17. Cookie de session avec le préfixe `__Host-` (3.3.3).
+17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
 18. Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
 19. SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
 20. `/api` en HTTP : refus plutôt que redirection (4.1.2).
@@ -117,7 +117,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V3.2.2 | 1 | Conforme | Rendu React en texte ; ni `dangerouslySetInnerHTML` ni `innerHTML`. |
 | V3.3.1 | 1 | Conforme | Better Auth pose `Secure` et le préfixe `__Secure-` dès que l’URL est en HTTPS. |
 | V3.3.2 | 2 | Conforme | `SameSite=Lax` (défaut de Better Auth). |
-| V3.3.3 | 2 | À corriger | Préfixe `__Secure-` et non `__Host-`. |
+| V3.3.3 | 2 | Conforme | En HTTPS, cookies de Better Auth nommés `__Host-obsio.*` : Secure, Path=/, sans Domain (`apps/api/src/auth/auth.ts`). |
 | V3.3.4 | 2 | Conforme | Cookie de session `HttpOnly`, jamais lu par le JavaScript. |
 | V3.4.1 | 1 | Conforme | HSTS d’un an avec `includeSubDomains`, sur l’application et le stockage. |
 | V3.4.2 | 1 | Conforme | CORS limité à `WEB_URL`. |

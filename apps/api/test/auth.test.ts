@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { createAuth } from '../src/auth/auth.js';
 import { invitation } from '../src/db/schema/index.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
 import { buildTestApp, clientHelpers, resetDatabase, TestClient } from './helpers.js';
@@ -251,5 +252,24 @@ describe('Cloisonnement entre organisations', () => {
 
   it('une route protégée exige une session', async () => {
     expect((await new TestClient(ctx).get('/test/organisation')).statusCode).toBe(401);
+  });
+});
+
+describe('Cookies', () => {
+  it('préfixés __Host- en HTTPS', async () => {
+    const auth = createAuth({
+      config: { ...ctx.config, API_URL: 'https://obsio.test' },
+      db: ctx.db,
+      emailSender: ctx.emailSender,
+    });
+    const { authCookies } = await auth.$context;
+    expect(authCookies.sessionToken.name).toBe('__Host-obsio.session_token');
+    expect(authCookies.sessionToken.attributes).toMatchObject({
+      secure: true,
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    expect(authCookies.sessionToken.attributes.domain).toBeUndefined();
   });
 });
