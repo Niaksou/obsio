@@ -35,6 +35,7 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
 - **Toute sortie de LLM est validée par un schéma Zod** avant d'être utilisée ou stockée.
 - **Traçabilité des extractions** : on stocke versions des modèles, version du prompt et sortie brute.
 - **Pas de suppression physique** des réserves, preuves et événements d'audit. Seule exception : la suppression d'une organisation entière par l'éditeur, à la demande du client (`pnpm org:delete`). Toute nouvelle table portant `organisation_id` doit être ajoutée à `ORGANISATION_TABLES` (`apps/api/src/organisations/data.ts`) pour être exportée et supprimée ; un test le vérifie.
+- **Sécurité OWASP** : le logiciel vise le niveau 2 de l'OWASP ASVS 5.0. Chaque ajout respecte la liste de contrôle de `docs/securite.md` ; un écart est signalé et noté dans ce document, jamais contourné en silence.
 - **Aucun secret dans le dépôt** : variables d'environnement, avec un `.env.example` à jour.
 - Les rapports PDF de test (dossier `fixtures/reports/`) sont des documents réels : ce dossier est dans `.gitignore`.
 

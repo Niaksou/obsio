@@ -214,6 +214,8 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 
 Un client ne doit jamais voir les données d'un autre : le cloisonnement est garanti par la base, pas seulement par le code.
 
+Référentiel : niveau 2 de l'OWASP ASVS 5.0, avec une liste de contrôle à appliquer à chaque ajout et l'état de l'audit dans `docs/securite.md`.
+
 **Cloisonnement**
 
 - Row Level Security PostgreSQL sur toutes les tables métier, avec l'organisation courante posée en début de transaction.
