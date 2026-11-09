@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 106 |
-| Partiel | 32 |
+| Conforme | 110 |
+| Partiel | 28 |
 | À corriger | 28 |
 | Écart proposé | 2 |
 | N/A | 85 |
@@ -29,7 +29,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 2. **Fait.** Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
 3. **Fait.** `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
 4. **Fait.** Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
-5. En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
+5. **Fait.** En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
 6. Moindre privilège : le rôle propriétaire de la base et la clé principale du stockage seulement pour la migration et les commandes de l'éditeur ; un compte de stockage dédié à l'application ; mot de passe Redis (13.2.1, 13.2.2, 13.3.2).
 
 **Priorité 2 : avant la bêta**
@@ -113,7 +113,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V3.2.1 | 1 | Partiel | API en JSON avec `nosniff` ; fichiers des utilisateurs servis par un autre nom d’hôte, type imposé à l’envoi ; mais réponses du stockage sans CSP ni `Content-Disposition`. |
+| V3.2.1 | 1 | Conforme | API en JSON avec `nosniff` ; fichiers des utilisateurs sur un autre nom d’hôte, contenu vérifié (5.2.2), servis avec `CSP: sandbox`, PDF en pièce jointe. |
 | V3.2.2 | 1 | Conforme | Rendu React en texte ; ni `dangerouslySetInnerHTML` ni `innerHTML`. |
 | V3.3.1 | 1 | Conforme | Better Auth pose `Secure` et le préfixe `__Secure-` dès que l’URL est en HTTPS. |
 | V3.3.2 | 2 | Conforme | `SameSite=Lax` (défaut de Better Auth). |
@@ -121,10 +121,10 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V3.3.4 | 2 | Conforme | Cookie de session `HttpOnly`, jamais lu par le JavaScript. |
 | V3.4.1 | 1 | Conforme | HSTS d’un an avec `includeSubDomains`, sur l’application et le stockage. |
 | V3.4.2 | 1 | Conforme | CORS limité à `WEB_URL`. |
-| V3.4.3 | 2 | Partiel | CSP stricte sur l’application (`unsafe-inline` pour les styles seulement) ; aucune CSP sur les réponses du stockage. |
+| V3.4.3 | 2 | Conforme | CSP stricte sur l’application (`unsafe-inline` pour les styles seulement) ; `default-src 'none'; sandbox` sur le stockage (`deploy/server/Caddyfile`). |
 | V3.4.4 | 2 | Conforme | `nosniff` sur l’application et le stockage. |
 | V3.4.5 | 2 | Conforme | `Referrer-Policy: strict-origin-when-cross-origin`. |
-| V3.4.6 | 2 | Partiel | `frame-ancestors 'none'` sur l’application, absent du stockage. |
+| V3.4.6 | 2 | Conforme | `frame-ancestors 'none'` sur l’application et le stockage. |
 | V3.5.1 | 1 | Conforme | Cookies `SameSite=Lax`, CORS fermé, corps JSON validé (un formulaire d’un autre site ne passe pas), contrôle d’origine de Better Auth. |
 | V3.5.2 | 1 | Conforme | Une requête sans prévol n’emporte pas le cookie depuis un autre site et ne passe pas la validation du corps. |
 | V3.5.3 | 1 | Conforme | Les `GET` n’ont pas d’effet ; les modifications passent par `POST`, `PATCH` et `PUT`. |
@@ -158,7 +158,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V5.2.3 | 2 | N/A | Aucune archive acceptée. |
 | V5.3.1 | 1 | Conforme | Stockage objet : rien n’est exécuté. |
 | V5.3.2 | 1 | Conforme | Clés générées par le serveur ; préfixe de l’organisation revérifié (`routes/imports.ts`, `routes/premises.ts`, `reserves/proofs.ts`). |
-| V5.4.1 | 2 | Partiel | Nom d’origine stocké mais jamais utilisé comme chemin ; liens signés du stockage sans `Content-Disposition`. |
+| V5.4.1 | 2 | Conforme | Nom d’origine jamais utilisé comme chemin ; PDF servis avec `Content-Disposition: attachment` et un nom fixe (`test/storage.test.ts`). |
 | V5.4.2 | 2 | Conforme | Noms servis fixes (`dossier-preuves-<date>.pdf`). |
 | V5.4.3 | 2 | À corriger | Aucun antivirus sur les fichiers déposés. |
 

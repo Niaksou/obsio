@@ -9,11 +9,17 @@
 	header -Server
 }
 
+# Le stockage ne sert que des fichiers inertes (images, PDF) : aucun script, aucune intégration
+# dans un cadre, et pas de lecture depuis un autre site que l'application (même site : obsio.fr).
 {$STORAGE_HOST} {
 	reverse_proxy storage:9100
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; sandbox"
 		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Cross-Origin-Resource-Policy same-site
 		-Server
 	}
 }

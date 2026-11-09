@@ -50,10 +50,24 @@ export function createStorage(config: ApiConfig) {
       return { key, url, fields };
     },
 
+    /**
+     * Lien de lecture à courte durée. Un PDF est servi en pièce jointe : le stockage interdit
+     * tout contenu actif (CSP sandbox, deploy/server/Caddyfile), le lecteur PDF intégré du
+     * navigateur compris ; le front l'affiche avec pdf.js, que l'en-tête ne gêne pas.
+     */
     signedDownloadUrl(key: string) {
-      return getSignedUrl(client, new GetObjectCommand({ Bucket: bucket, Key: key }), {
-        expiresIn: DOWNLOAD_EXPIRES_IN,
-      });
+      const name = key.split('/').at(-1) ?? 'fichier';
+      return getSignedUrl(
+        client,
+        new GetObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          ...(key.endsWith('.pdf')
+            ? { ResponseContentDisposition: `attachment; filename="${name}"` }
+            : {}),
+        }),
+        { expiresIn: DOWNLOAD_EXPIRES_IN },
+      );
     },
 
     /** Contenu de l'objet, ou null s'il n'existe pas. */
