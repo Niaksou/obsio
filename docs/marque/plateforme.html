@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Obsio, plateforme de marque</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --encre: #18201f;
+        --encre-douce: #2c3634;
+        --tole: #f6f7f6;
+        --tole-fonce: #eef0ee;
+        --blanc: #ffffff;
+        --texte-2: #56615f;
+        --texte-3: #6c7674;
+        --filet: rgb(24 32 31 / 0.12);
+        --cuivre: #b4531f;
+        --cuivre-clair: #f7e8dd;
+        --vdg: #0e6b5e;
+        --grenat: #b42335;
+        --cobalt: #2f5592;
+        --ocre: #8a5a00;
+        --ui: 'Barlow', system-ui, sans-serif;
+        --plaque: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--ui);
+        font-size: 17px;
+        line-height: 1.55;
+        color: var(--encre);
+        background: var(--tole);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--plaque);
+        font-weight: 500;
+        line-height: 1.12;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0;
+      }
+      .page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 32px 96px;
+      }
+
+      /* En-tête de planche : la marque et le statut du document, rien d'autre. */
+      .tete {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--filet);
+        color: var(--texte-2);
+        font-size: 15px;
+      }
+      .marque {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--plaque);
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--encre);
+      }
+      .coupe {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--cuivre);
+        box-shadow: inset 0 0 0 4.5px var(--vdg);
+      }
+
+      /* Ouverture : la promesse, et la plaque gravée posée à côté, à l'échelle d'un objet. */
+      .ouverture {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        gap: 48px;
+        align-items: center;
+        padding: 80px 0 72px;
+        border-bottom: 1px solid var(--filet);
+      }
+      .ouverture h1 {
+        font-size: clamp(44px, 6vw, 72px);
+        letter-spacing: -0.02em;
+      }
+      .ouverture p {
+        margin-top: 24px;
+        max-width: 34em;
+        font-size: 19px;
+        color: var(--texte-2);
+      }
+      .armoire {
+        position: relative;
+        padding: 40px 32px;
+        background: #e4e7e5;
+        border-radius: 14px;
+        box-shadow: inset 0 0 0 1px var(--filet);
+      }
+      .rail {
+        height: 10px;
+        margin: 0 -8px 28px;
+        border-radius: 2px;
+        background: repeating-linear-gradient(90deg, #c9ceca 0 10px, #bfc5c1 10px 12px);
+      }
+      .departs {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+      }
+      .depart {
+        width: 44px;
+        height: 92px;
+        border-radius: 4px;
+        background: #fbfbfa;
+        box-shadow:
+          inset 0 0 0 1px rgb(24 32 31 / 0.18),
+          0 1px 0 rgb(0 0 0 / 0.05);
+        position: relative;
+      }
+      .depart::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 30px;
+        width: 12px;
+        height: 26px;
+        margin-left: -6px;
+        border-radius: 3px;
+        background: var(--encre-douce);
+      }
+      .depart.ouvert::after {
+        top: 38px;
+        background: var(--grenat);
+      }
+      .plaques {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        margin-top: 12px;
+      }
+      .plaque {
+        display: inline-block;
+        padding: 2px 9px 3px;
+        font-family: var(--plaque);
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        color: #fff;
+        background: var(--encre);
+        border-radius: 4px;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14);
+        white-space: nowrap;
+      }
+      .plaques .plaque {
+        width: 44px;
+        padding: 2px 0 3px;
+        text-align: center;
+        font-size: 13px;
+      }
+      .plaque-grande {
+        display: block;
+        width: fit-content;
+        margin: 28px auto 0;
+        padding: 8px 20px 10px;
+        font-size: 30px;
+        border-radius: 6px;
+      }
+      .legende {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--texte-3);
+      }
+
+      section {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--filet);
+      }
+      section:last-of-type {
+        border-bottom: 0;
+      }
+      .titre {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 32px;
+      }
+      .titre h2 {
+        font-size: 30px;
+      }
+      .corps {
+        display: grid;
+        gap: 20px;
+        max-width: 46em;
+      }
+      .corps > p {
+        color: var(--texte-2);
+      }
+      .corps strong {
+        color: var(--encre);
+        font-weight: 500;
+      }
+
+      .publics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        max-width: none;
+      }
+      .public {
+        padding: 20px;
+        background: var(--blanc);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .public h3 {
+        font-size: 20px;
+      }
+      .public .ou {
+        margin-top: 4px;
+        font-size: 15px;
+        color: var(--texte-3);
+      }
+      .public p:last-child {
+        margin-top: 12px;
+        color: var(--texte-2);
+        font-size: 16px;
+      }
+
+      .traits {
+        display: grid;
+        gap: 16px;
+      }
+      .trait {
+        display: grid;
+        grid-template-columns: 200px minmax(0, 1fr);
+        gap: 24px;
+        align-items: baseline;
+      }
+      .trait h3 {
+        font-size: 34px;
+      }
+      .trait p {
+        color: var(--texte-2);
+      }
+
+      .ton {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--blanc);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .ton th {
+        padding: 12px 20px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--texte-2);
+        background: var(--tole-fonce);
+      }
+      .ton td {
+        padding: 14px 20px;
+        border-top: 1px solid var(--filet);
+        vertical-align: top;
+        width: 50%;
+      }
+      .ton td:last-child {
+        color: var(--texte-3);
+        text-decoration: line-through;
+        text-decoration-color: rgb(180 35 53 / 0.5);
+      }
+
+      .objets {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        max-width: none;
+      }
+      .objet {
+        display: grid;
+        grid-template-rows: 140px auto;
+        gap: 16px;
+        padding: 20px;
+        background: var(--blanc);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .objet h3 {
+        font-size: 20px;
+      }
+      .objet p {
+        margin-top: 4px;
+        font-size: 16px;
+        color: var(--texte-2);
+      }
+      .scene {
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--tole);
+      }
+      .conducteur {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 44% 40%, rgb(255 255 255 / 0.28), transparent 22%),
+          radial-gradient(circle, #c4652d 0 30%, #96431a 34%, #0b4f45 35.5%, var(--vdg) 38% 100%);
+        box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+      }
+      .cartouche {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        width: 230px;
+        background: #fff;
+        border: 2px solid var(--encre);
+        font-size: 11px;
+      }
+      .cartouche > div {
+        padding: 3px 8px;
+        border-top: 1px solid var(--encre);
+      }
+      .cartouche > div:first-child {
+        border-top: 0;
+        grid-column: 1 / -1;
+      }
+      .cartouche .n {
+        border-left: 1px solid var(--encre);
+        text-align: right;
+      }
+      .cartouche b {
+        display: block;
+        font-family: var(--plaque);
+        font-weight: 600;
+        font-size: 16px;
+      }
+      .cartouche span {
+        color: var(--texte-3);
+      }
+      .statuts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        padding: 0 12px;
+      }
+      .statut {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 9px;
+        font-size: 14px;
+        font-weight: 500;
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .statut::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        max-width: none;
+      }
+      .teinte {
+        display: grid;
+        grid-template-rows: 112px auto;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--blanc);
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .teinte > div:first-child {
+        background: var(--c);
+        box-shadow: inset 0 -1px 0 var(--filet);
+      }
+      .teinte > div:last-child {
+        padding: 12px 14px;
+        font-size: 14px;
+        color: var(--texte-2);
+      }
+      .teinte b {
+        display: block;
+        font-weight: 500;
+        font-size: 16px;
+        color: var(--encre);
+      }
+      .teinte code {
+        font-size: 13px;
+        color: var(--texte-3);
+      }
+      .dosage {
+        display: flex;
+        height: 16px;
+        margin-top: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        gap: 2px;
+      }
+      .dosage span {
+        flex-basis: 0;
+      }
+
+      .specimens {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        max-width: none;
+      }
+      .specimen {
+        padding: 24px;
+        background: var(--blanc);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .specimen .nom {
+        font-size: 15px;
+        color: var(--texte-3);
+      }
+      .specimen .grand {
+        margin-top: 12px;
+        font-size: 44px;
+        line-height: 1.05;
+      }
+      .specimen .courant {
+        margin-top: 16px;
+        color: var(--texte-2);
+      }
+      .s-ui .grand {
+        font-family: var(--ui);
+        font-weight: 500;
+      }
+      .s-plaque .grand {
+        font-family: var(--plaque);
+        font-weight: 500;
+      }
+
+      .eviter {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px 32px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        max-width: none;
+      }
+      .eviter li {
+        padding: 12px 0;
+        border-top: 1px solid var(--filet);
+        color: var(--texte-2);
+      }
+
+      .valider {
+        margin: 0;
+        padding-left: 1.4em;
+        display: grid;
+        gap: 10px;
+      }
+      .valider li::marker {
+        font-family: var(--plaque);
+        font-weight: 600;
+        color: var(--cuivre);
+      }
+
+      .pied {
+        margin-top: 32px;
+        font-size: 14px;
+        color: var(--texte-3);
+      }
+
+      @media (max-width: 860px) {
+        .page {
+          padding: 24px 20px 64px;
+        }
+        .ouverture {
+          grid-template-columns: 1fr;
+          padding: 48px 0;
+          gap: 40px;
+        }
+        .titre {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        .publics,
+        .objets,
+        .specimens {
+          grid-template-columns: 1fr;
+        }
+        .palette {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .eviter {
+          grid-template-columns: 1fr;
+        }
+        .trait {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+        .ton td,
+        .ton th {
+          padding: 12px 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="tete">
+        <span class="marque"><span class="coupe" aria-hidden="true"></span>Obsio</span>
+        <span>Plateforme de marque, proposition à valider</span>
+      </header>
+
+      <div class="ouverture">
+        <div>
+          <h1>Chaque réserve levée, avec sa preuve</h1>
+          <p>
+            Obsio suit les réserves des vérifications électriques, du rapport de l’organisme de
+            contrôle jusqu’à leur levée, pour les sites industriels et les PME multi-bâtiments.
+          </p>
+        </div>
+        <figure class="armoire" style="margin: 0">
+          <div class="rail" aria-hidden="true"></div>
+          <div class="departs" aria-hidden="true">
+            <span class="depart"></span><span class="depart"></span
+            ><span class="depart ouvert"></span><span class="depart"></span
+            ><span class="depart"></span>
+          </div>
+          <div class="plaques" aria-hidden="true">
+            <span class="plaque">Q1</span><span class="plaque">Q2</span
+            ><span class="plaque">Q3</span><span class="plaque">Q4</span
+            ><span class="plaque">Q5</span>
+          </div>
+          <span class="plaque plaque-grande">TD Quais</span>
+          <figcaption class="legende">
+            La plaque gravée, signature d’Obsio : elle repère chaque équipement
+          </figcaption>
+        </figure>
+      </div>
+
+      <section>
+        <div class="titre">
+          <h2>Le nom</h2>
+          <div class="corps">
+            <p>
+              <strong>Obsio vient d’observation</strong>, le mot que les rapports de vérification
+              emploient pour une non-conformité. Le nom part du document que reçoit le client, pas
+              d’une idée de technologie.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Pour qui</h2>
+          <div class="corps">
+            <p>
+              Le premier lecteur est un responsable qui a déjà une pile de problèmes. La marque ne
+              doit pas en rajouter : elle range.
+            </p>
+          </div>
+        </div>
+        <div class="publics corps" style="margin-top: 32px">
+          <div class="public">
+            <h3>Responsable maintenance ou HSE</h3>
+            <p class="ou">Bureau, ordinateur, décide et paie</p>
+            <p>
+              Du calme et des preuves : savoir ce qui reste ouvert, être prêt pour l’inspection du
+              travail ou l’assureur.
+            </p>
+          </div>
+          <div class="public">
+            <h3>Technicien interne</h3>
+            <p class="ou">Atelier, téléphone</p>
+            <p>Une liste claire, rien à apprendre.</p>
+          </div>
+          <div class="public">
+            <h3>Électricien sous-traitant</h3>
+            <p class="ou">Devant l’armoire, téléphone, sans compte</p>
+            <p>
+              Lire vite, photographier, envoyer, repartir. Parfois sans réseau, les mains occupées.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Caractère</h2>
+          <div class="traits">
+            <div class="trait">
+              <h3>Exact</h3>
+              <p>
+                Le vocabulaire du métier, des dates, des repères, des chiffres justes. Rien
+                d’approximatif.
+              </p>
+            </div>
+            <div class="trait">
+              <h3>Solide</h3>
+              <p>
+                Un outil de travail, comme une armoire bien câblée. Durable plutôt que tendance.
+              </p>
+            </div>
+            <div class="trait">
+              <h3>Sans drame</h3>
+              <p>
+                La sécurité électrique est sérieuse, mais la marque ne vend pas la peur. Le danger
+                est signalé quand il existe, jamais utilisé comme décor.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Ton</h2>
+          <div class="corps">
+            <p>
+              On parle comme un bon chef d’atelier : court, factuel, avec les mots du métier. Pas de
+              point d’exclamation, pas d’émoji, pas de « révolutionnaire ». L’extraction automatique
+              est décrite par ce qu’elle fait, toujours avec la validation humaine.
+            </p>
+            <table class="ton">
+              <thead>
+                <tr>
+                  <th>On écrit</th>
+                  <th>On n’écrit pas</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>3 réserves en retard sur le TGBT</td>
+                  <td>Attention ! Votre conformité est en danger</td>
+                </tr>
+                <tr>
+                  <td>Réserve levée le 12 mars, preuve jointe</td>
+                  <td>Bravo, encore une victoire pour votre sécurité</td>
+                </tr>
+                <tr>
+                  <td>Importez le rapport : les réserves sont extraites, vous les validez</td>
+                  <td>L’IA révolutionne votre conformité</td>
+                </tr>
+                <tr>
+                  <td>
+                    Le lien de l’électricien a expiré. Envoyez-en un nouveau depuis la réserve
+                  </td>
+                  <td>Oups, une erreur est survenue</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Univers : l’armoire</h2>
+          <div class="corps">
+            <p>
+              L’identité puise dans ce que l’électricien a sous les yeux en ouvrant une armoire bien
+              tenue, et dans le plan technique du bâtiment.
+            </p>
+          </div>
+        </div>
+        <div class="objets corps" style="margin-top: 32px">
+          <div class="objet">
+            <div class="scene">
+              <span class="plaque" style="font-size: 22px; padding: 4px 14px 6px"
+                >TGBT Entrepôt</span
+              >
+            </div>
+            <div>
+              <h3>La plaque gravée</h3>
+              <p>
+                La signature. Elle porte les repères d’équipement dans l’application, sur le plan et
+                dans les documents, et seulement eux.
+              </p>
+            </div>
+          </div>
+          <div class="objet">
+            <div class="scene"><span class="conducteur" aria-hidden="true"></span></div>
+            <div>
+              <h3>La coupe d’un conducteur</h3>
+              <p>
+                L’âme de cuivre dans sa gaine : la marque actuelle, à retravailler à l’étape 2. Le
+                cuivre est le seul accent chaud.
+              </p>
+            </div>
+          </div>
+          <div class="objet">
+            <div class="scene">
+              <div class="cartouche" aria-hidden="true">
+                <div><span>Bâtiment</span><b>Entrepôt</b></div>
+                <div><span>Étage</span><b>Rez-de-chaussée</b></div>
+                <div class="n"><span>Niveau</span><b>0</b></div>
+              </div>
+            </div>
+            <div>
+              <h3>Le cartouche du plan</h3>
+              <p>
+                Le bloc-titre des plans techniques, qui range les faits dans des cases. Il structure
+                les fiches et les documents exportés.
+              </p>
+            </div>
+          </div>
+          <div class="objet">
+            <div class="scene">
+              <div class="statuts">
+                <span class="statut" style="--c: var(--grenat)">Ouverte</span
+                ><span class="statut" style="--c: var(--cobalt)">Assignée</span
+                ><span class="statut" style="--c: var(--ocre)">Corrigée</span
+                ><span class="statut" style="--c: var(--vdg)">Levée</span>
+              </div>
+            </div>
+            <div>
+              <h3>Les teintes minérales</h3>
+              <p>
+                Grenat, cobalt, ocre, vert-de-gris pour les statuts. Sourdes, toujours avec leur
+                libellé, jamais seules.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Palette de départ</h2>
+          <div class="corps">
+            <p>
+              Des neutres pour les surfaces où l’on travaille des heures, le cuivre en petite
+              quantité. La barre montre le dosage : l’encre et la tôle portent presque tout.
+            </p>
+            <div class="dosage" aria-hidden="true">
+              <span
+                style="flex-grow: 46; background: #f6f7f6; box-shadow: inset 0 0 0 1px var(--filet)"
+              ></span
+              ><span
+                style="flex-grow: 30; background: #fff; box-shadow: inset 0 0 0 1px var(--filet)"
+              ></span
+              ><span style="flex-grow: 16; background: #18201f"></span
+              ><span style="flex-grow: 3; background: #b4531f"></span
+              ><span style="flex-grow: 3; background: #0e6b5e"></span
+              ><span style="flex-grow: 2; background: #b42335"></span>
+            </div>
+          </div>
+        </div>
+        <div class="palette corps" style="margin-top: 32px">
+          <div class="teinte" style="--c: #18201f">
+            <div></div>
+            <div><b>Encre</b>Texte, plaques<br /><code>#18201f</code></div>
+          </div>
+          <div class="teinte" style="--c: #f6f7f6">
+            <div></div>
+            <div><b>Tôle claire</b>Fond<br /><code>#f6f7f6</code></div>
+          </div>
+          <div class="teinte" style="--c: #ffffff">
+            <div></div>
+            <div><b>Blanc</b>Surfaces<br /><code>#ffffff</code></div>
+          </div>
+          <div class="teinte" style="--c: #b4531f">
+            <div></div>
+            <div><b>Cuivre</b>Accent unique<br /><code>#b4531f</code></div>
+          </div>
+          <div class="teinte" style="--c: #0e6b5e">
+            <div></div>
+            <div><b>Vert-de-gris</b>Levée, marque<br /><code>#0e6b5e</code></div>
+          </div>
+          <div class="teinte" style="--c: #b42335">
+            <div></div>
+            <div><b>Grenat</b>Danger, retard<br /><code>#b42335</code></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Typographie de départ</h2>
+          <div class="corps">
+            <p>
+              Une seule famille en deux largeurs, issue de la signalétique routière et industrielle.
+            </p>
+          </div>
+        </div>
+        <div class="specimens corps" style="margin-top: 32px">
+          <div class="specimen s-ui">
+            <p class="nom">Barlow, interface et textes</p>
+            <p class="grand">Réserve levée le 12 mars</p>
+            <p class="courant">
+              Lisible en petit et sur téléphone, avec des chiffres alignés pour les dates et les
+              compteurs : 3 en retard, 14 levées.
+            </p>
+          </div>
+          <div class="specimen s-plaque">
+            <p class="nom">Barlow Semi Condensed, titres et plaques</p>
+            <p class="grand">Entrepôt de Villefranche</p>
+            <p class="courant">
+              <span class="plaque">TD Quais</span> <span class="plaque">BAES allée 3</span>
+              <span class="plaque">Q12</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>Ce qu’Obsio évite</h2>
+          <div class="corps">
+            <p>
+              Les images de tout le secteur, ou de tout logiciel récent. Elles rendraient Obsio
+              interchangeable.
+            </p>
+          </div>
+        </div>
+        <ul class="eviter corps" style="margin-top: 32px">
+          <li>L’éclair, la prise, l’ampoule</li>
+          <li>Les bandes jaunes et noires, le triangle d’avertissement en décor</li>
+          <li>Le bleu électrique et les effets lumineux</li>
+          <li>Le bouclier ou la coche de la « conformité garantie »</li>
+          <li>Les codes de l’IA : violet, dégradés, étincelles, robots</li>
+          <li>Le fond crème et le titre à empattements, ou le noir profond et l’accent fluo</li>
+        </ul>
+      </section>
+
+      <section>
+        <div class="titre">
+          <h2>À valider</h2>
+          <ol class="valider">
+            <li>La promesse « Chaque réserve levée, avec sa preuve »</li>
+            <li>Le caractère « exact, solide, sans drame » et le ton du chef d’atelier</li>
+            <li>La plaque gravée comme signature et l’armoire comme univers</li>
+            <li>La palette et les typographies de départ, qui pourront évoluer à l’étape 3</li>
+          </ol>
+        </div>
+        <p class="pied">
+          Étape suivante : le logo, à partir de la coupe du conducteur et de la plaque gravée
+        </p>
+      </section>
+    </div>
+  </body>
+</html>
