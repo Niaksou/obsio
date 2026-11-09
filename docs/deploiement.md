@@ -120,6 +120,8 @@ obsio exec api node dist/cli/seed-demo.js responsable@exemple.fr
 
 ## Au quotidien
 
+Après une mise à jour qui ajoute une variable à `deploy/server.env.example` (par exemple `REDIS_PASSWORD`), l'ajouter à `deploy/server.env` avant de relancer : sans elle, `docker compose` refuse de démarrer et nomme la variable manquante.
+
 | Besoin | Commande |
 |---|---|
 | Mettre à jour après un `git push` | `cd ~/obsio && git pull && obsio up -d --build --wait` |
@@ -137,11 +139,11 @@ Retrouver l'identifiant de l'organisation dans la sortie de `create-organisation
 obsio exec -T api node dist/cli/export-organisation.js <identifiant ou slug> --out - > obsio-export.zip
 ```
 
-La suppression est définitive. Sans `--confirm`, la commande décrit seulement ce qu'elle supprimerait :
+La suppression est définitive. Elle passe par le service `setup`, seul à disposer du rôle propriétaire de la base (l'API ne l'a pas). Sans `--confirm`, la commande décrit seulement ce qu'elle supprimerait :
 
 ```sh
-obsio exec api node dist/cli/delete-organisation.js <identifiant ou slug>
-obsio exec api node dist/cli/delete-organisation.js <identifiant> --confirm "Nom exact"
+obsio run --rm setup node dist/cli/delete-organisation.js <identifiant ou slug>
+obsio run --rm setup node dist/cli/delete-organisation.js <identifiant> --confirm "Nom exact"
 ```
 
 Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes de la base gardent les données supprimées jusqu'à sept jours.

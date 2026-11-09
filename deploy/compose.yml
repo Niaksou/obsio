@@ -11,8 +11,7 @@ name: obsio-preprod
 x-app-env: &app-env
   NODE_ENV: production
   DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/obsio
-  DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/obsio
-  REDIS_URL: redis://redis:6379
+  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
   S3_ENDPOINT: ${S3_ENDPOINT}
   S3_REGION: ${S3_REGION}
   S3_BUCKET: ${S3_BUCKET}
@@ -32,6 +31,12 @@ x-app-env: &app-env
   OPERATOR_NAME: ${OPERATOR_NAME}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
   MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+
+# Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
+# jamais l'API ni le worker, qui n'en ont pas besoin (moindre privilège, ASVS 13.2.2).
+x-owner-env: &owner-env
+  <<: *app-env
+  DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/obsio
 
 # Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
 # mémoire et nombre de processus bornés.
@@ -60,7 +65,14 @@ services:
 
   redis:
     image: redis:8-alpine
-    command: ['redis-server', '--maxmemory-policy', 'noeviction', '--appendonly', 'yes']
+    # Mot de passe exigé, même sur le réseau interne (ASVS 13.2.1).
+    command:
+      - sh
+      - -c
+      - exec redis-server --maxmemory-policy noeviction --appendonly yes --requirepass "$$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD manquant}
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
     healthcheck:
@@ -92,11 +104,12 @@ services:
     ports:
       - '${MAILPIT_PORT:-8125}:8025'
 
-  # Migrations et bucket, avant le démarrage de l'API.
+  # Migrations et bucket, avant le démarrage de l'API. Sert aussi aux commandes de l'éditeur qui
+  # demandent le rôle propriétaire (suppression d'une organisation) : docker compose run --rm setup …
   setup:
     build: { context: .., target: api, args: { VITE_API_URL: '${PUBLIC_URL}' } }
     image: obsio-api:preprod
-    environment: *app-env
+    environment: *owner-env
     command: ['sh', '-c', 'node dist/db/migrate.js && node dist/cli/setup-storage.js']
     depends_on:
       postgres: { condition: service_healthy }

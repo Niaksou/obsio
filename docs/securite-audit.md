@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 110 |
+| Conforme | 111 |
 | Partiel | 28 |
-| À corriger | 28 |
+| À corriger | 27 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -292,8 +292,8 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
 | V13.1.1 | 2 | Partiel | Services externes cités dans la spec (Mistral, SMTP, stockage), sans document des flux. |
-| V13.2.1 | 2 | Partiel | PostgreSQL et stockage authentifiés ; Redis sans mot de passe. |
-| V13.2.2 | 2 | À corriger | L’API et le worker reçoivent le rôle propriétaire de la base et la clé principale du stockage ; seules la migration et la suppression d’une organisation en ont besoin. |
+| V13.2.1 | 2 | Conforme | PostgreSQL, stockage et Redis (mot de passe exigé, `deploy/compose.yml`) authentifiés. |
+| V13.2.2 | 2 | Partiel | Rôle propriétaire de la base réservé au service `setup` (migrations, suppression d’une organisation) ; l’API et le worker utilisent encore la clé principale du stockage. |
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
 | V13.2.4 | 2 | Partiel | Un seul service externe appelé (Mistral), sans liste blanche réseau. |
 | V13.2.5 | 2 | Partiel | Pare-feu OVH sur l’entrant ; sortant non restreint par destination. |

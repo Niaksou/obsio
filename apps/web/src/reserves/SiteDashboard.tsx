@@ -38,6 +38,8 @@ export function SiteDashboard({ siteId }: { siteId: string }) {
         <Counter to={list('levees')} value={counts.levees} label="levées" />
       </ul>
 
+      <Progress counts={counts} />
+
       {(floors.length > 0 || unattached > 0) && (
         <ul className="rows floor-load">
           {floors.map((floor) => (
@@ -85,6 +87,48 @@ function Counter({
         <span className="counter-label">{label}</span>
       </Link>
     </li>
+  );
+}
+
+/**
+ * Avancement du site : une barre unique, une part par état, de la plus urgente à la levée.
+ * Les quatre parts sont disjointes : en retard et en cours (ouvertes ou assignées), corrigées
+ * à vérifier, levées.
+ */
+function Progress({ counts }: { counts: Dashboard['counts'] }) {
+  const total = counts.open + counts.toVerify + counts.levees;
+  if (total === 0) return null;
+  const parts = [
+    { key: 'overdue', label: 'en retard', value: counts.overdue },
+    { key: 'open', label: 'en cours', value: counts.open - counts.overdue },
+    { key: 'verify', label: 'à vérifier', value: counts.toVerify },
+    { key: 'done', label: 'levées', value: counts.levees },
+  ];
+  return (
+    <figure className="progress">
+      <figcaption className="progress-caption">
+        <span className="progress-figure">{Math.round((counts.levees / total) * 100)} %</span>
+        <span>
+          des réserves levées, {counts.levees} sur {total}
+        </span>
+      </figcaption>
+      <div className="progress-bar" aria-hidden="true">
+        {parts
+          .filter((p) => p.value > 0)
+          .map((p) => (
+            <span key={p.key} className={`progress-${p.key}`} style={{ flexGrow: p.value }} />
+          ))}
+      </div>
+      <ul className="progress-legend">
+        {parts.map((p) => (
+          <li key={p.key}>
+            <span className={`dot progress-${p.key}`} aria-hidden="true" />
+            {p.label}
+            <span className="progress-value">{p.value}</span>
+          </li>
+        ))}
+      </ul>
+    </figure>
   );
 }
 

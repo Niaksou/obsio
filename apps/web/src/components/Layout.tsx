@@ -1,8 +1,12 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { Factory, CalendarCheck, HardHat, LogOut, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
+
+/** Icônes de l'interface : une seule taille, un seul trait, couleur du texte. */
+const iconProps = { size: 18, strokeWidth: 1.5, 'aria-hidden': true } as const;
 
 /** Choix de l'organisation active, affiché seulement si l'utilisateur en a plusieurs. */
 function OrganisationSwitcher() {
@@ -28,49 +32,96 @@ function OrganisationSwitcher() {
   );
 }
 
+/** Marque : la coupe d'un conducteur, âme de cuivre dans sa gaine. */
+function Brand() {
+  return (
+    <Link to="/" className="brand">
+      <span className="brand-mark" aria-hidden="true" />
+      Obsio
+    </Link>
+  );
+}
+
+function NavItem({
+  to,
+  icon,
+  active,
+  children,
+}: {
+  to: string;
+  icon: ReactNode;
+  active?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <NavLink
+      to={to}
+      className={
+        active === undefined ? undefined : ({ isActive }) => (active || isActive ? 'active' : '')
+      }
+    >
+      {icon}
+      <span>{children}</span>
+    </NavLink>
+  );
+}
+
 export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   // Tout ce qui se trouve dans un site (plans, réserves, rapports) relève de la rubrique Sites.
   const inSites = SITE_PATHS.test(useLocation().pathname);
+  const main = (
+    <main className={fullBleed ? 'main main-full' : 'main'}>
+      <Outlet />
+    </main>
+  );
 
   async function signOut() {
     await authClient.signOut();
-    // Les données de l'organisation ne restent pas en mémoire après la déconnexion.
-    queryClient.clear();
     navigate('/connexion', { replace: true });
   }
 
+  // Sans session (connexion, invitation) : la marque seule au-dessus du formulaire.
+  if (!session) {
+    return (
+      <div className="public">
+        <header className="public-head">
+          <Brand />
+        </header>
+        {main}
+      </div>
+    );
+  }
+
   return (
-    <>
-      <header className="header">
-        <Link to="/" className="brand">
-          Obsio
-        </Link>
-        {session && (
-          <nav className="nav" aria-label="Navigation principale">
-            <NavLink to="/" className={() => (inSites ? 'active' : undefined)}>
-              Sites
-            </NavLink>
-            <NavLink to="/verifications">Vérifications</NavLink>
-            <NavLink to="/intervenants">Intervenants</NavLink>
-            <NavLink to="/organisation">Organisation</NavLink>
-          </nav>
-        )}
-        {session && (
-          <div className="session">
-            <OrganisationSwitcher />
-            <span>{session.user.name}</span>
-            <button type="button" className="link" onClick={signOut}>
-              Se déconnecter
-            </button>
-          </div>
-        )}
-      </header>
-      <main className={fullBleed ? 'main main-full' : 'main'}>
-        <Outlet />
-      </main>
-    </>
+    <div className="shell">
+      <aside className="sidebar">
+        <Brand />
+        <nav className="nav" aria-label="Navigation principale">
+          <NavItem to="/" icon={<Factory {...iconProps} />} active={inSites}>
+            Sites
+          </NavItem>
+          <NavItem to="/verifications" icon={<CalendarCheck {...iconProps} />}>
+            Vérifications
+          </NavItem>
+          <NavItem to="/intervenants" icon={<HardHat {...iconProps} />}>
+            Intervenants
+          </NavItem>
+          <NavItem to="/organisation" icon={<Users {...iconProps} />}>
+            Organisation
+          </NavItem>
+        </nav>
+        <div className="session">
+          <OrganisationSwitcher />
+          <span className="session-user">{session.user.name}</span>
+          <button type="button" className="quiet session-out" onClick={signOut}>
+            <LogOut {...iconProps} />
+            <span>Se déconnecter</span>
+          </button>
+        </div>
+      </aside>
+      {main}
+    </div>
   );
 }
