@@ -17,7 +17,7 @@
   --ink: #18201f;
   --ink-soft: #2c3634;
   --muted: #56615f;
-  --faint: #6c7674;
+  --faint: #646e6c;
   --line: rgb(24 32 31 / 0.12);
   --line-strong: rgb(24 32 31 / 0.26);
   --line-soft: rgb(24 32 31 / 0.07);
@@ -93,7 +93,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
 }
 
 p {
@@ -784,7 +784,7 @@ form.card > button[type='submit'] {
 }
 
 .toolbar h1 {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
 }
 
 .tools {
@@ -876,7 +876,7 @@ form.card > button[type='submit'] {
 }
 
 .title-block dt {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
@@ -1048,7 +1048,7 @@ form.card > button[type='submit'] {
 }
 
 .panel h2 .plate {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .equipment-list {

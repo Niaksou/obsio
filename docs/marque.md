@@ -1,6 +1,8 @@
 # Plateforme de marque d'Obsio
 
-Proposition, étape 1 de l'identité graphique. À valider avant le logo (étape 2), la charte complète (étape 3) et la déclinaison (étape 4). La charte de l'interface, « Armoire », est décrite en tête de `apps/web/src/styles.css`.
+Identité graphique d'Obsio : plateforme (ce document), logo (étape 2, retenu), charte graphique complète (étape 3, `docs/marque/charte.html`), puis déclinaison sur les e-mails et les documents (étape 4).
+
+La charte graphique est la référence pour toute nouvelle page ou tout nouveau support : couleurs et contrastes, échelle typographique, plaque gravée, composants, espaces, rayons, mouvement, icônes, ton, applications. Ses valeurs sont celles de `apps/web/src/styles.css` ; si l'une change, on met à jour les deux.
 
 ## Ce que fait Obsio
 
@@ -53,7 +55,7 @@ L'identité puise dans ce que l'électricien a sous les yeux quand il ouvre une 
 - **Le cartouche du plan** : le bloc-titre des plans techniques, qui range les faits dans des cases.
 - **Les teintes minérales** pour les statuts : grenat, cobalt, ocre, vert-de-gris. Sourdes, toujours accompagnées de leur libellé.
 
-### Palette de départ
+### Palette
 
 | Rôle | Nom | Valeur |
 | --- | --- | --- |
@@ -64,7 +66,7 @@ L'identité puise dans ce que l'électricien a sous les yeux quand il ouvre une 
 | Statut levé, second ton de marque | Vert-de-gris | `#0e6b5e` |
 | Danger, retard | Grenat | `#b42335` |
 
-### Typographie de départ
+### Typographie
 
 - **Barlow** pour l'interface et les textes : un dessin issu de la signalétique routière et industrielle, lisible en petit et sur téléphone.
 - **Barlow Semi Condensed** pour les titres et les plaques gravées : la largeur réduite des lettrages techniques.
@@ -98,11 +100,12 @@ Ces images sont celles de tout le secteur, ou de tout logiciel récent. Elles re
 - Les codes de l'IA : violet, dégradés, étincelles, robots.
 - Le pastiche de marque de luxe ou de start-up : fond crème et titre à empattements, ou noir profond et accent fluo.
 
-## Points à valider
+## Points restant à confirmer
 
 1. La promesse « Chaque réserve levée, avec sa preuve ».
 2. Le caractère « exact, solide, sans drame » et le ton du chef d'atelier.
 3. La plaque gravée comme signature et l'armoire comme univers.
-4. La palette et les typographies de départ, qui pourront évoluer à l'étape 3.
+
+Le détail des couleurs (tous les neutres, le cuivre en trois tons, les statuts et leurs contrastes), l'échelle typographique (12, 13, 14, 15, 16, 18, 20, 22, 28, 32 et 40 px) et les composants sont dans la charte.
 
 Restent à habiller avec la marque : les e-mails (HTML sans mise en forme pour l'instant) et l'en-tête du dossier de preuves en PDF.

@@ -1,0 +1,1656 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Obsio, charte graphique</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --encre: #18201f;
+        --encre-douce: #2c3634;
+        --t2: #56615f;
+        --t3: #646e6c;
+        --tole: #f6f7f6;
+        --tole-fonce: #eef0ee;
+        --blanc: #fff;
+        --filet: rgb(24 32 31 / 0.12);
+        --filet-fort: rgb(24 32 31 / 0.26);
+        --cuivre: #b4531f;
+        --cuivre-pale: #f7e8dd;
+        --vdg: #0e6b5e;
+        --grenat: #b42335;
+        --cobalt: #2f5592;
+        --ocre: #8a5a00;
+        --ui: 'Barlow', system-ui, sans-serif;
+        --plaque: 'Barlow Semi Condensed', 'Arial Narrow', sans-serif;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--ui);
+        font-size: 16px;
+        line-height: 1.55;
+        color: var(--encre);
+        background: var(--tole);
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--plaque);
+        font-weight: 500;
+        line-height: 1.12;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+        color: var(--t3);
+      }
+      .page {
+        display: grid;
+        grid-template-columns: 200px minmax(0, 1fr);
+        gap: 48px;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 32px 32px 96px;
+      }
+      .sommaire {
+        position: sticky;
+        top: 32px;
+        align-self: start;
+        display: grid;
+        gap: 20px;
+      }
+      .sommaire svg {
+        height: 24px;
+        width: auto;
+        color: var(--encre);
+      }
+      .sommaire nav {
+        display: grid;
+        gap: 2px;
+      }
+      .sommaire a {
+        padding: 4px 8px;
+        margin-left: -8px;
+        font-size: 15px;
+        color: var(--t2);
+        text-decoration: none;
+        border-radius: 6px;
+        transition:
+          background-color 140ms var(--ease),
+          color 140ms var(--ease);
+      }
+      .sommaire a:hover {
+        color: var(--encre);
+        background: rgb(24 32 31 / 0.06);
+      }
+      .sommaire p {
+        font-size: 13px;
+        color: var(--t3);
+      }
+      main {
+        min-width: 0;
+      }
+      .ouverture {
+        padding: 24px 0 56px;
+        border-bottom: 1px solid var(--filet);
+      }
+      .ouverture h1 {
+        font-size: clamp(40px, 5vw, 56px);
+        letter-spacing: -0.02em;
+        max-width: 14em;
+      }
+      .ouverture p {
+        margin-top: 20px;
+        max-width: 40em;
+        font-size: 18px;
+        color: var(--t2);
+      }
+      section {
+        padding: 56px 0;
+        border-bottom: 1px solid var(--filet);
+        scroll-margin-top: 16px;
+      }
+      section:last-of-type {
+        border-bottom: 0;
+      }
+      section > h2 {
+        font-size: 32px;
+      }
+      section > .chapo {
+        margin-top: 12px;
+        max-width: 44em;
+        color: var(--t2);
+      }
+      h3 {
+        font-size: 20px;
+        margin: 40px 0 16px;
+      }
+      .bloc {
+        margin-top: 24px;
+      }
+      .grille-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .grille-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .grille-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .case {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 200px;
+        padding: 32px;
+        background: var(--blanc);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .case.sombre {
+        background: var(--encre);
+      }
+      .case > svg {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+      }
+      .case .legende {
+        position: absolute;
+        left: 16px;
+        bottom: 12px;
+        font-size: 13px;
+        color: var(--t3);
+      }
+      .case.sombre .legende {
+        color: #a9b1af;
+      }
+      .regles {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding-left: 20px;
+        color: var(--t2);
+        max-width: 44em;
+      }
+      .regles strong {
+        color: var(--encre);
+        font-weight: 500;
+      }
+
+      /* Zone de protection : un module = le rayon de l'âme du O. */
+      .protection {
+        position: relative;
+        padding: 40px;
+      }
+      .protection .cadre {
+        position: relative;
+        padding: 28px;
+        outline: 1px dashed var(--cuivre);
+        outline-offset: 0;
+      }
+      .protection .cadre svg {
+        display: block;
+        width: 220px;
+        height: auto;
+      }
+      .protection .module {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--cuivre-pale);
+        box-shadow: inset 0 0 0 1px var(--cuivre);
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        color: var(--cuivre);
+        font-weight: 600;
+      }
+      .tailles-min {
+        display: flex;
+        align-items: flex-end;
+        gap: 32px;
+      }
+      .tailles-min figure {
+        margin: 0;
+        display: grid;
+        gap: 8px;
+        justify-items: start;
+      }
+      .tailles-min figcaption {
+        font-size: 13px;
+        color: var(--t3);
+      }
+      .interdit {
+        position: relative;
+        overflow: hidden;
+      }
+      .interdit::after {
+        content: '';
+        position: absolute;
+        inset: auto 16px 40px 16px;
+        height: 2px;
+        background: var(--grenat);
+        transform: rotate(-8deg);
+        transform-origin: center;
+        top: 50%;
+      }
+      .interdit .legende {
+        color: var(--grenat);
+      }
+
+      .teintes {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .teinte {
+        display: grid;
+        grid-template-rows: 88px auto;
+        background: var(--blanc);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .teinte .pastille {
+        box-shadow: inset 0 -1px 0 var(--filet);
+      }
+      .teinte > div:last-child {
+        padding: 12px 16px 16px;
+        display: grid;
+        gap: 2px;
+      }
+      .teinte b {
+        font-weight: 500;
+      }
+      .teinte p {
+        font-size: 14px;
+        color: var(--t2);
+      }
+      .teinte .contraste {
+        font-size: 13px;
+        color: var(--t3);
+        margin-top: 4px;
+      }
+      .dosage {
+        display: flex;
+        gap: 2px;
+        height: 20px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 24px;
+      }
+      .dosage span {
+        flex-basis: 0;
+      }
+      .dosage-legende {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--t3);
+      }
+
+      .echelle {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--blanc);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .echelle td {
+        padding: 12px 20px;
+        border-top: 1px solid var(--filet);
+        vertical-align: baseline;
+      }
+      .echelle tr:first-child td {
+        border-top: 0;
+      }
+      .echelle td:first-child {
+        width: 55%;
+        line-height: 1.15;
+      }
+      .echelle td:nth-child(2) {
+        color: var(--t2);
+        font-size: 14px;
+      }
+      .echelle td:last-child {
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .plaque {
+        display: inline-block;
+        padding: 1px 8px 2px;
+        font-family: var(--plaque);
+        font-weight: 600;
+        font-size: 15px;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        color: #fff;
+        background: var(--encre);
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .anatomie {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 24px;
+      }
+      .cote {
+        font-size: 13px;
+        color: var(--t3);
+      }
+
+      /* Composants, aux valeurs exactes de l'application. */
+      .demo {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 24px;
+        background: var(--blanc);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 8px 16px;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        background: var(--encre);
+        border: 1px solid var(--encre);
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background-color 140ms var(--ease),
+          transform 140ms var(--ease);
+      }
+      .btn:hover {
+        background: var(--encre-douce);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .btn:focus-visible {
+        outline: none;
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 4px var(--cuivre);
+      }
+      .btn.sec {
+        color: var(--encre);
+        background: #fff;
+        border-color: var(--filet-fort);
+      }
+      .btn.sec:hover {
+        background: #f3f4f3;
+      }
+      .btn.calme {
+        color: var(--encre);
+        background: transparent;
+        border-color: transparent;
+      }
+      .btn.calme:hover {
+        background: rgb(24 32 31 / 0.07);
+      }
+      .btn.danger {
+        background: var(--grenat);
+        border-color: var(--grenat);
+      }
+      .btn.cuivre {
+        background: var(--cuivre);
+        border-color: #96431a;
+      }
+      .champ {
+        display: grid;
+        gap: 4px;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .champ input {
+        min-height: 40px;
+        padding: 8px 12px;
+        font: inherit;
+        font-weight: 400;
+        color: var(--encre);
+        background: #fff;
+        border: 1px solid var(--filet-fort);
+        border-radius: 8px;
+      }
+      .champ input:focus {
+        outline: none;
+        border-color: var(--cuivre);
+        box-shadow: 0 0 0 3px var(--cuivre-pale);
+      }
+      .statut {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 24px;
+        padding: 0 8px;
+        font-size: 13px;
+        font-weight: 500;
+        background: #fff;
+        border: 1px solid var(--filet);
+        border-radius: 4px;
+      }
+      .statut::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .statut.retard {
+        color: var(--grenat);
+        background: rgb(180 35 53 / 0.06);
+        border-color: rgb(180 35 53 / 0.24);
+      }
+      .liste {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        background: #fff;
+        border: 1px solid var(--filet);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .liste li {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 16px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--filet);
+      }
+      .liste li:first-child {
+        border-top: 0;
+      }
+      .liste .t {
+        font-weight: 500;
+      }
+      .liste .m {
+        color: var(--t2);
+        font-size: 14px;
+      }
+      .liste .s {
+        margin-left: auto;
+      }
+      .nav-demo {
+        display: grid;
+        gap: 2px;
+        width: 220px;
+        padding: 12px 8px;
+        background: var(--tole-fonce);
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .nav-demo span {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--t2);
+        border-radius: 8px;
+      }
+      .nav-demo span.actif {
+        color: var(--encre);
+        background: #fff;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .nav-demo svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: var(--t3);
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .nav-demo .actif svg {
+        stroke: var(--cuivre);
+      }
+
+      .mesures {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .mesure {
+        padding: 20px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .mesure b {
+        display: block;
+        font-family: var(--plaque);
+        font-weight: 500;
+        font-size: 22px;
+      }
+      .mesure p {
+        margin-top: 8px;
+        font-size: 14px;
+        color: var(--t2);
+      }
+      .reglette {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .reglette span {
+        width: 12px;
+        background: var(--cuivre-pale);
+        box-shadow: inset 0 0 0 1px rgb(180 83 31 / 0.4);
+      }
+      .rayons {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+      }
+      .rayons span {
+        width: 56px;
+        height: 40px;
+        background: var(--tole-fonce);
+        box-shadow: inset 0 0 0 1px var(--filet-fort);
+      }
+
+      .ton {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px var(--filet);
+      }
+      .ton th {
+        padding: 12px 20px;
+        text-align: left;
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--t2);
+        background: var(--tole-fonce);
+      }
+      .ton td {
+        padding: 14px 20px;
+        border-top: 1px solid var(--filet);
+        vertical-align: top;
+        width: 50%;
+      }
+      .ton td:last-child {
+        color: var(--t3);
+        text-decoration: line-through;
+        text-decoration-color: rgb(180 35 53 / 0.5);
+      }
+
+      /* Applications : aperçus de l'e-mail et du dossier PDF. */
+      .mail {
+        width: 100%;
+        max-width: 520px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 0 0 1px var(--filet);
+        overflow: hidden;
+      }
+      .mail-tete {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--filet);
+      }
+      .mail-tete svg {
+        height: 20px;
+        width: auto;
+        color: var(--encre);
+        display: block;
+      }
+      .mail-corps {
+        display: grid;
+        gap: 12px;
+        padding: 24px;
+        font-size: 15px;
+      }
+      .mail-corps .btn {
+        justify-self: start;
+      }
+      .mail-pied {
+        padding: 16px 24px;
+        font-size: 13px;
+        color: var(--t3);
+        background: var(--tole);
+      }
+      .pdf {
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 1/1.414;
+        padding: 32px;
+        background: #fff;
+        box-shadow:
+          0 1px 2px rgb(0 0 0 / 0.08),
+          0 0 0 1px var(--filet);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 24px;
+      }
+      .pdf-tete {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--encre);
+      }
+      .pdf-tete svg {
+        height: 18px;
+        width: auto;
+        color: var(--encre);
+        display: block;
+      }
+      .pdf-tete small {
+        font-size: 11px;
+        color: var(--t3);
+        text-align: right;
+        line-height: 1.4;
+      }
+      .pdf h4 {
+        margin: 0;
+        font-family: var(--plaque);
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 1.1;
+      }
+      .pdf .cartouche {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border: 1.5px solid var(--encre);
+        font-size: 10px;
+        margin-top: 16px;
+      }
+      .pdf .cartouche div {
+        padding: 4px 8px;
+        border-top: 1px solid var(--encre);
+      }
+      .pdf .cartouche div:nth-child(-n + 2) {
+        border-top: 0;
+      }
+      .pdf .cartouche div:nth-child(even) {
+        border-left: 1px solid var(--encre);
+      }
+      .pdf .cartouche b {
+        display: block;
+        font-family: var(--plaque);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .pdf .cartouche span {
+        color: var(--t3);
+      }
+      .pdf-pied {
+        font-size: 10px;
+        color: var(--t3);
+        display: flex;
+        justify-content: space-between;
+      }
+      .autocollant {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 18px 10px 12px;
+        background: var(--encre);
+        border-radius: 6px;
+        color: #fff;
+      }
+      .autocollant svg {
+        height: 32px;
+        width: 32px;
+      }
+      .autocollant b {
+        display: block;
+        font-family: var(--plaque);
+        font-weight: 600;
+        font-size: 17px;
+        line-height: 1.1;
+      }
+      .autocollant small {
+        font-size: 11px;
+        color: #c3cac8;
+      }
+
+      @media (max-width: 960px) {
+        .page {
+          grid-template-columns: 1fr;
+          gap: 0;
+          padding: 24px 20px 64px;
+        }
+        .sommaire {
+          position: static;
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--filet);
+        }
+        .sommaire nav {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .grille-2,
+        .grille-3,
+        .grille-4,
+        .mesures {
+          grid-template-columns: 1fr;
+        }
+        .echelle td:nth-child(2) {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside class="sommaire">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 -2.5 245.4 73.5"
+          role="img"
+          aria-label="Obsio"
+        >
+          <title>Obsio</title>
+          <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+          <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+          <path
+            d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+            fill="#18201f"
+          />
+        </svg>
+        <nav aria-label="Sommaire">
+          <a href="#logo">Logo</a><a href="#couleurs">Couleurs</a
+          ><a href="#typographie">Typographie</a><a href="#signature">Plaque gravée</a
+          ><a href="#composants">Composants</a><a href="#mesures">Espaces et formes</a
+          ><a href="#icones">Icônes et images</a><a href="#ton">Ton</a
+          ><a href="#applications">Applications</a>
+        </nav>
+        <p>
+          Version 1, novembre 2026. Les valeurs sont celles de l’application
+          (apps/web/src/styles.css).
+        </p>
+      </aside>
+      <main>
+        <div class="ouverture">
+          <h1>Charte graphique d’Obsio</h1>
+          <p>
+            L’intérieur d’une armoire électrique bien tenue : surfaces neutres, cuivre en petite
+            quantité, chaque repère sur sa plaque. Ce document fixe les règles pour l’application,
+            les e-mails, les documents et tout nouveau support.
+          </p>
+        </div>
+
+        <section id="logo">
+          <h2>Logo</h2>
+          <p class="chapo">
+            Le O d’Obsio est la coupe d’un conducteur : une gaine de l’épaisseur des lettres et une
+            âme de cuivre. Le symbole est dans le nom.
+          </p>
+          <div class="grille-2 bloc">
+            <div class="case">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 -2.5 245.4 73.5"
+                role="img"
+                aria-label="Obsio"
+              >
+                <title>Obsio</title>
+                <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                <path
+                  d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                  fill="#18201f"
+                /></svg
+              ><span class="legende">Sur fond clair : encre et cuivre</span>
+            </div>
+            <div class="case sombre">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 -2.5 245.4 73.5"
+                role="img"
+                aria-label="Obsio"
+              >
+                <title>Obsio</title>
+                <circle cx="35.00" cy="35.00" r="35.00" fill="#ffffff" />
+                <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                <path
+                  d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                  fill="#ffffff"
+                /></svg
+              ><span class="legende">Sur fond sombre : blanc et cuivre</span>
+            </div>
+          </div>
+          <h3>Zone de protection et tailles minimales</h3>
+          <div class="grille-2">
+            <div class="case protection">
+              <div class="cadre">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+                <span class="module" style="left: 0; top: 0">x</span
+                ><span class="module" style="right: 0; bottom: 0">x</span>
+              </div>
+              <span class="legende"
+                >Autour du logo, un espace libre d’au moins x, le rayon de l’âme du O</span
+              >
+            </div>
+            <div class="case">
+              <div class="tailles-min">
+                <figure>
+                  <div style="width: 80px">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 -2.5 245.4 73.5"
+                      role="img"
+                      aria-label="Obsio"
+                    >
+                      <title>Obsio</title>
+                      <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                      <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                      <path
+                        d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                        fill="#18201f"
+                      />
+                    </svg>
+                  </div>
+                  <figcaption>Logo : 80 px, 20 mm</figcaption>
+                </figure>
+                <figure>
+                  <div style="width: 16px">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 100.0 100.0"
+                      role="img"
+                      aria-label="Obsio"
+                    >
+                      <title>Obsio</title>
+                      <circle cx="50" cy="50" r="50" fill="#18201f" />
+                      <circle cx="50" cy="50" r="33.14" fill="#b4531f" />
+                    </svg>
+                  </div>
+                  <figcaption>Symbole : 16 px, 5 mm</figcaption>
+                </figure>
+              </div>
+              <span class="legende">En dessous, le logo devient illisible</span>
+            </div>
+          </div>
+          <h3>Le symbole seul</h3>
+          <div class="grille-3">
+            <div class="case">
+              <div style="width: 96px">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 100.0 100.0"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="50" cy="50" r="50" fill="#18201f" />
+                  <circle cx="50" cy="50" r="33.14" fill="#b4531f" />
+                </svg>
+              </div>
+              <span class="legende">Favicon, tampon</span>
+            </div>
+            <div class="case">
+              <div
+                style="width: 96px; padding: 20px; background: var(--encre); border-radius: 22px"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 100.0 100.0"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="50" cy="50" r="50" fill="#ffffff" />
+                  <circle cx="50" cy="50" r="33.14" fill="#b4531f" />
+                </svg>
+              </div>
+              <span class="legende">Icône de l’application</span>
+            </div>
+            <div class="case">
+              <ul class="regles">
+                <li>Seulement quand la place manque.</li>
+                <li>
+                  Seul, le rond peut rappeler un bouton d’enregistrement : dès que possible, on
+                  garde le mot.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <h3>À ne pas faire</h3>
+          <div class="grille-4">
+            <div class="case interdit">
+              <div style="width: 120px; transform: scaleX(1.4)">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+              </div>
+              <span class="legende">Déformer</span>
+            </div>
+            <div class="case interdit">
+              <div style="width: 180px">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#2f5592" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+              </div>
+              <span class="legende">Recolorer l’âme</span>
+            </div>
+            <div class="case interdit">
+              <div style="width: 180px; filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.35))">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+              </div>
+              <span class="legende">Ajouter une ombre</span>
+            </div>
+            <div
+              class="case interdit"
+              style="
+                background: repeating-linear-gradient(45deg, #b9c3c0 0 12px, #d8dedc 12px 24px);
+              "
+            >
+              <div style="width: 180px">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+              </div>
+              <span class="legende">Poser sur un fond chargé</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="couleurs">
+          <h2>Couleurs</h2>
+          <p class="chapo">
+            Des neutres pour les surfaces où l’on travaille des heures. Le cuivre est le seul accent
+            : il marque ce qui est actif ou choisi, jamais la décoration. Les teintes de statut ne
+            servent qu’aux statuts, toujours avec leur libellé.
+          </p>
+          <div class="dosage" aria-hidden="true">
+            <span
+              style="flex-grow: 44; background: #f6f7f6; box-shadow: inset 0 0 0 1px var(--filet)"
+            ></span
+            ><span
+              style="flex-grow: 30; background: #fff; box-shadow: inset 0 0 0 1px var(--filet)"
+            ></span
+            ><span style="flex-grow: 8; background: #eef0ee"></span
+            ><span style="flex-grow: 12; background: #18201f"></span
+            ><span style="flex-grow: 3; background: #b4531f"></span
+            ><span
+              style="
+                flex-grow: 3;
+                background: linear-gradient(
+                  90deg,
+                  #b42335 25%,
+                  #2f5592 25% 50%,
+                  #8a5a00 50% 75%,
+                  #0e6b5e 75%
+                );
+              "
+            ></span>
+          </div>
+          <div class="dosage-legende">
+            <span>Neutres, environ 95 %</span><span>Cuivre et statuts, quelques pour cent</span>
+          </div>
+          <h3>Neutres</h3>
+          <div class="teintes">
+            <div class="teinte">
+              <div class="pastille" style="background: #18201f"></div>
+              <div>
+                <b>Encre</b><code>#18201f</code>
+                <p>Texte principal, boutons principaux, plaques gravées</p>
+                <p class="contraste">Blanc 16,6:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #2c3634"></div>
+              <div>
+                <b>Encre douce</b><code>#2c3634</code>
+                <p>Survol des boutons principaux</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #56615f"></div>
+              <div>
+                <b>Gris texte</b><code>#56615f</code>
+                <p>Texte secondaire, libellés</p>
+                <p class="contraste">Blanc 6,4:1, tôle 6,0:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #646e6c"></div>
+              <div>
+                <b>Gris discret</b><code>#646e6c</code>
+                <p>Méta, légendes, icônes, textes d’aide</p>
+                <p class="contraste">Blanc 5,3:1, barre latérale 4,6:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #f6f7f6"></div>
+              <div>
+                <b>Tôle claire</b><code>#f6f7f6</code>
+                <p>Fond des pages</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #eef0ee"></div>
+              <div>
+                <b>Tôle</b><code>#eef0ee</code>
+                <p>Barre latérale, en-têtes de tableau</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #ffffff"></div>
+              <div>
+                <b>Blanc</b><code>#ffffff</code>
+                <p>Surfaces de travail : cartes, listes, champs</p>
+              </div>
+            </div>
+          </div>
+          <h3>Cuivre</h3>
+          <div class="teintes">
+            <div class="teinte">
+              <div class="pastille" style="background: #b4531f"></div>
+              <div>
+                <b>Cuivre</b><code>#b4531f</code>
+                <p>
+                  L’accent unique : focus, rubrique courante, sélection, mode placement, âme du logo
+                </p>
+                <p class="contraste">Blanc 5,0:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #96431a"></div>
+              <div>
+                <b>Cuivre sombre</b><code>#96431a</code>
+                <p>Cuivre utilisé comme texte, survol d’un aplat cuivre</p>
+                <p class="contraste">Blanc 6,7:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #f7e8dd"></div>
+              <div>
+                <b>Cuivre pâle</b><code>#f7e8dd</code>
+                <p>Fond d’une ligne sélectionnée, halo de focus des champs</p>
+              </div>
+            </div>
+          </div>
+          <h3>Statuts</h3>
+          <div class="teintes">
+            <div class="teinte">
+              <div class="pastille" style="background: #b42335"></div>
+              <div>
+                <b>Grenat</b><code>#b42335</code>
+                <p>Ouverte, en retard, danger, erreur</p>
+                <p class="contraste">Blanc 6,5:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #2f5592"></div>
+              <div>
+                <b>Cobalt</b><code>#2f5592</code>
+                <p>Assignée, vérification programmée</p>
+                <p class="contraste">Blanc 7,4:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #8a5a00"></div>
+              <div>
+                <b>Ocre</b><code>#8a5a00</code>
+                <p>Corrigée à vérifier, à programmer</p>
+                <p class="contraste">Blanc 5,9:1</p>
+              </div>
+            </div>
+            <div class="teinte">
+              <div class="pastille" style="background: #0e6b5e"></div>
+              <div>
+                <b>Vert-de-gris</b><code>#0e6b5e</code>
+                <p>Levée, à jour</p>
+                <p class="contraste">Blanc 6,4:1</p>
+              </div>
+            </div>
+          </div>
+          <h3>Règles</h3>
+          <ul class="regles">
+            <li>
+              <strong>Contraste</strong> : tout texte atteint 4,5:1 sur son fond (WCAG AA), les
+              icônes et filets 3:1.
+            </li>
+            <li>
+              <strong>Filets</strong> : l’encre à 12 % d’opacité (26 % pour les champs), jamais une
+              couleur.
+            </li>
+            <li>
+              <strong>Pas de dégradé</strong> entre deux teintes, pas d’ombre colorée, pas d’effet
+              lumineux.
+            </li>
+            <li>Une seule chose en cuivre par zone de l’écran.</li>
+          </ul>
+        </section>
+
+        <section id="typographie">
+          <h2>Typographie</h2>
+          <p class="chapo">
+            Une seule famille en deux largeurs, issue de la signalétique routière et industrielle.
+            Barlow pour lire, Barlow Semi Condensed pour titrer et graver. Libres de droits (licence
+            OFL), servies par l’application, et disponibles sur Google Fonts pour les autres
+            supports.
+          </p>
+          <div class="grille-2 bloc">
+            <div class="case" style="place-items: start; gap: 8px">
+              <p class="cote">Barlow, 400 et 500, 600 pour une rare insistance</p>
+              <p style="font-size: 40px; line-height: 1.1; font-weight: 500">
+                Réserve levée le 12 mars
+              </p>
+              <p style="color: var(--t2)">
+                Lisible en petit et sur téléphone, chiffres alignés pour les dates et les compteurs
+                : 3 en retard, 14 levées.
+              </p>
+            </div>
+            <div class="case" style="place-items: start; gap: 8px">
+              <p class="cote">Barlow Semi Condensed, 500 pour les titres, 600 pour les plaques</p>
+              <p
+                style="
+                  font-family: var(--plaque);
+                  font-size: 40px;
+                  line-height: 1.1;
+                  font-weight: 500;
+                "
+              >
+                Entrepôt de Villefranche
+              </p>
+              <p>
+                <span class="plaque">TD Quais</span> <span class="plaque">BAES allée 3</span>
+                <span class="plaque">Q12</span>
+              </p>
+            </div>
+          </div>
+          <h3>Échelle</h3>
+          <table class="echelle">
+            <tbody>
+              <tr>
+                <td style="font-size: 40px; font-family: var(--plaque); font-weight: 500">
+                  Compteurs du tableau de bord
+                </td>
+                <td>Semi Condensed 500</td>
+                <td><code>40 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 32px; font-family: var(--plaque); font-weight: 500">
+                  Titre de page
+                </td>
+                <td>Semi Condensed 500</td>
+                <td><code>32 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 28px; font-family: var(--plaque); font-weight: 500">
+                  Titre d’une fiche, chiffre clé
+                </td>
+                <td>Semi Condensed 500</td>
+                <td><code>28 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 22px; font-family: var(--plaque); font-weight: 500">
+                  Titre de section
+                </td>
+                <td>Semi Condensed 500</td>
+                <td><code>22 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 18px; font-family: var(--plaque); font-weight: 500">
+                  Sous-titre, valeur d’un cartouche
+                </td>
+                <td>Semi Condensed 500</td>
+                <td><code>18 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 16px; font-weight: 400">Texte courant</td>
+                <td>Barlow 400</td>
+                <td><code>16 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 15px; font-weight: 500">
+                  Navigation, boutons, libellés de champ
+                </td>
+                <td>Barlow 500</td>
+                <td><code>15 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 14px; font-weight: 400">Texte secondaire, aide</td>
+                <td>Barlow 400</td>
+                <td><code>14 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 13px; font-weight: 500">Statuts, étiquettes</td>
+                <td>Barlow 500</td>
+                <td><code>13 px</code></td>
+              </tr>
+              <tr>
+                <td style="font-size: 12px; font-weight: 400">Légendes de cartouche, méta</td>
+                <td>Barlow 400</td>
+                <td><code>12 px</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>Règles</h3>
+          <ul class="regles">
+            <li>
+              La hiérarchie vient de la taille et de la couleur, pas de la graisse : pas de 700 ni
+              plus.
+            </li>
+            <li>
+              Minuscules partout, majuscule en début de phrase seulement. Jamais de libellé en
+              capitales espacées.
+            </li>
+            <li>
+              Pas d’italique pour insister, pas de point en fin de titre, de bouton ou de libellé.
+            </li>
+            <li>
+              Chiffres tabulaires et un seul format de date : 12 mars 2026, 12 mars 2026 à 14 h 30.
+            </li>
+            <li>Lignes de 80 caractères au plus.</li>
+          </ul>
+        </section>
+
+        <section id="signature">
+          <h2>La plaque gravée</h2>
+          <p class="chapo">
+            La signature d’Obsio : l’étiquette en stratifié qui repère chaque départ dans l’armoire.
+            Elle porte les repères d’équipement, dans l’application, sur le plan et dans les
+            documents, et rien d’autre. Ni bouton, ni statut, ni titre.
+          </p>
+          <div class="demo bloc">
+            <div class="anatomie">
+              <span
+                class="plaque"
+                style="font-size: 28px; padding: 4px 14px 6px; border-radius: 6px"
+                >TGBT Entrepôt</span
+              >
+              <span class="cote"
+                >Barlow Semi Condensed 600, blanc sur encre, approche +2 %, coins de 4 px (6 px en
+                grand), marge de 8 px sur les côtés</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <section id="composants">
+          <h2>Composants</h2>
+          <p class="chapo">
+            Les briques de l’interface, aux valeurs exactes de l’application. Une seule action
+            principale par zone.
+          </p>
+          <h3>Boutons</h3>
+          <div class="demo">
+            <button class="btn">Ajouter le site</button>
+            <button class="btn sec">Placer un équipement</button>
+            <button class="btn calme">Archiver</button>
+            <button class="btn danger">Archiver le site et ses bâtiments</button>
+            <button class="btn cuivre">Mode placement actif</button>
+          </div>
+          <p class="cote" style="margin-top: 8px">
+            Principal (encre), secondaire (blanc et filet), discret (sans fond), destructif (grenat,
+            toujours après une confirmation), actif (cuivre, pour un mode en cours). 40 px de haut,
+            44 px pour l’action d’un formulaire.
+          </p>
+          <h3>Champs, statuts, listes</h3>
+          <div class="grille-2">
+            <div class="demo" style="display: grid; gap: 16px; align-content: start">
+              <label class="champ">Nom du site<input value="Usine de Lyon" /></label>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <span class="statut" style="--c: var(--grenat)">Ouverte</span
+                ><span class="statut" style="--c: var(--cobalt)">Assignée</span
+                ><span class="statut" style="--c: var(--ocre)">Corrigée</span
+                ><span class="statut" style="--c: var(--vdg)">Levée</span
+                ><span class="statut retard" style="--c: var(--grenat)">en retard</span>
+              </div>
+            </div>
+            <div class="demo" style="padding: 16px">
+              <ul class="liste">
+                <li>
+                  <span class="t">Différentiel du circuit des quais</span
+                  ><span class="plaque" style="font-size: 13px">TD Quais</span
+                  ><span class="s statut" style="--c: var(--grenat)">Ouverte</span>
+                </li>
+                <li>
+                  <span class="t">Schéma unifilaire non à jour</span
+                  ><span class="plaque" style="font-size: 13px">TGBT Entrepôt</span
+                  ><span class="s statut" style="--c: var(--cobalt)">Assignée</span>
+                </li>
+                <li>
+                  <span class="t">Bloc autonome masqué</span
+                  ><span class="plaque" style="font-size: 13px">BAES allée 3</span
+                  ><span class="s statut" style="--c: var(--vdg)">Levée</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <h3>Navigation</h3>
+          <div class="demo">
+            <div class="nav-demo">
+              <span class="actif"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+                  /></svg
+                >Sites</span
+              >
+              <span
+                ><svg viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4" /></svg
+                >Vérifications</span
+              >
+              <span
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2zM10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5M4 15v-3a6 6 0 0 1 6-6M14 6a6 6 0 0 1 6 6v3"
+                  /></svg
+                >Intervenants</span
+              >
+            </div>
+            <p class="cote" style="max-width: 28em">
+              Rubrique courante : surface blanche et icône en cuivre. Lignes de 36 px, 2 px entre
+              elles.
+            </p>
+          </div>
+        </section>
+
+        <section id="mesures">
+          <h2>Espaces et formes</h2>
+          <p class="chapo">
+            Tout tombe sur une grille de 4 px. L’espace dit ce qui va ensemble : plus serré dans un
+            groupe, plus large entre les groupes.
+          </p>
+          <div class="mesures bloc">
+            <div class="mesure">
+              <b>Grille de 4 px</b>
+              <div class="reglette">
+                <span style="height: 4px"></span><span style="height: 8px"></span
+                ><span style="height: 12px"></span><span style="height: 16px"></span
+                ><span style="height: 24px"></span><span style="height: 32px"></span
+                ><span style="height: 48px"></span>
+              </div>
+              <p>
+                4, 8, 12, 16, 24, 32, 48. Marges de page 32 px (16 px sur téléphone), cartes 20 à 24
+                px.
+              </p>
+            </div>
+            <div class="mesure">
+              <b>Trois rayons</b>
+              <div class="rayons">
+                <span style="border-radius: 4px"></span><span style="border-radius: 8px"></span
+                ><span style="border-radius: 12px"></span>
+              </div>
+              <p>
+                4 px pour les plaques et étiquettes, 8 px pour les boutons et champs, 12 px pour les
+                cartes. Un rayon intérieur vaut le rayon extérieur moins la marge.
+              </p>
+            </div>
+            <div class="mesure">
+              <b>Profondeur sans ombre</b>
+              <p>
+                Paliers de surface (tôle, blanc) et filets fins. Une ombre douce et neutre seulement
+                pour ce qui flotte : barre de sélection, volet sur téléphone.
+              </p>
+            </div>
+          </div>
+          <h3>Mouvement</h3>
+          <ul class="regles">
+            <li>
+              Une seule courbe, <code>cubic-bezier(0.22, 1, 0.36, 1)</code>, 140 ms pour un survol,
+              200 ms pour un menu.
+            </li>
+            <li>
+              Seuls la couleur, le fond, la bordure, l’opacité et la position s’animent. Un bouton
+              pressé se réduit à 98 %.
+            </li>
+            <li>
+              Rien ne bouge tout seul, et tout s’arrête si l’appareil demande des animations
+              réduites.
+            </li>
+          </ul>
+        </section>
+
+        <section id="icones">
+          <h2>Icônes et images</h2>
+          <ul class="regles bloc">
+            <li>
+              <strong>Icônes</strong> : jeu lucide, 18 px, trait de 1,5, couleur du texte discret.
+              Le cuivre seulement sur l’icône de la rubrique courante.
+            </li>
+            <li><strong>Pas d’émoji</strong>, ni dans l’interface, ni dans les e-mails.</li>
+            <li>
+              <strong>Images</strong> : le produit lui-même (le plan, les photos de preuve prises
+              sur le terrain), jamais d’illustration générique. Les photos de preuve sont montrées
+              telles quelles, sans filtre.
+            </li>
+            <li>
+              <strong>À éviter</strong> : l’éclair, la prise, l’ampoule ; les bandes jaunes et
+              noires ; le bleu électrique ; le bouclier ou la coche de la « conformité garantie » ;
+              les codes de l’IA (violet, dégradés, étincelles, robots).
+            </li>
+          </ul>
+        </section>
+
+        <section id="ton">
+          <h2>Ton</h2>
+          <p class="chapo">
+            Celui d’un bon chef d’atelier : court, factuel, avec les mots du métier. La sécurité est
+            sérieuse, la marque ne vend pas la peur.
+          </p>
+          <table class="ton bloc">
+            <thead>
+              <tr>
+                <th>On écrit</th>
+                <th>On n’écrit pas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>3 réserves en retard sur le TGBT</td>
+                <td>Attention ! Votre conformité est en danger</td>
+              </tr>
+              <tr>
+                <td>Réserve levée le 12 mars, preuve jointe</td>
+                <td>Bravo, encore une victoire pour votre sécurité</td>
+              </tr>
+              <tr>
+                <td>Importez le rapport : les réserves sont extraites, vous les validez</td>
+                <td>L’IA révolutionne votre conformité</td>
+              </tr>
+              <tr>
+                <td>Le lien de l’électricien a expiré. Envoyez-en un nouveau depuis la réserve</td>
+                <td>Oups, une erreur est survenue</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="applications">
+          <h2>Applications</h2>
+          <p class="chapo">
+            Aperçus des supports à habiller avec la charte. L’e-mail et le dossier PDF sont la
+            prochaine étape d’intégration.
+          </p>
+          <div class="grille-2 bloc" style="align-items: start">
+            <div class="mail">
+              <div class="mail-tete">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  />
+                </svg>
+              </div>
+              <div class="mail-corps">
+                <p>Bonjour,</p>
+                <p>
+                  Usine Dupont vous confie 3 réserves électriques à corriger avant le 30 novembre
+                  2026.
+                </p>
+                <a class="btn" href="#applications" style="text-decoration: none"
+                  >Voir les réserves</a
+                >
+              </div>
+              <div class="mail-pied">Envoyé par Obsio pour Usine Dupont</div>
+            </div>
+            <div class="pdf">
+              <div class="pdf-tete">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 -2.5 245.4 73.5"
+                  role="img"
+                  aria-label="Obsio"
+                >
+                  <title>Obsio</title>
+                  <circle cx="35.00" cy="35.00" r="35.00" fill="#18201f" />
+                  <circle cx="35.00" cy="35.00" r="23.20" fill="#b4531f" />
+                  <path
+                    d="M121.40 33.30Q122.30 38.40 122.30 44.30L122.30 44.30Q122.30 50.40 121.20 55.60L121.20 55.60Q119.40 63.20 115.60 67Q111.80 70.80 105.60 70.80L105.60 70.80Q98.50 70.80 94.70 66L94.70 66Q94.50 65.70 94.30 65.80Q94.10 65.90 94.10 66.20L94.10 66.20L94.10 68.80Q94.10 69.30 93.75 69.65Q93.40 70 92.90 70L92.90 70L83.70 70Q83.20 70 82.85 69.65Q82.50 69.30 82.50 68.80L82.50 68.80L82.50 1.20Q82.50 0.70 82.85 0.35Q83.20 0 83.70 0L83.70 0L92.90 0Q93.40 0 93.75 0.35Q94.10 0.70 94.10 1.20L94.10 1.20L94.10 22.50Q94.10 22.80 94.30 22.85Q94.50 22.90 94.70 22.60L94.70 22.60Q98.20 18.10 105.20 18.10L105.20 18.10Q118.30 18.10 121.40 33.30L121.40 33.30ZM109.60 54.40Q110.60 50.90 110.60 44.40L110.60 44.40Q110.60 37.90 109.40 34L109.40 34Q107.30 28.10 102.10 28.10L102.10 28.10Q96.90 28.10 95.30 34.10L95.30 34.10Q94.20 37.60 94.20 44.40L94.20 44.40Q94.20 51 95.20 54.50L95.20 54.50Q96.90 60.80 102.20 60.80L102.20 60.80Q107.80 60.80 109.60 54.40L109.60 54.40ZM150 70.60Q141.30 70.60 136.10 66.70Q130.90 62.80 130.90 56.50L130.90 56.50L130.90 55.70Q130.90 55.20 131.25 54.85Q131.60 54.50 132.10 54.50L132.10 54.50L140.80 54.50Q141.30 54.50 141.65 54.85Q142 55.20 142 55.70L142 55.70L142 56Q142 58.40 144.30 60.15Q146.60 61.90 150 61.90L150 61.90Q153.30 61.90 155.35 60.30Q157.40 58.70 157.40 56.30L157.40 56.30Q157.40 53.90 155.35 52.60Q153.30 51.30 149 49.80L149 49.80L146.40 48.90Q139.60 46.70 135.50 43.35Q131.40 40 131.40 33.40L131.40 33.40Q131.40 26.40 136.40 22.35Q141.40 18.30 149.60 18.30L149.60 18.30Q158.10 18.30 163.15 22.45Q168.20 26.60 168.20 33.50L168.20 33.50L168.20 33.60Q168.20 34.10 167.85 34.45Q167.50 34.80 167 34.80L167 34.80L158.60 34.80Q158.10 34.80 157.75 34.45Q157.40 34.10 157.40 33.60L157.40 33.60L157.40 33.20Q157.40 30.70 155.30 29.05Q153.20 27.40 149.80 27.40L149.80 27.40Q146.50 27.40 144.50 28.95Q142.50 30.50 142.50 32.90L142.50 32.90Q142.50 34.80 143.90 36.05Q145.30 37.30 147.05 38Q148.80 38.70 153.20 40.20L153.20 40.20Q157.90 41.80 161.15 43.50Q164.40 45.20 166.70 48.20Q169 51.20 169 55.80L169 55.80Q169 62.70 163.85 66.65Q158.70 70.60 150 70.60L150 70.60ZM184.10 11.90Q181 11.90 179.05 9.90Q177.10 7.90 177.10 4.80L177.10 4.80Q177.10 1.70 179.05-0.30Q181-2.30 184.10-2.30L184.10-2.30Q187.30-2.30 189.25-0.35Q191.20 1.60 191.20 4.80L191.20 4.80Q191.20 7.90 189.20 9.90Q187.20 11.90 184.10 11.90L184.10 11.90ZM179.50 70Q179 70 178.65 69.65Q178.30 69.30 178.30 68.80L178.30 68.80L178.30 20Q178.30 19.50 178.65 19.15Q179 18.80 179.50 18.80L179.50 18.80L188.70 18.80Q189.20 18.80 189.55 19.15Q189.90 19.50 189.90 20L189.90 20L189.90 68.80Q189.90 69.30 189.55 69.65Q189.20 70 188.70 70L188.70 70L179.50 70ZM220.90 70.80Q212.80 70.80 207.60 66.45Q202.40 62.10 201.30 54.70L201.30 54.70Q200.50 49.90 200.50 44.40L200.50 44.40Q200.50 38.70 201.30 33.90L201.30 33.90Q202.40 26.60 207.70 22.35Q213 18.10 221 18.10L221 18.10Q228.90 18.10 234.10 22.35Q239.30 26.60 240.40 33.80L240.40 33.80Q241.20 38.80 241.20 44.30L241.20 44.30Q241.20 50.30 240.50 54.60L240.50 54.60Q239.40 62.10 234.20 66.45Q229 70.80 220.90 70.80L220.90 70.80ZM220.90 60.80Q224.20 60.80 226.45 58.60Q228.70 56.40 229.20 52.80L229.20 52.80Q229.60 47.60 229.60 44.40L229.60 44.40Q229.60 41.10 229.20 35.90L229.20 35.90Q228.70 32.30 226.45 30.20Q224.20 28.10 220.90 28.10L220.90 28.10Q217.50 28.10 215.30 30.20Q213.10 32.30 212.60 35.90L212.60 35.90Q212.20 39.40 212.20 44.40L212.20 44.40Q212.20 49.50 212.60 52.80L212.60 52.80Q213.10 56.40 215.30 58.60Q217.50 60.80 220.90 60.80L220.90 60.80Z"
+                    fill="#18201f"
+                  /></svg
+                ><small>Dossier de preuves<br />Édité le 9 novembre 2026</small>
+              </div>
+              <div>
+                <h4>Entrepôt de Villefranche</h4>
+                <div class="cartouche">
+                  <div><span>Origine</span><b>Vérification périodique</b></div>
+                  <div><span>Visite</span><b>23 novembre 2025</b></div>
+                  <div><span>Réserves</span><b>4, dont 1 levée</b></div>
+                  <div><span>Organisme</span><b>CERA Inspection</b></div>
+                </div>
+              </div>
+              <div class="pdf-pied"><span>Usine Dupont</span><span>Page 1 sur 6</span></div>
+            </div>
+          </div>
+          <h3>Autocollant d’armoire</h3>
+          <div class="demo">
+            <span class="autocollant"
+              ><svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 100.0 100.0"
+                role="img"
+                aria-label="Obsio"
+              >
+                <title>Obsio</title>
+                <circle cx="50" cy="50" r="50" fill="#ffffff" />
+                <circle cx="50" cy="50" r="33.14" fill="#b4531f" /></svg
+              ><span
+                ><b>Suivi Obsio</b><small>Réserves et preuves de cette armoire</small></span
+              ></span
+            >
+            <p class="cote" style="max-width: 30em">
+              Idée de support terrain : collé sur l’armoire, à côté des plaques de repérage
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
