@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 147 |
-| Partiel | 16 |
-| À corriger | 9 |
+| Conforme | 149 |
+| Partiel | 15 |
+| À corriger | 8 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -44,7 +44,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 **Priorité 3 : consolidation**
 
 13. Documentation de sécurité dans `docs/securite.md` : règles de validation et limites, fichiers acceptés, matrice des autorisations, classification des données, flux réseau, inventaire cryptographique et gestion des clés, délais de correction des dépendances, fonctions coûteuses, inventaire des journaux (2.1.1, 2.1.2, 5.1.1, 6.1.1, 8.1.1, 8.1.2, 11.1.1, 11.1.2, 11.2.2, 13.1.1, 14.1.1, 14.1.2, 14.2.4, 15.1.1, 15.1.3, 16.1.1, 16.2.3).
-14. Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
+14. **Fait.** Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
 15. **Fait.** Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
 17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
@@ -352,8 +352,8 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V16.3.3 | 2 | Conforme | Événements définis dans `docs/securite.md` (« Journal de sécurité ») : refus de validation, dépassements de limite, refus d’accès. |
 | V16.3.4 | 2 | Conforme | Erreurs 5xx journalisées avec leur détail par le gestionnaire d’erreurs ; échecs du worker journalisés. |
 | V16.4.1 | 2 | Conforme | JSON : pas d’injection de ligne. |
-| V16.4.2 | 2 | Partiel | Journaux Docker accessibles à root seulement (sudo par mot de passe), mais modifiables par lui. |
-| V16.4.3 | 2 | À corriger | Aucun envoi vers un système séparé. |
+| V16.4.2 | 2 | Conforme | Copie envoyée en continu à Better Stack (UE) : depuis le serveur, même root ne peut ni la modifier ni l’effacer (jeton d’ajout seul) ; journaux locaux réservés à root. |
+| V16.4.3 | 2 | Conforme | Service `journaux` (Vector) : journaux des conteneurs envoyés à Better Stack, système séparé, avec tampon sur disque si le service est injoignable (`deploy/server/vector.yaml`). |
 | V16.5.1 | 2 | Conforme | Gestionnaire d’erreurs (`apps/api/src/errors.ts`) : message générique pour toute erreur 5xx, détail dans le journal ; test `test/errors.test.ts`. |
 | V16.5.2 | 2 | Conforme | Extraction en tâche de fond avec 3 essais, échec affiché à l’utilisateur. |
 | V16.5.3 | 2 | Conforme | Transactions annulées en cas d’erreur ; Redis injoignable : limitation de débit et quotas refusent la requête en une seconde au plus (connexion à échec rapide, `apps/api/src/redis.ts`). |

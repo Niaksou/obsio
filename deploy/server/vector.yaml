@@ -1,0 +1,54 @@
+# Journaux envoyés hors du serveur (ASVS 16.4.2, 16.4.3) : Vector lit les journaux des conteneurs
+# (fichiers JSON de Docker, en lecture seule, sans accès au socket Docker) et les pousse vers
+# Better Stack (centre de données UE). Le jeton ne permet que l'ajout : depuis le serveur, rien
+# de ce qui est parti ne peut être modifié ni effacé.
+
+data_dir: /var/lib/vector
+
+sources:
+  conteneurs:
+    type: file
+    include: ['/var/lib/docker/containers/*/*-json.log']
+    # Premier démarrage : seulement les nouvelles lignes, pas tout l'historique.
+    ignore_checkpoints: false
+    read_from: end
+
+transforms:
+  lignes:
+    type: remap
+    inputs: [conteneurs]
+    source: |
+      docker = parse_json!(.message)
+      .conteneur = string(docker.attrs.tag) ?? "inconnu"
+      .flux = docker.stream
+      .dt = docker.time
+      del(.file)
+      del(.host)
+      del(.source_type)
+      # Les lignes de l'API et du worker sont déjà du JSON (pino) : leurs champs sont gardés.
+      contenu, erreur = parse_json(docker.log)
+      if erreur == null && is_object(contenu) {
+        . = merge(., object!(contenu))
+        del(.message)
+      } else {
+        .message = strip_whitespace(string!(docker.log))
+      }
+
+sinks:
+  betterstack:
+    type: http
+    inputs: [lignes]
+    uri: 'https://${BETTERSTACK_HOST}'
+    method: post
+    encoding:
+      codec: json
+    compression: gzip
+    auth:
+      strategy: bearer
+      token: '${BETTERSTACK_TOKEN}'
+    # Better Stack injoignable : les lignes attendent sur disque (jusqu'à 1 Go) plutôt que
+    # d'être perdues.
+    buffer:
+      type: disk
+      max_size: 1073741824
+      when_full: block

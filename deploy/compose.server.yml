@@ -5,8 +5,16 @@
 #
 #   docker compose -f deploy/compose.yml -f deploy/compose.server.yml --env-file deploy/server.env up -d --build --wait
 
+# Redémarrage automatique, et journaux Docker étiquetés du nom du conteneur (lu par le service
+# journaux) et limités à 5 fichiers de 10 Mo par conteneur.
 x-restart: &restart
   restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      tag: '{{.Name}}'
+      max-size: 10m
+      max-file: '5'
 
 services:
   proxy:
@@ -86,7 +94,27 @@ services:
           sleep 86400
         done
 
+  # Journaux envoyés à Better Stack (UE), hors du serveur et non modifiables depuis lui
+  # (COMPOSE_PROFILES=journaux, voir docs/deploiement.md). Lecture seule des fichiers de Docker,
+  # sans le socket Docker, qui donnerait la main sur tous les conteneurs.
+  journaux:
+    image: timberio/vector:0.51.1-alpine
+    <<: *restart
+    profiles: [journaux]
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    read_only: true
+    mem_limit: 256m
+    environment:
+      BETTERSTACK_HOST: ${BETTERSTACK_HOST:-}
+      BETTERSTACK_TOKEN: ${BETTERSTACK_TOKEN:-}
+    volumes:
+      - ./server/vector.yaml:/etc/vector/vector.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - vector-data:/var/lib/vector
+
 volumes:
   caddy-data:
   caddy-config:
   mailpit-data:
+  vector-data:

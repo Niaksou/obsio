@@ -102,6 +102,8 @@ L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"s
 | `validation-refusee` | Requête refusée par un schéma (champs en cause, sans leur valeur) |
 | `fichier-infecte` | Fichier déposé refusé par l'antivirus (nom de la signature) |
 
+Une copie de tous les journaux part vers Better Stack (UE) par le service `journaux` du serveur (`deploy/server/vector.yaml`) : hors du serveur, et non modifiable depuis lui, le jeton ne permettant que l'ajout.
+
 Jamais de mot de passe, de jeton ni de contenu métier dans le journal. Les actions sur les réserves sont tracées à part, dans `reserve_event`.
 
 ## Garde-fous automatiques
@@ -120,7 +122,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 147 conformes, 16 partielles, 9 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 149 conformes, 15 partielles, 8 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

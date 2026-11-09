@@ -133,6 +133,17 @@ Passage au compte de stockage restreint (novembre 2026) : dans `deploy/server.en
 
 Les services redémarrent seuls après un redémarrage du serveur. Les migrations de la base passent à chaque démarrage.
 
+## Journaux hors du serveur (Better Stack)
+
+Les journaux de tous les conteneurs partent vers Better Stack, en Allemagne : ils restent consultables si le serveur tombe, et quelqu'un qui en prendrait le contrôle ne pourrait pas effacer ses traces.
+
+1. Créer un compte sur https://betterstack.com, puis **Telemetry > Sources > Connect source** : plateforme **Vector**, centre de données **Europe (Germany)**.
+2. Copier l'adresse d'ingestion (`s….eu-nbg-2.betterstackdata.com`) et le jeton de la source dans `deploy/server.env` (`BETTERSTACK_HOST`, `BETTERSTACK_TOKEN`), avec `COMPOSE_PROFILES=journaux` (`local,journaux` si Mailpit est utilisé).
+3. `obsio up -d --wait`, puis vérifier dans Better Stack (**Live tail**) que les lignes arrivent.
+4. Créer une alerte sur les événements de sécurité : requête `securite:true`, par exemple plus de 20 `acces-refuse` ou un `fichier-infecte` en 5 minutes.
+
+Les journaux contiennent des adresses IP et, pour les événements d'authentification, l'adresse e-mail saisie : Better Stack est un sous-traitant au sens du RGPD (accord de traitement à accepter dans son compte, à inscrire au registre). L'offre gratuite garde 3 jours ; prévoir une durée plus longue avant la mise en production.
+
 ## Demande d'un client : export ou suppression de ses données
 
 Retrouver l'identifiant de l'organisation dans la sortie de `create-organisation.js`, ou par son slug (le nom en minuscules suivi de huit caractères, visible dans la base). Le conteneur de l'API est en lecture seule : l'archive passe par la sortie standard.
