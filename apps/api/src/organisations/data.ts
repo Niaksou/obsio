@@ -45,10 +45,12 @@ export const ORGANISATION_TABLES = [
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export const isUuid = (value: string) => UUID.test(value);
+
 /** Organisation désignée par son identifiant ou son slug, ou null si elle n'existe pas. */
 export async function findOrganisation(db: Database, idOrSlug: string) {
   const found = await db.query.organisation.findFirst({
-    where: UUID.test(idOrSlug)
+    where: isUuid(idOrSlug)
       ? or(eq(organisation.id, idOrSlug), eq(organisation.slug, idOrSlug))
       : eq(organisation.slug, idOrSlug),
   });

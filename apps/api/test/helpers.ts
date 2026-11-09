@@ -49,14 +49,27 @@ export async function createOrganisation(db: Database, name: string) {
 function createFakeQueue() {
   const jobs: { organisationId: string; importId: string }[] = [];
   const failures = new Map<string, string>();
-  const queue: ExtractionQueue & { jobs: typeof jobs; failures: typeof failures } = {
+  /** Imports dont la tâche est en cours d'exécution : ils ne peuvent pas être retirés. */
+  const running = new Set<string>();
+  const queue: ExtractionQueue & {
+    jobs: typeof jobs;
+    failures: typeof failures;
+    running: typeof running;
+  } = {
     jobs,
     failures,
+    running,
     async enqueue(job) {
       jobs.push(job);
     },
     async failure(importId) {
       return failures.get(importId) ?? null;
+    },
+    async discard(importId) {
+      if (running.has(importId)) return false;
+      const index = jobs.findIndex((job) => job.importId === importId);
+      if (index >= 0) jobs.splice(index, 1);
+      return true;
     },
     watch() {},
     async close() {},

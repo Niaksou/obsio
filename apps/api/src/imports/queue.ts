@@ -8,6 +8,8 @@ export interface ExtractionQueue {
   enqueue(job: ExtractReportJob): Promise<void>;
   /** Échec définitif de la tâche, s'il y en a un (null si elle tourne encore ou a réussi). */
   failure(importId: string): Promise<string | null>;
+  /** Retire la tâche d'un import (suppression d'une organisation) ; false si elle s'exécute. */
+  discard(importId: string): Promise<boolean>;
   /** Appelle onFinished dès qu'une extraction se termine (réussie ou en échec définitif). */
   watch(onFinished: (job: ExtractReportJob) => void): void;
   close(): Promise<void>;
@@ -39,6 +41,13 @@ export function createExtractionQueue(connection: Redis): ExtractionQueue {
       const job = await queue.getJob(importId);
       if (!job || (await job.getState()) !== 'failed') return null;
       return job.failedReason || "L'analyse a échoué.";
+    },
+    async discard(importId) {
+      const job = await queue.getJob(importId);
+      if (!job) return true;
+      if ((await job.getState()) === 'active') return false;
+      await job.remove();
+      return true;
     },
     watch(onFinished) {
       events = new QueueEvents(EXTRACTION_QUEUE, { connection: connection.duplicate() });
