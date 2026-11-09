@@ -69,7 +69,9 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-À faire : chaque exigence applicable avec son statut (conforme, à corriger, non applicable) et sa preuve (fichier, test ou configuration).
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 168 exigences applicables : 101 conformes, 32 partielles, 33 à corriger, 2 écarts proposés.
+
+Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 
 ## Écarts
 
