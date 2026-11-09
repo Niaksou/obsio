@@ -28,6 +28,7 @@ import { activateImport, ActivationError } from '../imports/activate.js';
 import { ingestImport, openSiteReserves } from '../imports/ingest.js';
 import type { ExtractionQueue } from '../imports/queue.js';
 import type { Storage } from '../storage.js';
+import { verifiedContentType } from '../file-signature.js';
 
 // Import des rapports (J3) : dépôt du PDF, suivi de l'analyse, relecture des brouillons,
 // validation. Consultation pour tout membre ; dépôt, relecture et validation pour l'admin.
@@ -117,7 +118,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
         return fail(reply, 400, "Fichier étranger à l'organisation");
       }
       const importId = match[2]!;
-      if ((await storage.contentType(request.body.key)) !== 'application/pdf') {
+      if ((await verifiedContentType(storage, request.body.key)) !== 'application/pdf') {
         return fail(reply, 400, 'PDF du rapport introuvable : relancez le dépôt.');
       }
       const created = await scoped(request, async (tx) => {

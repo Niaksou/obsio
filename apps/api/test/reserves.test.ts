@@ -38,7 +38,11 @@ beforeEach(async () => {
 async function uploadPhoto(post: PresignedPost) {
   const form = new FormData();
   for (const [name, value] of Object.entries(post.fields)) form.append(name, value);
-  form.append('file', new Blob(['jpeg'], { type: 'image/jpeg' }));
+  // Signature JPEG : l'API vérifie le contenu, pas seulement le type déclaré.
+  form.append(
+    'file',
+    new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3])], { type: 'image/jpeg' }),
+  );
   const response = await fetch(post.url, { method: 'POST', body: form });
   expect(response.ok).toBe(true);
   return post.key;

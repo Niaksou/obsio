@@ -67,6 +67,19 @@ export function createStorage(config: ApiConfig) {
       }
     },
 
+    /** Premiers octets de l'objet (signature du fichier), ou null s'il n'existe pas. */
+    async head(key: string, bytes: number): Promise<Buffer | null> {
+      try {
+        const response = await client.send(
+          new GetObjectCommand({ Bucket: bucket, Key: key, Range: `bytes=0-${bytes - 1}` }),
+        );
+        return response.Body ? Buffer.from(await response.Body.transformToByteArray()) : null;
+      } catch (error) {
+        if (error instanceof NoSuchKey) return null;
+        throw error;
+      }
+    },
+
     async put(key: string, body: Buffer | string, contentType: string) {
       await client.send(
         new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }),

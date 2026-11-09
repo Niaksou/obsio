@@ -12,6 +12,7 @@ import {
   PLAN_IMAGE_MAX_BYTES,
   PLAN_IMAGE_TYPES,
   PLAN_SOURCE_MAX_BYTES,
+  PLAN_SOURCE_TYPES,
   planConfirmSchema,
   planUploadRequestSchema,
   planUploadResponseSchema,
@@ -28,6 +29,7 @@ import type { Guards } from '../auth/guards.js';
 import { withOrganisation, type Database, type Transaction } from '../db/client.js';
 import { building, equipment, floor, site } from '../db/schema/index.js';
 import type { Storage } from '../storage.js';
+import { verifiedContentType } from '../file-signature.js';
 
 // Sites, bâtiments, étages, plans et équipements. Lecture pour tout membre, modification pour
 // l'admin. Rien n'est supprimé : « archive » masque la ligne des listes.
@@ -383,12 +385,18 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
       if (![imageKey, sourceKey].every((key) => key === null || key.startsWith(prefix))) {
         return reply.code(400).send({ message: "Fichier de plan étranger à l'étage" });
       }
-      const imageType = await storage.contentType(imageKey);
+      const imageType = await verifiedContentType(storage, imageKey);
       if (!imageType || !(PLAN_IMAGE_TYPES as readonly string[]).includes(imageType)) {
         return reply.code(400).send({ message: "Image du plan introuvable ou d'un type refusé" });
       }
-      if (sourceKey && !(await storage.contentType(sourceKey))) {
-        return reply.code(400).send({ message: "Fichier d'origine du plan introuvable" });
+      const sourceType = sourceKey ? await verifiedContentType(storage, sourceKey) : null;
+      if (
+        sourceKey &&
+        (!sourceType || !(PLAN_SOURCE_TYPES as readonly string[]).includes(sourceType))
+      ) {
+        return reply
+          .code(400)
+          .send({ message: "Fichier d'origine du plan introuvable ou d'un type refusé" });
       }
       const [row] = await scoped(request, (tx) =>
         tx

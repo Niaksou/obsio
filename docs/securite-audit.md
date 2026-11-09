@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 105 |
+| Conforme | 106 |
 | Partiel | 32 |
-| À corriger | 29 |
+| À corriger | 28 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -28,7 +28,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 1. **Fait.** Erreurs internes renvoyées au navigateur : gestionnaire d'erreurs qui renvoie un message générique et journalise le détail (16.5.1).
 2. **Fait.** Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
 3. **Fait.** `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
-4. Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
+4. **Fait.** Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
 5. En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
 6. Moindre privilège : le rôle propriétaire de la base et la clé principale du stockage seulement pour la migration et les commandes de l'éditeur ; un compte de stockage dédié à l'application ; mot de passe Redis (13.2.1, 13.2.2, 13.3.2).
 
@@ -154,7 +154,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | --- | --- | --- | --- |
 | V5.1.1 | 2 | Partiel | Types et tailles définis dans `@obsio/shared` (rapport 50 Mo, plan 50 Mo, image de plan 30 Mo, photos), non documentés. |
 | V5.2.1 | 1 | Conforme | Taille imposée par la signature d’envoi (`content-length-range`). |
-| V5.2.2 | 1 | À corriger | Seul le type déclaré est vérifié (type de l’objet stocké), pas le contenu (signature du fichier : `%PDF-`, PNG, JPEG, WebP). |
+| V5.2.2 | 1 | Conforme | Type déclaré confirmé par la signature du contenu (PDF, PNG, JPEG, WebP) avant tout traitement : rapports, plans, photos de preuve (`apps/api/src/file-signature.ts`, `test/file-signature.test.ts`). |
 | V5.2.3 | 2 | N/A | Aucune archive acceptée. |
 | V5.3.1 | 1 | Conforme | Stockage objet : rien n’est exécuté. |
 | V5.3.2 | 1 | Conforme | Clés générées par le serveur ; préfixe de l’organisation revérifié (`routes/imports.ts`, `routes/premises.ts`, `reserves/proofs.ts`). |

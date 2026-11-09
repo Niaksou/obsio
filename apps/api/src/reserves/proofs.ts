@@ -4,6 +4,7 @@ import type { Transaction } from '../db/client.js';
 import { proof, reserve } from '../db/schema/index.js';
 import type { Storage } from '../storage.js';
 import { recordEvent } from './events.js';
+import { verifiedContentType } from '../file-signature.js';
 
 export type ProofAuthor = { userId: string } | { contractorId: string; assignmentId: string };
 
@@ -21,7 +22,7 @@ export async function checkPhotos(
   const prefix = proofPhotoPrefix(organisationId, reserveId);
   for (const key of keys) {
     if (!key.startsWith(prefix)) throw new ProofError('Photo étrangère à la réserve.');
-    const type = await storage.contentType(key);
+    const type = await verifiedContentType(storage, key);
     if (!type || !(PROOF_PHOTO_TYPES as readonly string[]).includes(type)) {
       throw new ProofError('Photo introuvable : renvoyez-la.');
     }
