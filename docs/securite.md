@@ -60,6 +60,20 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
   - les mots de passe connus des fuites de données (Have I Been Pwned) : seuls les 5 premiers caractères de l'empreinte SHA-1 sont envoyés à `api.pwnedpasswords.com` ; si le service est injoignable, l'opération est refusée et peut être retentée ;
   - les mots propres au contexte, même avec accents, majuscules ou séparateurs : `obsio`, `motdepasse`, `password`, `azerty`, `qwerty`, `electricite`, `electrique`, `electricien`, `verification`, `conformite`, `reserve`, `apsad`, ainsi que le nom de l'utilisateur et la partie locale de son adresse e-mail (`apps/api/src/auth/password-policy.ts`).
 
+## Journal de sécurité
+
+L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"securite": true` (`apps/api/src/security-log.ts`), avec l'heure, l'adresse IP, la méthode, l'URL sans ses jetons, l'utilisateur et l'organisation quand ils sont connus :
+
+| Événement | Quand |
+| --- | --- |
+| `authentification` | Connexion, inscription, déconnexion, demande et réinitialisation de mot de passe, changement de mot de passe, vérification d'adresse, fermeture de sessions, invitation, acceptation, retrait de membre, changement de rôle, double authentification : réussite ou échec, avec l'adresse saisie |
+| `acces-refuse` | Réponse 401 ou 403 d'une route de l'API |
+| `lien-intervention-refuse` | Lien intervenant inconnu, expiré ou révoqué |
+| `limite-depassee` | Réponse 429 (limitation de débit) |
+| `validation-refusee` | Requête refusée par un schéma (champs en cause, sans leur valeur) |
+
+Jamais de mot de passe, de jeton ni de contenu métier dans le journal. Les actions sur les réserves sont tracées à part, dans `reserve_event`.
+
 ## Garde-fous automatiques
 
 Workflow `Sécurité` (`.github/workflows/securite.yml`), à chaque push, sur chaque pull request et chaque lundi :

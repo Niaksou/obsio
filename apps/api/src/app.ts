@@ -7,6 +7,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Redis } from 'ioredis';
+import type { Writable } from 'node:stream';
 import type pg from 'pg';
 import { createAuth } from './auth/auth.js';
 import { createGuards, type Guards } from './auth/guards.js';
@@ -15,7 +16,8 @@ import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import { handleError } from './errors.js';
-import { loggerOptions } from './logging.js';
+import { logSerializers, loggerOptions } from './logging.js';
+import { registerSecurityLog } from './security-log.js';
 import type { ExtractionQueue } from './imports/queue.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { inspectionRoutes } from './routes/inspections.js';
@@ -42,6 +44,8 @@ export interface AppDependencies {
   emailSender: EmailSender;
   storage: Storage;
   queue: ExtractionQueue;
+  /** Tests : journal écrit dans ce flux, quel que soit NODE_ENV. */
+  logStream?: Writable;
 }
 
 export async function buildApp({
@@ -52,14 +56,18 @@ export async function buildApp({
   emailSender,
   storage,
   queue,
+  logStream,
 }: AppDependencies) {
   const app = Fastify({
-    logger: loggerOptions(config.NODE_ENV),
+    logger: logStream
+      ? { stream: logStream, serializers: logSerializers }
+      : loggerOptions(config.NODE_ENV),
     trustProxy: config.TRUST_PROXY,
   }).withTypeProvider<ZodTypeProvider>();
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
   app.setErrorHandler(handleError);
+  registerSecurityLog(app);
   // Réponses de l'API jamais conservées par le navigateur ni par un proxy (ASVS 14.3.2).
   app.addHook('onSend', async (_request, reply) => {
     if (!reply.hasHeader('cache-control')) reply.header('cache-control', 'no-store');

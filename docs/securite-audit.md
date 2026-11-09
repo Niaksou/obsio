@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 117 |
-| Partiel | 26 |
-| À corriger | 23 |
+| Conforme | 122 |
+| Partiel | 23 |
+| À corriger | 21 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -38,7 +38,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 8. **Fait.** Mots de passe compromis et courants refusés (plugin `haveIBeenPwned` de Better Auth, qui n'envoie qu'un début d'empreinte), avec une liste de mots propres à Obsio et à l'organisation (6.1.2, 6.2.4, 6.2.11, 6.2.12).
 9. Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
 10. Sessions : durée maximale absolue et délai d'inactivité décidés et documentés ; l'admin ferme les sessions d'un membre qu'il retire (7.1.1, 7.1.2, 7.3.1, 7.3.2, 7.4.5).
-11. Journalisation de sécurité : connexions réussies et échouées, refus d'accès avec l'utilisateur, échecs de validation, opérations de l'éditeur (16.2.1, 16.3.1 à 16.3.4).
+11. **Fait.** Journalisation de sécurité : connexions réussies et échouées, refus d'accès avec l'utilisateur, échecs de validation, opérations de l'éditeur (16.2.1, 16.3.1 à 16.3.4).
 12. Quotas par organisation : imports et extractions par jour, dossiers PDF et exports (2.1.3, 2.3.2, 2.4.1, 15.2.2).
 
 **Priorité 3 : consolidation**
@@ -342,15 +342,15 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
 | V16.1.1 | 2 | À corriger | Pas d’inventaire des journaux. |
-| V16.2.1 | 2 | Partiel | Journal des requêtes (heure, route, statut, identifiant de requête) sans l’utilisateur ; journal métier `reserve_event` complet (qui, quoi, quand). |
+| V16.2.1 | 2 | Conforme | Événements de sécurité avec heure, adresse IP, méthode, URL sans jetons, utilisateur et organisation ; journal métier `reserve_event` (qui, quoi, quand). |
 | V16.2.2 | 2 | Conforme | Horodatage UTC (millisecondes epoch), horloge système synchronisée. |
 | V16.2.3 | 2 | Partiel | Journaux Docker sur le serveur, non documentés. |
 | V16.2.4 | 2 | Conforme | JSON (pino). |
 | V16.2.5 | 2 | Partiel | URL journalisées sans leurs jetons (`test/logging.test.ts`) ; règles par niveau de protection à définir avec la classification des données (14.1.1). |
-| V16.3.1 | 2 | À corriger | Connexions réussies et échouées non journalisées. |
-| V16.3.2 | 2 | Partiel | Refus visibles par leur code (401, 403) dans le journal des requêtes, sans utilisateur ni motif. |
-| V16.3.3 | 2 | À corriger | Pas d’événements de sécurité définis. |
-| V16.3.4 | 2 | Partiel | Erreurs 500 de l’API et échecs du worker journalisés. |
+| V16.3.1 | 2 | Conforme | Connexion, inscription, déconnexion, réinitialisation et changement de mot de passe, réussite comme échec (`apps/api/src/security-log.ts`, `test/security-log.test.ts`). |
+| V16.3.2 | 2 | Conforme | Réponses 401 et 403 journalisées avec l’utilisateur, l’organisation et la route ; liens intervenant refusés. |
+| V16.3.3 | 2 | Conforme | Événements définis dans `docs/securite.md` (« Journal de sécurité ») : refus de validation, dépassements de limite, refus d’accès. |
+| V16.3.4 | 2 | Conforme | Erreurs 5xx journalisées avec leur détail par le gestionnaire d’erreurs ; échecs du worker journalisés. |
 | V16.4.1 | 2 | Conforme | JSON : pas d’injection de ligne. |
 | V16.4.2 | 2 | Partiel | Journaux Docker accessibles à root seulement (sudo par mot de passe), mais modifiables par lui. |
 | V16.4.3 | 2 | À corriger | Aucun envoi vers un système séparé. |

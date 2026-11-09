@@ -1,5 +1,6 @@
 import { STATUS_CODES } from 'node:http';
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { logSecurityEvent } from './security-log.js';
 
 /**
  * Erreurs non prévues par les routes : le détail (message SQL, pile) reste dans le journal, le
@@ -15,6 +16,10 @@ export function handleError(error: FastifyError, request: FastifyRequest, reply:
       error: STATUS_CODES[status],
       message: 'Erreur interne du serveur. Réessayez plus tard.',
     });
+  }
+  if (error.validation) {
+    // Champs refusés, sans leur valeur : une tentative de contournement se repère à la répétition.
+    logSecurityEvent(request, 'validation-refusee', { statut: status, detail: error.message });
   }
   return reply
     .code(status)

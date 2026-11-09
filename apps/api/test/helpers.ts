@@ -89,6 +89,7 @@ export async function buildTestApp() {
   const app = await buildApp({ config, pool, db, redis, emailSender, storage, queue });
   return {
     app,
+    pool,
     db,
     redis,
     config,
