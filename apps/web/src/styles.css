@@ -533,6 +533,34 @@ form.card > button[type='submit'] {
   margin: 0;
 }
 
+/* Activation de la double authentification */
+.qr-code {
+  width: 192px;
+  height: 192px;
+  justify-self: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.secret-key {
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+  color: var(--ink);
+}
+
+.backup-codes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  padding: 12px 16px;
+  list-style: none;
+  font-family: ui-monospace, monospace;
+  background: var(--line-soft);
+  border-radius: var(--radius);
+}
+
 .card h1 {
   font-size: 1.75rem;
 }

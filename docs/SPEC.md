@@ -116,7 +116,7 @@ Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité
 | Tâches de fond | BullMQ sur Redis | Imports longs hors des requêtes HTTP |
 | Fichiers | Stockage objet compatible S3, URLs signées (RustFS en local) | PDF, plans et photos hors de la base |
 | Extraction | Mistral OCR + modèle Mistral en sortie structurée | Hébergé dans l'UE, bon sur les tableaux |
-| Auth | Better Auth (plugin organisation) ; jetons signés pour les intervenants | Organisations, rôles et invitations fournis ; pas de compte pour l'électricien |
+| Auth | Better Auth (plugins organisation et double authentification TOTP, obligatoire) ; jetons signés pour les intervenants | Organisations, rôles, invitations et TOTP fournis ; pas de compte pour l'électricien |
 | E-mail | Brevo (France), en SMTP | Notifications et envoi des liens ; offre gratuite suffisante au départ |
 | Hébergement | VPS OVH avec Docker Compose (services gérés pour la production) | Coût minimal, société française, argument RGPD |
 

@@ -45,6 +45,12 @@ export function createGuards(auth: Auth, db: Database) {
   async function requireUser(request: FastifyRequest, reply: FastifyReply) {
     const result = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
     if (!result) return reply.code(401).send({ message: 'Authentification requise' });
+    // Double authentification obligatoire : la session sert seulement à la configurer.
+    if (!result.user.twoFactorEnabled) {
+      return reply
+        .code(403)
+        .send({ message: 'Activez la double authentification pour continuer.' });
+    }
     request.user = {
       id: result.user.id,
       name: result.user.name,

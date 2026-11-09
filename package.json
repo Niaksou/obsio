@@ -18,7 +18,8 @@
     "org:create": "pnpm --filter @obsio/api org:create",
     "org:export": "pnpm --filter @obsio/api org:export",
     "org:delete": "pnpm --filter @obsio/api org:delete",
-    "demo:seed": "pnpm --filter @obsio/api demo:seed"
+    "demo:seed": "pnpm --filter @obsio/api demo:seed",
+    "user:reset-2fa": "pnpm --filter @obsio/api user:reset-2fa"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

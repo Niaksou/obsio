@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { authClient } from '../auth-client.js';
+import { TwoFactorSetup } from '../pages/TwoFactorSetup.js';
 
-/** Redirige vers la connexion si aucune session, en gardant la page demandée. */
+/**
+ * Redirige vers la connexion si aucune session, en gardant la page demandée ; fait activer la
+ * double authentification, obligatoire, avant d'afficher la page.
+ */
 export function RequireSession({ children }: { children: ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   const location = useLocation();
@@ -12,6 +16,7 @@ export function RequireSession({ children }: { children: ReactNode }) {
     const redirect = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/connexion?redirect=${redirect}`} replace />;
   }
+  if (!session.user.twoFactorEnabled) return <TwoFactorSetup />;
   return children;
 }
 

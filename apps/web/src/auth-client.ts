@@ -1,10 +1,10 @@
 import { ac, roles } from '@obsio/shared/permissions';
-import { organizationClient } from 'better-auth/client/plugins';
+import { organizationClient, twoFactorClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
   baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
-  plugins: [organizationClient({ ac, roles })],
+  plugins: [organizationClient({ ac, roles }), twoFactorClient()],
 });
 
 /** Message d'erreur affichable à partir d'une réponse d'erreur de Better Auth. */
@@ -29,4 +29,12 @@ const ERROR_MESSAGES: Record<string, string> = {
     'Cette invitation a été envoyée à une autre adresse que celle de votre compte.',
   EMAIL_VERIFICATION_REQUIRED_BEFORE_ACCEPTING_OR_REJECTING_INVITATION:
     "Vérifiez d'abord votre adresse e-mail.",
+  INVALID_PASSWORD: 'Mot de passe incorrect.',
+  INVALID_CODE: 'Code incorrect ou déjà utilisé : attendez le suivant.',
+  INVALID_BACKUP_CODE: 'Code de secours incorrect ou déjà utilisé.',
+  INVALID_TWO_FACTOR_COOKIE: 'Délai dépassé : reconnectez-vous.',
+  TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: 'Trop de codes incorrects : reconnectez-vous.',
+  ACCOUNT_TEMPORARILY_LOCKED:
+    'Trop de codes incorrects : compte bloqué 15 minutes. Réessayez plus tard.',
+  TWO_FACTOR_REQUIRED: 'Activez la double authentification pour continuer.',
 };

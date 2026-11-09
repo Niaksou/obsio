@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { authClient } from '../auth-client.js';
 import { useSubmit } from '../components/useSubmit.js';
+import { TwoFactorSetup } from './TwoFactorSetup.js';
 
 export function AcceptInvitation() {
   const { id = '' } = useParams();
@@ -27,6 +28,7 @@ export function AcceptInvitation() {
       </div>
     );
   }
+  if (!session.user.twoFactorEnabled) return <TwoFactorSetup />;
   return <InvitationForSession invitationId={id} />;
 }
 

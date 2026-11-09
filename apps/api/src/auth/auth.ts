@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
-import { haveIBeenPwned, organization } from 'better-auth/plugins';
+import { haveIBeenPwned, organization, twoFactor } from 'better-auth/plugins';
 import { ac, roles } from '@obsio/shared/permissions';
 import type { ApiConfig } from '../config.js';
 import type { Database } from '../db/client.js';
@@ -11,6 +11,7 @@ import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
 import { forbiddenWord } from './password-policy.js';
+import { enforceTwoFactor, rememberUsedCode } from './two-factor.js';
 
 /** Routes qui fixent un mot de passe : liste des mots interdits et mots de passe divulgués. */
 const PASSWORD_PATHS = ['/sign-up/email', '/reset-password', '/change-password'];
@@ -61,8 +62,10 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       },
     },
     hooks: {
-      // Pas d'inscription en libre-service : il faut une invitation en attente pour cette adresse.
+      // Double authentification obligatoire (two-factor.ts), mots de passe trop faciles refusés,
+      // pas d'inscription en libre-service : il faut une invitation en attente pour l'adresse.
       before: createAuthMiddleware(async (ctx) => {
+        await enforceTwoFactor(ctx);
         if (PASSWORD_PATHS.includes(ctx.path)) {
           const body = (ctx.body ?? {}) as Record<string, unknown>;
           const password = body.password ?? body.newPassword;
@@ -86,6 +89,7 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
           });
         }
       }),
+      after: createAuthMiddleware(rememberUsedCode),
     },
     // Reconnexion après 2 heures sans activité (prolongée au plus toutes les 5 minutes d'usage) ;
     // durée maximale de 12 heures fixée par la base (migration 0007_session_lifetime).
@@ -110,6 +114,9 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       },
     },
     plugins: [
+      // TOTP (application d'authentification) et 10 codes de secours à usage unique, chiffrés
+      // en base ; compte verrouillé 15 minutes après 10 codes faux de suite.
+      twoFactor({ issuer: 'Obsio' }),
       // Mot de passe connu des fuites de données refusé (ASVS 6.2.4, 6.2.12) : seuls les 5
       // premiers caractères de son empreinte SHA-1 partent vers api.pwnedpasswords.com. Coupé
       // dans les tests (pas d'appel réseau), sauf s'ils l'activent explicitement.

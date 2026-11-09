@@ -60,6 +60,15 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
   - les mots de passe connus des fuites de données (Have I Been Pwned) : seuls les 5 premiers caractères de l'empreinte SHA-1 sont envoyés à `api.pwnedpasswords.com` ; si le service est injoignable, l'opération est refusée et peut être retentée ;
   - les mots propres au contexte, même avec accents, majuscules ou séparateurs : `obsio`, `motdepasse`, `password`, `azerty`, `qwerty`, `electricite`, `electrique`, `electricien`, `verification`, `conformite`, `reserve`, `apsad`, ainsi que le nom de l'utilisateur et la partie locale de son adresse e-mail (`apps/api/src/auth/password-policy.ts`).
 
+## Double authentification
+
+- **Obligatoire pour tous les comptes** (les intervenants, qui passent par un lien sans compte, ne sont pas concernés). Tant qu'elle n'est pas activée, la session ne sert qu'à la configurer : l'API répond 403 et les routes de Better Auth (organisation, invitations, sessions, mot de passe) refusent avec `TWO_FACTOR_REQUIRED` (`apps/api/src/auth/two-factor.ts`).
+- Application d'authentification (TOTP, 6 chiffres, 30 secondes) : activation après confirmation du mot de passe, QR code ou clé à saisir, puis premier code. Secret chiffré en base avec `BETTER_AUTH_SECRET`.
+- 10 codes de secours à usage unique, affichés une seule fois à l'activation.
+- Un code TOTP accepté ne sert qu'une fois, même pendant sa validité. Compte verrouillé 15 minutes après 10 codes faux de suite.
+- Ni désactivation, ni appareil de confiance qui dispenserait du code.
+- Téléphone et codes de secours perdus : `pnpm user:reset-2fa <e-mail>` par l'éditeur, **après vérification de l'identité du demandeur auprès de l'admin de son organisation, par un autre canal que l'e-mail** (téléphone). Le secret est supprimé et les sessions fermées ; le mot de passe reste exigé pour en configurer un nouveau.
+
 ## Sessions
 
 - Reconnexion après **2 heures sans activité** ; la session est prolongée au plus toutes les 5 minutes d'usage (`apps/api/src/auth/auth.ts`).
@@ -110,7 +119,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 168 exigences applicables, à ce jour : 130 conformes, 20 partielles, 16 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 137 conformes, 20 partielles, 15 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import pg from 'pg';
 import { expect } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -106,9 +107,29 @@ export async function buildTestApp() {
 
 type TestApp = Awaited<ReturnType<typeof buildTestApp>>;
 
+export const TEST_PASSWORD = 'cheval-agrafe-batterie-42';
+
+/** Code TOTP (RFC 6238) d'un secret en base 32, décalé de `step` périodes de 30 secondes. */
+export function totp(secret: string, step = 0): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = '';
+  for (const char of secret.replace(/=+$/, '')) {
+    bits += alphabet.indexOf(char).toString(2).padStart(5, '0');
+  }
+  const key = Buffer.from(bits.match(/.{8}/g)!.map((byte) => parseInt(byte, 2)));
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30_000) + step));
+  const hmac = createHmac('sha1', key).update(counter).digest();
+  const offset = hmac[hmac.length - 1]! & 15;
+  return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0');
+}
+
 /** Client HTTP de test qui garde les cookies de session, comme un navigateur. */
 export class TestClient {
   private cookies = new Map<string, string>();
+  /** Secret TOTP du compte, une fois la double authentification activée. */
+  twoFactorSecret: string | null = null;
+  backupCodes: string[] = [];
 
   constructor(private readonly ctx: TestApp) {}
 
@@ -145,17 +166,44 @@ export class TestClient {
     return this.request('PUT', url, body);
   }
 
-  /** Inscription, puis clic sur le lien de vérification reçu par e-mail (connecte l'utilisateur). */
-  async signUpAndVerify(name: string, email: string) {
+  /**
+   * Inscription, clic sur le lien de vérification reçu par e-mail (connecte l'utilisateur), puis
+   * activation de la double authentification, obligatoire, sauf `{ twoFactor: false }`.
+   */
+  async signUpAndVerify(name: string, email: string, { twoFactor = true } = {}) {
     const signUp = await this.post('/api/auth/sign-up/email', {
       name,
       email,
-      password: 'cheval-agrafe-batterie-42',
+      password: TEST_PASSWORD,
     });
     if (signUp.statusCode !== 200) throw new Error(`Inscription refusée : ${signUp.body}`);
     const link = lastLinkSentTo(this.ctx, email);
     const verify = await this.get(link.pathname + link.search);
     if (verify.statusCode >= 400) throw new Error(`Vérification refusée : ${verify.body}`);
+    if (twoFactor) await this.enableTwoFactor();
+  }
+
+  /** Active la double authentification comme le front : mot de passe, puis premier code. */
+  async enableTwoFactor() {
+    const enable = await this.post('/api/auth/two-factor/enable', { password: TEST_PASSWORD });
+    if (enable.statusCode !== 200) throw new Error(`Activation refusée : ${enable.body}`);
+    const { totpURI, backupCodes } = enable.json() as { totpURI: string; backupCodes: string[] };
+    this.twoFactorSecret = new URL(totpURI).searchParams.get('secret');
+    this.backupCodes = backupCodes;
+    const verify = await this.post('/api/auth/two-factor/verify-totp', {
+      code: totp(this.twoFactorSecret!),
+    });
+    if (verify.statusCode !== 200) throw new Error(`Premier code refusé : ${verify.body}`);
+  }
+
+  /**
+   * Connexion par mot de passe puis code TOTP de la période suivante (celui de la période en
+   * cours a pu servir à l'activation, et un code ne sert qu'une fois).
+   */
+  async signIn(email: string, password = TEST_PASSWORD) {
+    const response = await this.post('/api/auth/sign-in/email', { email, password });
+    if (response.statusCode !== 200 || !response.json().twoFactorRedirect) return response;
+    return this.post('/api/auth/two-factor/verify-totp', { code: totp(this.twoFactorSecret!, 1) });
   }
 }
 

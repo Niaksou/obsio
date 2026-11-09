@@ -150,6 +150,16 @@ obsio run --rm setup node dist/cli/delete-organisation.js <identifiant> --confir
 
 Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes de la base gardent les données supprimées jusqu'à sept jours.
 
+## Double authentification perdue
+
+Un utilisateur qui a perdu son téléphone et ses codes de secours demande une réinitialisation. Vérifier d'abord son identité auprès de l'admin de son organisation, par téléphone (jamais sur la seule foi d'un e-mail), puis :
+
+```sh
+obsio exec -T api node dist/cli/reset-two-factor.js <e-mail>
+```
+
+Ses sessions sont fermées ; à sa prochaine connexion, avec son mot de passe, il configure une nouvelle application.
+
 ## Sauvegardes
 
 La base est sauvegardée au démarrage puis toutes les 24 heures dans `/var/backups/obsio` (sept jours conservés). Les fichiers (photos, rapports) restent dans le volume Docker du stockage, sans sauvegarde à ce stade.

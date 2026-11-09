@@ -20,6 +20,7 @@
     "org:delete": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/delete-organisation.ts",
     "org:export": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/export-organisation.ts",
     "storage:setup": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/setup-storage.ts",
+    "user:reset-2fa": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/reset-two-factor.ts",
     "demo:seed": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/seed-demo.ts"
   },
   "dependencies": {

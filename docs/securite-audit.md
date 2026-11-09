@@ -8,11 +8,11 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 130 |
+| Conforme | 137 |
 | Partiel | 20 |
-| À corriger | 16 |
+| À corriger | 15 |
 | Écart proposé | 2 |
-| N/A | 85 |
+| N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
 
 Points forts : cloisonnement par la base (RLS forcée et testée), validation Zod de toutes les entrées et sorties, autorisations vérifiées par l'API et la base, liens intervenant hachés et limités, en-têtes de sécurité et CSP sur l'application, TLS et HSTS, outils de sécurité dans la CI.
@@ -34,7 +34,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 **Priorité 2 : avant la bêta**
 
-7. Double authentification par application (TOTP, plugin `twoFactor` de Better Auth), obligatoire au moins pour les administrateurs (6.3.3, 6.4.3).
+7. **Fait.** Double authentification par application (TOTP, plugin `twoFactor` de Better Auth), obligatoire au moins pour les administrateurs (6.3.3, 6.4.3).
 8. **Fait.** Mots de passe compromis et courants refusés (plugin `haveIBeenPwned` de Better Auth, qui n'envoie qu'un début d'empreinte), avec une liste de mots propres à Obsio et à l'organisation (6.1.2, 6.2.4, 6.2.11, 6.2.12).
 9. Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
 10. Sessions : durée maximale absolue et délai d'inactivité décidés et documentés ; l'admin ferme les sessions d'un membre qu'il retire (7.1.1, 7.1.2, 7.3.1, 7.3.2, 7.4.5).
@@ -183,17 +183,17 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V6.2.12 | 2 | Conforme | Plugin `haveIBeenPwned` de Better Auth à l’inscription, à la réinitialisation et au changement (k-anonymat : 5 caractères de l’empreinte envoyés). |
 | V6.3.1 | 1 | Conforme | Limitation par adresse IP : connexion 10 par 5 min, inscription et réinitialisation 5 par heure. |
 | V6.3.2 | 1 | Conforme | Aucun compte par défaut ; le compte opérateur n’a pas de mot de passe. |
-| V6.3.3 | 2 | À corriger | Pas de double authentification. |
+| V6.3.3 | 2 | Conforme | Double authentification obligatoire pour tous les comptes : TOTP (plugin `twoFactor`), sans désactivation ni appareil de confiance ; API et routes de Better Auth refusées tant qu’elle n’est pas activée (`apps/api/src/auth/two-factor.ts`). |
 | V6.3.4 | 2 | Conforme | Un seul parcours ; le lien intervenant est un accès limité à une assignation, documenté. |
 | V6.4.1 | 1 | Conforme | Pas de mot de passe initial ; invitations aléatoires valables 7 jours. |
 | V6.4.2 | 1 | Conforme | Ni indice ni question secrète. |
-| V6.4.3 | 2 | Partiel | Lien de réinitialisation à durée limitée, qui ferme les sessions ; à revoir avec la double authentification. |
-| V6.4.4 | 2 | N/A | Pas de double authentification à ce jour. |
-| V6.5.1 | 2 | N/A | Pas de code à usage unique ni de double authentification. |
-| V6.5.2 | 2 | N/A | Pas de code à usage unique ni de double authentification. |
-| V6.5.3 | 2 | N/A | Pas de code à usage unique ni de double authentification. |
-| V6.5.4 | 2 | N/A | Pas de code à usage unique ni de double authentification. |
-| V6.5.5 | 2 | N/A | Pas de code à usage unique ni de double authentification. |
+| V6.4.3 | 2 | Conforme | Lien de réinitialisation à durée limitée, qui ferme les sessions ; la connexion suivante demande toujours le code TOTP. |
+| V6.4.4 | 2 | Conforme | Facteur perdu : codes de secours, sinon `pnpm user:reset-2fa` par l’éditeur après vérification de l’identité auprès de l’admin de l’organisation, par un autre canal que l’e-mail ; le mot de passe reste exigé. |
+| V6.5.1 | 2 | Conforme | Codes de secours à usage unique ; un code TOTP accepté est refusé s’il est rejoué pendant sa validité. |
+| V6.5.2 | 2 | Partiel | Codes de secours (environ 50 bits) chiffrés en base avec BETTER_AUTH_SECRET, et non hachés avec sel comme demandé sous 112 bits ; secret TOTP chiffré. |
+| V6.5.3 | 2 | Conforme | Secret TOTP et codes de secours tirés par le générateur aléatoire cryptographique de Better Auth. |
+| V6.5.4 | 2 | Conforme | Codes de secours de 10 caractères alphanumériques, codes TOTP de 6 chiffres : au-delà de 20 bits. |
+| V6.5.5 | 2 | Conforme | Code TOTP valable 30 secondes, une période de part et d’autre tolérée (90 secondes au plus) ; compte verrouillé 15 minutes après 10 codes faux. |
 | V6.6.1 | 2 | N/A | Pas d’authentification hors bande (SMS, notification). |
 | V6.6.2 | 2 | N/A | Pas d’authentification hors bande (SMS, notification). |
 | V6.6.3 | 2 | N/A | Pas d’authentification hors bande (SMS, notification). |
