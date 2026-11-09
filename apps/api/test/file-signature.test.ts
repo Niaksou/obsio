@@ -29,11 +29,11 @@ describe('signature des fichiers', () => {
     try {
       const key = `essais/${crypto.randomUUID()}.png`;
       await ctx.storage.put(key, '<html>pas une image</html>', 'image/png');
-      expect(await verifiedContentType(ctx.storage, key)).toBeNull();
+      expect(await verifiedContentType(ctx, key)).toBeNull();
       const png = bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2);
       await ctx.storage.put(key, png, 'image/png');
-      expect(await verifiedContentType(ctx.storage, key)).toBe('image/png');
-      expect(await verifiedContentType(ctx.storage, `essais/${crypto.randomUUID()}`)).toBeNull();
+      expect(await verifiedContentType(ctx, key)).toBe('image/png');
+      expect(await verifiedContentType(ctx, `essais/${crypto.randomUUID()}`)).toBeNull();
     } finally {
       await ctx.close();
     }

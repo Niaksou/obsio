@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 146 |
+| Conforme | 147 |
 | Partiel | 16 |
-| À corriger | 10 |
+| À corriger | 9 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -45,7 +45,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 13. Documentation de sécurité dans `docs/securite.md` : règles de validation et limites, fichiers acceptés, matrice des autorisations, classification des données, flux réseau, inventaire cryptographique et gestion des clés, délais de correction des dépendances, fonctions coûteuses, inventaire des journaux (2.1.1, 2.1.2, 5.1.1, 6.1.1, 8.1.1, 8.1.2, 11.1.1, 11.1.2, 11.2.2, 13.1.1, 14.1.1, 14.1.2, 14.2.4, 15.1.1, 15.1.3, 16.1.1, 16.2.3).
 14. Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
-15. Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
+15. **Fait.** Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
 17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
 18. **Fait.** Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
@@ -160,7 +160,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V5.3.2 | 1 | Conforme | Clés générées par le serveur ; préfixe de l’organisation revérifié (`routes/imports.ts`, `routes/premises.ts`, `reserves/proofs.ts`). |
 | V5.4.1 | 2 | Conforme | Nom d’origine jamais utilisé comme chemin ; PDF servis avec `Content-Disposition: attachment` et un nom fixe (`test/storage.test.ts`). |
 | V5.4.2 | 2 | Conforme | Noms servis fixes (`dossier-preuves-<date>.pdf`). |
-| V5.4.3 | 2 | À corriger | Aucun antivirus sur les fichiers déposés. |
+| V5.4.3 | 2 | Conforme | Chaque fichier déposé (rapport, plan, photo) analysé par ClamAV avant tout traitement ; infecté : supprimé, refusé et journalisé ; clamd injoignable : dépôt refusé (`apps/api/src/antivirus.ts`). |
 
 ### V6 — Authentification
 

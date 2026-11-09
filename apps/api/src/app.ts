@@ -22,6 +22,7 @@ import type { ExtractionQueue } from './imports/queue.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { inspectionRoutes } from './routes/inspections.js';
 import { healthRoutes } from './routes/health.js';
+import type { FileScanner } from './antivirus.js';
 import { importRoutes } from './routes/imports.js';
 import { createQuotas } from './quotas.js';
 import { interventionRoutes } from './routes/intervention.js';
@@ -45,6 +46,8 @@ export interface AppDependencies {
   redis: Redis;
   emailSender: EmailSender;
   storage: Storage;
+  /** Antivirus des fichiers déposés (`noScanner` sans ClamAV, hors production). */
+  scanner: FileScanner;
   queue: ExtractionQueue;
   /** Tests : journal écrit dans ce flux, quel que soit NODE_ENV. */
   logStream?: Writable;
@@ -57,6 +60,7 @@ export async function buildApp({
   redis,
   emailSender,
   storage,
+  scanner,
   queue,
   logStream,
 }: AppDependencies) {
@@ -103,10 +107,10 @@ export async function buildApp({
   await app.register(authRoutes, { auth, apiUrl: config.API_URL });
   await app.register(meRoutes, { db, guards });
   await app.register(invitationRoutes, { db, guards });
-  await app.register(premisesRoutes, { db, guards, storage });
-  await app.register(importRoutes, { db, guards, storage, queue, quotas });
-  await app.register(reserveRoutes, { db, guards, storage, emailSender, config });
-  await app.register(interventionRoutes, { db, storage, emailSender, config });
+  await app.register(premisesRoutes, { db, guards, storage, scanner });
+  await app.register(importRoutes, { db, guards, storage, scanner, queue, quotas });
+  await app.register(reserveRoutes, { db, guards, storage, scanner, emailSender, config });
+  await app.register(interventionRoutes, { db, storage, scanner, emailSender, config });
   await app.register(dashboardRoutes, { db, guards, storage, quotas });
   await app.register(inspectionRoutes, { db, guards });
 

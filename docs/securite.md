@@ -26,7 +26,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 **Fichiers (V5)**
 
 - Dépôt par URL signée : type de contenu et taille maximale imposés, clé générée par le serveur sous `organisations/<id>/`.
-- Type du fichier revérifié côté serveur avant traitement ; nom d'origine jamais utilisé comme chemin.
+- Type du fichier revérifié côté serveur avant traitement, puis analyse antivirus (ClamAV) : un fichier infecté est supprimé, refusé (422) et journalisé (`fichier-infecte`). Toute vérification d'un dépôt passe par `verifiedContentType` (`apps/api/src/file-signature.ts`). Nom d'origine jamais utilisé comme chemin.
 - Téléchargement par URL signée à courte durée ; le stockage reste privé.
 
 **Authentification et sessions (V6, V7)**
@@ -100,6 +100,7 @@ L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"s
 | `lien-intervention-refuse` | Lien intervenant inconnu, expiré ou révoqué |
 | `limite-depassee` | Réponse 429 (limitation de débit) |
 | `validation-refusee` | Requête refusée par un schéma (champs en cause, sans leur valeur) |
+| `fichier-infecte` | Fichier déposé refusé par l'antivirus (nom de la signature) |
 
 Jamais de mot de passe, de jeton ni de contenu métier dans le journal. Les actions sur les réserves sont tracées à part, dans `reserve_event`.
 
@@ -119,7 +120,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 146 conformes, 16 partielles, 10 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 147 conformes, 16 partielles, 9 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

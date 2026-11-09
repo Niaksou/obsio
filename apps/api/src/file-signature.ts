@@ -1,3 +1,4 @@
+import { InfectedFile, type FileScanner } from './antivirus.js';
 import type { Storage } from './storage.js';
 
 // Le type déclaré à l'envoi n'est qu'une indication du navigateur : le contenu doit le confirmer
@@ -24,10 +25,29 @@ export function detectContentType(head: Buffer): string | null {
   return null;
 }
 
-/** Type déclaré de l'objet s'il existe et que son contenu le confirme, sinon null. */
-export async function verifiedContentType(storage: Storage, key: string): Promise<string | null> {
+export interface FileCheckDependencies {
+  storage: Storage;
+  scanner: FileScanner;
+}
+
+/**
+ * Type déclaré de l'objet s'il existe et que son contenu le confirme, sinon null. Le fichier
+ * passe ensuite à l'antivirus : infecté, il est supprimé du stockage et `InfectedFile` levée.
+ */
+export async function verifiedContentType(
+  { storage, scanner }: FileCheckDependencies,
+  key: string,
+): Promise<string | null> {
   const declared = await storage.contentType(key);
   if (!declared) return null;
   const head = await storage.head(key, HEAD_BYTES);
-  return head && detectContentType(head) === declared ? declared : null;
+  if (!head || detectContentType(head) !== declared) return null;
+  const data = await storage.get(key);
+  if (!data) return null;
+  const result = await scanner.scan(data);
+  if (result.infected) {
+    await storage.remove(key);
+    throw new InfectedFile(result.signature);
+  }
+  return declared;
 }

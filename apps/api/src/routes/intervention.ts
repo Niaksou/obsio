@@ -1,3 +1,4 @@
+import type { FileScanner } from '../antivirus.js';
 import {
   interventionSchema,
   photoUploadRequestSchema,
@@ -46,9 +47,10 @@ type Assignment = typeof assignment.$inferSelect;
 export const interventionRoutes: FastifyPluginAsyncZod<{
   db: Database;
   storage: Storage;
+  scanner: FileScanner;
   emailSender: EmailSender;
   config: ApiConfig;
-}> = async (app, { db, storage, emailSender, config }) => {
+}> = async (app, { db, storage, scanner, emailSender, config }) => {
   const fail = (reply: FastifyReply, code: 400 | 404 | 410, message: string) =>
     reply.code(code).send({ message });
 
@@ -205,7 +207,7 @@ export const interventionRoutes: FastifyPluginAsyncZod<{
       try {
         const result = await withAssignment(token, async (tx, found) => {
           if (!(await assignedReserveIds(tx, found.id)).includes(id)) return null;
-          await checkPhotos(storage, found.organisationId, id, request.body.photoKeys);
+          await checkPhotos({ storage, scanner }, found.organisationId, id, request.body.photoKeys);
           const added = await addProof(tx, found.organisationId, id, request.body, {
             contractorId: found.contractorId,
             assignmentId: found.id,

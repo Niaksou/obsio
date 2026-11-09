@@ -1,3 +1,4 @@
+import type { FileScanner } from '../antivirus.js';
 import {
   draftUpdateSchema,
   presignedPostSchema,
@@ -44,9 +45,10 @@ export const importRoutes: FastifyPluginAsyncZod<{
   db: Database;
   guards: Guards;
   storage: Storage;
+  scanner: FileScanner;
   queue: ExtractionQueue;
   quotas: Quotas;
-}> = async (app, { db, guards, storage, queue, quotas }) => {
+}> = async (app, { db, guards, storage, scanner, queue, quotas }) => {
   const { requireOrganisation: member, requireAdmin: admin } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
@@ -122,7 +124,9 @@ export const importRoutes: FastifyPluginAsyncZod<{
         return fail(reply, 400, "Fichier étranger à l'organisation");
       }
       const importId = match[2]!;
-      if ((await verifiedContentType(storage, request.body.key)) !== 'application/pdf') {
+      if (
+        (await verifiedContentType({ storage, scanner }, request.body.key)) !== 'application/pdf'
+      ) {
         return fail(reply, 400, 'PDF du rapport introuvable : relancez le dépôt.');
       }
       // Consommé avant l'enregistrement : un import enregistré part toujours à l'analyse.

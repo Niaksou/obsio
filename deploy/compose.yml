@@ -31,6 +31,7 @@ x-app-env: &app-env
   OPERATOR_NAME: ${OPERATOR_NAME}
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
   MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+  CLAMAV_HOST: clamav
 
 # Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
 # jamais l'API ni le worker, qui n'en ont pas besoin (moindre privilège, ASVS 13.2.2).
@@ -103,6 +104,21 @@ services:
     volumes:
       - storage-data:/data
 
+  # Antivirus des fichiers déposés (ASVS 5.4.3), interrogé par l'API à chaque dépôt. Signatures
+  # mises à jour par freshclam dans le conteneur, gardées dans un volume ; le premier démarrage
+  # les télécharge (quelques minutes).
+  clamav:
+    image: clamav/clamav-debian:1.4
+    environment:
+      # Plus grand fichier accepté : 50 Mo (rapport, plan d'origine).
+      CLAMD_CONF_StreamMaxLength: 60M
+      # Rechargement des signatures sans doubler la mémoire (environ 1 Go au lieu de 2).
+      CLAMD_CONF_ConcurrentDatabaseReload: 'no'
+    security_opt: ['no-new-privileges:true']
+    mem_limit: 1536m
+    volumes:
+      - clamav-data:/var/lib/clamav
+
   mailpit:
     image: axllent/mailpit:v1.32
     ports:
@@ -128,6 +144,7 @@ services:
     depends_on:
       setup: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+      clamav: { condition: service_healthy }
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
       interval: 5s
@@ -161,3 +178,4 @@ volumes:
   postgres-data:
   redis-data:
   storage-data:
+  clamav-data:

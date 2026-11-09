@@ -55,6 +55,7 @@ services:
     depends_on:
       proxy: { condition: service_started }
 
+  clamav: *restart
   api: *restart
   worker: *restart
 

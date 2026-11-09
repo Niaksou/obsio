@@ -1,3 +1,4 @@
+import { createClamavScanner, noScanner } from './antivirus.js';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createDatabase } from './db/client.js';
@@ -16,6 +17,9 @@ const storage = createStorage(config);
 if (config.NODE_ENV === 'development') await storage.ensureBucket(config.WEB_URL);
 const queue = createExtractionQueue(redis);
 const emailSender = createSmtpSender(config);
+const scanner = config.CLAMAV_HOST
+  ? createClamavScanner(config.CLAMAV_HOST, config.CLAMAV_PORT)
+  : noScanner;
 const app = await buildApp({
   config,
   pool,
@@ -23,6 +27,7 @@ const app = await buildApp({
   redis: limitsRedis,
   emailSender,
   storage,
+  scanner,
   queue,
 });
 // Range le brouillon dès la fin de l'extraction (la consultation de l'import le fait aussi).

@@ -1,3 +1,4 @@
+import type { FileScanner } from '../antivirus.js';
 import {
   buildingInputSchema,
   buildingSchema,
@@ -80,7 +81,8 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   db: Database;
   guards: Guards;
   storage: Storage;
-}> = async (app, { db, guards, storage }) => {
+  scanner: FileScanner;
+}> = async (app, { db, guards, storage, scanner }) => {
   const { requireOrganisation: member, requireAdmin: admin } = guards;
 
   /** Transaction cloisonnée sur l'organisation active de la requête. */
@@ -385,11 +387,13 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
       if (![imageKey, sourceKey].every((key) => key === null || key.startsWith(prefix))) {
         return reply.code(400).send({ message: "Fichier de plan étranger à l'étage" });
       }
-      const imageType = await verifiedContentType(storage, imageKey);
+      const imageType = await verifiedContentType({ storage, scanner }, imageKey);
       if (!imageType || !(PLAN_IMAGE_TYPES as readonly string[]).includes(imageType)) {
         return reply.code(400).send({ message: "Image du plan introuvable ou d'un type refusé" });
       }
-      const sourceType = sourceKey ? await verifiedContentType(storage, sourceKey) : null;
+      const sourceType = sourceKey
+        ? await verifiedContentType({ storage, scanner }, sourceKey)
+        : null;
       if (
         sourceKey &&
         (!sourceType || !(PLAN_SOURCE_TYPES as readonly string[]).includes(sourceType))

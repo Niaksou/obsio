@@ -1,5 +1,6 @@
 import { STATUS_CODES } from 'node:http';
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { InfectedFile } from './antivirus.js';
 import { logSecurityEvent } from './security-log.js';
 
 /**
@@ -16,6 +17,9 @@ export function handleError(error: FastifyError, request: FastifyRequest, reply:
       error: STATUS_CODES[status],
       message: 'Erreur interne du serveur. Réessayez plus tard.',
     });
+  }
+  if (error instanceof InfectedFile) {
+    logSecurityEvent(request, 'fichier-infecte', { signature: error.signature });
   }
   if (error.validation) {
     // Champs refusés, sans leur valeur : une tentative de contournement se repère à la répétition.

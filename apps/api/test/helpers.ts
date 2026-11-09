@@ -1,6 +1,7 @@
 import { createHmac } from 'node:crypto';
 import pg from 'pg';
 import { expect } from 'vitest';
+import type { FileScanner } from '../src/antivirus.js';
 import { buildApp } from '../src/app.js';
 import { loadConfig, type ApiConfig } from '../src/config.js';
 import { createDatabase, withOrganisation, type Database } from '../src/db/client.js';
@@ -78,6 +79,23 @@ function createFakeQueue() {
   return queue;
 }
 
+/**
+ * Fichier de test EICAR, reconnu par tous les antivirus : assemblé ici pour que le dépôt ne le
+ * contienne pas tel quel.
+ */
+export const EICAR = [
+  'X5O!P%@AP[4\\PZX54(P^)7CC)7}$',
+  'EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*',
+].join('');
+
+/** Antivirus de test, sans ClamAV : reconnaît la signature EICAR. */
+export const testScanner: FileScanner = {
+  scan: async (data) =>
+    data.includes(EICAR)
+      ? { infected: true, signature: 'Eicar-Test-Signature' }
+      : { infected: false },
+};
+
 /** Application complète branchée sur la base de test, avec les e-mails gardés en mémoire. */
 export async function buildTestApp() {
   const config = testConfig();
@@ -87,9 +105,11 @@ export async function buildTestApp() {
   const storage = createStorage(config);
   await storage.ensureBucket(config.WEB_URL);
   const queue = createFakeQueue();
-  const app = await buildApp({ config, pool, db, redis, emailSender, storage, queue });
+  const scanner = testScanner;
+  const app = await buildApp({ config, pool, db, redis, emailSender, storage, scanner, queue });
   return {
     app,
+    scanner,
     pool,
     db,
     redis,

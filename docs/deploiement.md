@@ -96,7 +96,7 @@ source ~/.bashrc
 obsio up -d --build --wait
 ```
 
-La première construction prend plusieurs minutes. Ensuite, https://preprod.obsio.fr répond (le certificat est obtenu à la première visite, quelques secondes).
+La première construction prend plusieurs minutes, et le premier démarrage de l'antivirus aussi : ClamAV télécharge ses signatures (environ 300 Mo) avant que l'API démarre. Il occupe ensuite environ 1 Go de mémoire. Ensuite, https://preprod.obsio.fr répond (le certificat est obtenu à la première visite, quelques secondes).
 
 Ouvrir un client (pas d'inscription libre) ; le responsable reçoit l'invitation par e-mail :
 

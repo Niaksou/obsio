@@ -6,14 +6,15 @@ import { redactUrl } from './logging.js';
 //
 // Événements : authentification (connexion, inscription, déconnexion, mot de passe, adresse
 // vérifiée, invitations et membres), acces-refuse (401, 403), lien-intervention-refuse,
-// limite-depassee (429), validation-refusee (400 d'un schéma).
+// limite-depassee (429), validation-refusee (400 d'un schéma), fichier-infecte (antivirus).
 
 export type SecurityEvent =
   | 'authentification'
   | 'acces-refuse'
   | 'lien-intervention-refuse'
   | 'limite-depassee'
-  | 'validation-refusee';
+  | 'validation-refusee'
+  | 'fichier-infecte';
 
 export function logSecurityEvent(
   request: FastifyRequest,

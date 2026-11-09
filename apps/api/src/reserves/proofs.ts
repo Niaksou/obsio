@@ -2,9 +2,8 @@ import { PROOF_PHOTO_TYPES, proofPhotoPrefix, type ProofInput } from '@obsio/sha
 import { eq } from 'drizzle-orm';
 import type { Transaction } from '../db/client.js';
 import { proof, reserve } from '../db/schema/index.js';
-import type { Storage } from '../storage.js';
 import { recordEvent } from './events.js';
-import { verifiedContentType } from '../file-signature.js';
+import { verifiedContentType, type FileCheckDependencies } from '../file-signature.js';
 
 export type ProofAuthor = { userId: string } | { contractorId: string; assignmentId: string };
 
@@ -14,7 +13,7 @@ export class ProofError extends Error {
 
 /** Les photos doivent venir d'un envoi signé pour cette réserve et être arrivées au stockage. */
 export async function checkPhotos(
-  storage: Storage,
+  files: FileCheckDependencies,
   organisationId: string,
   reserveId: string,
   keys: string[],
@@ -22,7 +21,7 @@ export async function checkPhotos(
   const prefix = proofPhotoPrefix(organisationId, reserveId);
   for (const key of keys) {
     if (!key.startsWith(prefix)) throw new ProofError('Photo étrangère à la réserve.');
-    const type = await verifiedContentType(storage, key);
+    const type = await verifiedContentType(files, key);
     if (!type || !(PROOF_PHOTO_TYPES as readonly string[]).includes(type)) {
       throw new ProofError('Photo introuvable : renvoyez-la.');
     }

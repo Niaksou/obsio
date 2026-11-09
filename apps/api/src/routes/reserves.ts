@@ -1,3 +1,4 @@
+import type { FileScanner } from '../antivirus.js';
 import { createHash, randomBytes } from 'node:crypto';
 import {
   assignmentCreatedSchema,
@@ -62,9 +63,10 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   db: Database;
   guards: Guards;
   storage: Storage;
+  scanner: FileScanner;
   emailSender: EmailSender;
   config: ApiConfig;
-}> = async (app, { db, guards, storage, emailSender, config }) => {
+}> = async (app, { db, guards, storage, scanner, emailSender, config }) => {
   const { requireOrganisation: member, requireAdmin: admin } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
@@ -223,7 +225,12 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     async (request, reply) => {
       const organisationId = request.organisation!.id;
       try {
-        await checkPhotos(storage, organisationId, request.params.id, request.body.photoKeys);
+        await checkPhotos(
+          { storage, scanner },
+          organisationId,
+          request.params.id,
+          request.body.photoKeys,
+        );
         const result = await scoped(request, (tx) =>
           addProof(tx, organisationId, request.params.id, request.body, {
             userId: request.user!.id,
