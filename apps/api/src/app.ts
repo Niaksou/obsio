@@ -15,6 +15,7 @@ import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
 import { handleError } from './errors.js';
+import { loggerOptions } from './logging.js';
 import type { ExtractionQueue } from './imports/queue.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { inspectionRoutes } from './routes/inspections.js';
@@ -41,14 +42,6 @@ export interface AppDependencies {
   emailSender: EmailSender;
   storage: Storage;
   queue: ExtractionQueue;
-}
-
-function loggerOptions(nodeEnv: ApiConfig['NODE_ENV']) {
-  if (nodeEnv === 'test') return false;
-  if (nodeEnv === 'development') {
-    return { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss' } } };
-  }
-  return true;
 }
 
 export async function buildApp({

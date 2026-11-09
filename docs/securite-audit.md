@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 102 |
-| Partiel | 32 |
-| À corriger | 32 |
+| Conforme | 103 |
+| Partiel | 33 |
+| À corriger | 30 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -26,7 +26,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 **Priorité 1 : avant toute donnée réelle**
 
 1. **Fait.** Erreurs internes renvoyées au navigateur : gestionnaire d'erreurs qui renvoie un message générique et journalise le détail (16.5.1).
-2. Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
+2. **Fait.** Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
 3. `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
 4. Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
 5. En-têtes du stockage : CSP `sandbox` avec `frame-ancestors 'none'`, et téléchargement des PDF en pièce jointe (3.2.1, 3.4.3, 3.4.6, 5.4.1).
@@ -311,7 +311,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | --- | --- | --- | --- |
 | V14.1.1 | 2 | À corriger | Pas de classification des données (rapports, plans, photos, données personnelles des membres et intervenants). |
 | V14.1.2 | 2 | À corriger | Dépend de 14.1.1. |
-| V14.2.1 | 1 | À corriger | Jeton du lien intervenant dans le chemin de l’URL, écrit dans les journaux de l’API (de même pour les jetons de réinitialisation et de vérification d’e-mail). |
+| V14.2.1 | 1 | Conforme | Jetons dans l’URL (lien intervenant, réinitialisation, vérification d’e-mail) inévitables pour un lien envoyé par e-mail, mais masqués dans les journaux (`apps/api/src/logging.ts`) ; signatures des liens du stockage à courte durée. |
 | V14.2.2 | 2 | Conforme | Aucun cache serveur des réponses de l’API (Caddy ne met en cache que les fichiers statiques). |
 | V14.2.3 | 2 | Conforme | Aucun traceur ; Mistral est un sous-traitant déclaré (PDF transmis dans la requête). |
 | V14.2.4 | 2 | À corriger | Dépend de 14.1.1. |
@@ -346,7 +346,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V16.2.2 | 2 | Conforme | Horodatage UTC (millisecondes epoch), horloge système synchronisée. |
 | V16.2.3 | 2 | Partiel | Journaux Docker sur le serveur, non documentés. |
 | V16.2.4 | 2 | Conforme | JSON (pino). |
-| V16.2.5 | 2 | À corriger | URL complètes journalisées, jetons compris (14.2.1). |
+| V16.2.5 | 2 | Partiel | URL journalisées sans leurs jetons (`test/logging.test.ts`) ; règles par niveau de protection à définir avec la classification des données (14.1.1). |
 | V16.3.1 | 2 | À corriger | Connexions réussies et échouées non journalisées. |
 | V16.3.2 | 2 | Partiel | Refus visibles par leur code (401, 403) dans le journal des requêtes, sans utilisateur ni motif. |
 | V16.3.3 | 2 | À corriger | Pas d’événements de sécurité définis. |
