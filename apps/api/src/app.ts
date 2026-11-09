@@ -14,6 +14,7 @@ import { authRoutes } from './auth/routes.js';
 import type { ApiConfig } from './config.js';
 import type { Database } from './db/client.js';
 import type { EmailSender } from './email/sender.js';
+import { handleError } from './errors.js';
 import type { ExtractionQueue } from './imports/queue.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { inspectionRoutes } from './routes/inspections.js';
@@ -65,6 +66,7 @@ export async function buildApp({
   }).withTypeProvider<ZodTypeProvider>();
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
+  app.setErrorHandler(handleError);
   app.decorateRequest('user', null);
   app.decorateRequest('organisation', null);
 

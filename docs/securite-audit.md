@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 101 |
+| Conforme | 102 |
 | Partiel | 32 |
-| À corriger | 33 |
+| À corriger | 32 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -25,7 +25,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 **Priorité 1 : avant toute donnée réelle**
 
-1. Erreurs internes renvoyées au navigateur : gestionnaire d'erreurs qui renvoie un message générique et journalise le détail (16.5.1).
+1. **Fait.** Erreurs internes renvoyées au navigateur : gestionnaire d'erreurs qui renvoie un message générique et journalise le détail (16.5.1).
 2. Jetons dans les journaux : masquer le jeton du lien intervenant et ceux de réinitialisation et de vérification d'e-mail dans les URL journalisées (14.2.1, 16.2.5).
 3. `Cache-Control: no-store` sur les réponses de l'API, cache du front vidé à la déconnexion (14.3.1, 14.3.2).
 4. Vérification du contenu des fichiers déposés (signature PDF, PNG, JPEG, WebP) avant tout traitement (5.2.2).
@@ -354,7 +354,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V16.4.1 | 2 | Conforme | JSON : pas d’injection de ligne. |
 | V16.4.2 | 2 | Partiel | Journaux Docker accessibles à root seulement (sudo par mot de passe), mais modifiables par lui. |
 | V16.4.3 | 2 | À corriger | Aucun envoi vers un système séparé. |
-| V16.5.1 | 2 | À corriger | Une erreur 500 renvoie le message interne au navigateur (vérifié : message SQL renvoyé tel quel par le gestionnaire d’erreurs par défaut de Fastify). |
+| V16.5.1 | 2 | Conforme | Gestionnaire d’erreurs (`apps/api/src/errors.ts`) : message générique pour toute erreur 5xx, détail dans le journal ; test `test/errors.test.ts`. |
 | V16.5.2 | 2 | Conforme | Extraction en tâche de fond avec 3 essais, échec affiché à l’utilisateur. |
 | V16.5.3 | 2 | Partiel | Transactions annulées en cas d’erreur ; mais la limitation de débit est levée si Redis est indisponible (`skipOnError`). |
 
