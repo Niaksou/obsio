@@ -159,30 +159,22 @@ a:hover {
   padding: 0 24px;
 }
 
-/* Marque : la coupe d'un conducteur, âme de cuivre dans sa gaine. */
+/* Marque : le logo « O gainé » (components/Logo.tsx), à la couleur du texte. */
 .brand {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  gap: 10px;
   min-height: 36px;
   padding: 0 8px;
-  font-family: var(--font-plate);
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1;
   color: var(--ink);
   text-decoration: none;
   border-radius: var(--radius);
 }
 
-.brand-mark {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  background: var(--copper);
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 4px var(--patina);
+.brand svg {
+  display: block;
+  height: 22px;
+  width: auto;
 }
 
 .nav {

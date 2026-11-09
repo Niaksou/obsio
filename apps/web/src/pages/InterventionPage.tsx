@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 import { api, ApiError } from '../api.js';
 import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, plural, StatusLabel } from '../reserves/status.js';
+import { Logo } from '../components/Logo.js';
 
 // Vue de l'électricien, ouverte depuis le lien reçu par e-mail : pas de compte, pensée pour le
 // téléphone, utilisable sans réseau une fois ouverte (dernière version gardée sur l'appareil).
@@ -63,7 +64,9 @@ export function InterventionPage() {
   return (
     <div className="intervention">
       <header className="intervention-head">
-        <span className="brand">Obsio</span>
+        <span className="brand">
+          <Logo />
+        </span>
         {intervention.data && <span>{intervention.data.organisationName}</span>}
       </header>
       {!online && (

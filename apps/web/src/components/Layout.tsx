@@ -2,6 +2,7 @@ import { Factory, CalendarCheck, HardHat, LogOut, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
+import { Logo } from './Logo.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
 
@@ -32,12 +33,11 @@ function OrganisationSwitcher() {
   );
 }
 
-/** Marque : la coupe d'un conducteur, âme de cuivre dans sa gaine. */
+/** Marque : le logo, qui ramène à la liste des sites. */
 function Brand() {
   return (
     <Link to="/" className="brand">
-      <span className="brand-mark" aria-hidden="true" />
-      Obsio
+      <Logo />
     </Link>
   );
 }

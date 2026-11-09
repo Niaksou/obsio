@@ -3,11 +3,13 @@
 // dans leur nom, on les garde donc tels quels. L'API et le stockage ne passent pas par ici :
 // les preuves hors ligne sont gérées par la file d'envoi (IndexedDB) de l'application.
 
-const CACHE = 'obsio-v1';
+const CACHE = 'obsio-v2';
 const SHELL = '/index.html';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll([SHELL, '/icon.svg'])));
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll([SHELL, '/favicon.svg', '/icon.svg'])),
+  );
   self.skipWaiting();
 });
 
