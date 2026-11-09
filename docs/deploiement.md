@@ -129,6 +129,23 @@ obsio exec api node dist/cli/seed-demo.js responsable@exemple.fr
 
 Les services redémarrent seuls après un redémarrage du serveur. Les migrations de la base passent à chaque démarrage.
 
+## Demande d'un client : export ou suppression de ses données
+
+Retrouver l'identifiant de l'organisation dans la sortie de `create-organisation.js`, ou par son slug (le nom en minuscules suivi de huit caractères, visible dans la base). Le conteneur de l'API est en lecture seule : l'archive passe par la sortie standard.
+
+```sh
+obsio exec -T api node dist/cli/export-organisation.js <identifiant ou slug> --out - > obsio-export.zip
+```
+
+La suppression est définitive. Sans `--confirm`, la commande décrit seulement ce qu'elle supprimerait :
+
+```sh
+obsio exec api node dist/cli/delete-organisation.js <identifiant ou slug>
+obsio exec api node dist/cli/delete-organisation.js <identifiant> --confirm "Nom exact"
+```
+
+Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes de la base gardent les données supprimées jusqu'à sept jours.
+
 ## Sauvegardes
 
 La base est sauvegardée au démarrage puis toutes les 24 heures dans `/var/backups/obsio` (sept jours conservés). Les fichiers (photos, rapports) restent dans le volume Docker du stockage, sans sauvegarde à ce stade.

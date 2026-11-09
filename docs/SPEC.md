@@ -101,7 +101,7 @@ Un front React et une API Node séparés, en TypeScript de bout en bout, avec l'
 
 Hébergement : un VPS OVH (société française, serveur dans l'Union européenne pour des données réelles) qui fait tout tourner avec Docker Compose, au coût le plus bas ; sans Kubernetes. Les services gérés (PostgreSQL, stockage S3) viendront pour la production, chez le même hébergeur. Procédure : `docs/deploiement.md`.
 
-Livraison : trois images construites par le même `Dockerfile`. `api` (avec les migrations, `node dist/db/migrate.js`, et l'ouverture d'un client, `node dist/cli/create-organisation.js`), `worker`, et `web` (Caddy, qui sert le front et transmet `/api` à l'API : une seule origine publique, donc des cookies de session sans CORS). L'URL publique est fixée au build du front (`VITE_API_URL`). Derrière un proxy, `TRUST_PROXY=true` pour que la limitation de débit voie l'adresse du client. `deploy/compose.yml` monte la pile complète (avec PostgreSQL, Redis, RustFS et Mailpit) pour une préproduction sur une seule machine. Sur le serveur, `deploy/compose.server.yml` s'y ajoute : un proxy Caddy prend les ports 80 et 443 avec HTTPS automatique (Let's Encrypt) pour l'application et pour le stockage, servi sur son propre sous-domaine puisque le navigateur y envoie les fichiers directement ; Mailpit laisse la place au SMTP de Brevo ; sauvegarde quotidienne de la base (`pg_dump`, sept jours).
+Livraison : trois images construites par le même `Dockerfile`. `api` (avec les migrations, `node dist/db/migrate.js`, l'ouverture d'un client, `node dist/cli/create-organisation.js`, l'export et la suppression de ses données, `export-organisation.js` et `delete-organisation.js`), `worker`, et `web` (Caddy, qui sert le front et transmet `/api` à l'API : une seule origine publique, donc des cookies de session sans CORS). L'URL publique est fixée au build du front (`VITE_API_URL`). Derrière un proxy, `TRUST_PROXY=true` pour que la limitation de débit voie l'adresse du client. `deploy/compose.yml` monte la pile complète (avec PostgreSQL, Redis, RustFS et Mailpit) pour une préproduction sur une seule machine. Sur le serveur, `deploy/compose.server.yml` s'y ajoute : un proxy Caddy prend les ports 80 et 443 avec HTTPS automatique (Let's Encrypt) pour l'application et pour le stockage, servi sur son propre sous-domaine puisque le navigateur y envoie les fichiers directement ; Mailpit laisse la place au SMTP de Brevo ; sauvegarde quotidienne de la base (`pg_dump`, sept jours).
 ```
 
 Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité par le worker, qui appelle Mistral puis écrit un brouillon en base.
@@ -235,7 +235,7 @@ Mise en œuvre (J0) :
 - L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
 - Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
 - Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
-- La suppression d'une organisation est désactivée.
+- La suppression d'une organisation est désactivée dans l'application : seul l'éditeur peut la faire, à la demande du client (voir « RGPD »).
 - Fichiers en stockage privé, servis uniquement par URLs signées à courte durée.
 
 **Liens intervenant**
@@ -249,7 +249,11 @@ Mise en œuvre (J0) :
 - Le produit est sous-traitant des données de ses clients : contrat de sous-traitance (DPA) dans les conditions générales.
 - Sous-traitants ultérieurs listés : hébergeur, Mistral, service e-mail. Tous hébergés dans l'UE.
 - Pas d'entraînement de modèles sur les données clients.
-- Export et suppression des données d'une organisation à sa demande.
+- Export et suppression des données d'une organisation à sa demande, par l'éditeur :
+  - `pnpm org:export <identifiant ou slug>` produit une archive ZIP lisible sans Obsio : chaque table en CSV (point-virgule, UTF-8, pour Excel) et en JSON, les membres sans mot de passe, les fichiers déposés (rapports, plans, photos) et un dossier de preuves par site. `--out -` écrit l'archive sur la sortie standard (conteneur en lecture seule).
+  - `pnpm org:delete <identifiant ou slug>` est une simulation (lignes par table, comptes, fichiers) ; elle ne supprime qu'avec `--confirm "<nom exact>"`. Elle passe par le rôle `app_owner`, puisque `app_user` n'a pas le droit de supprimer réserves, preuves et journal ; refuse pendant l'analyse d'un rapport ; supprime en une transaction les données, les membres, les invitations et l'organisation, puis les comptes sans autre organisation (un compte membre ailleurs, ou encore cité par les données d'une autre organisation, est conservé) ; enfin les fichiers du préfixe `organisations/<id>/`. Si la suppression des fichiers échoue, relancer avec l'identifiant termine le travail. La ligne de journal affichée est la seule trace : l'éditeur la conserve dans son registre des demandes.
+  - C'est la seule exception à la règle « pas de suppression physique » des réserves, preuves et événements d'audit. Les sauvegardes de la base gardent les données supprimées jusqu'à leur rotation (sept jours).
+  - Un test échoue si une table portant `organisation_id` n'est ni exportée ni supprimée (`ORGANISATION_TABLES`, `apps/api/src/organisations/data.ts`).
 
 **Bases**
 
@@ -267,7 +271,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] PostgreSQL + ORM + migrations, RLS sur une première table (Drizzle, table `site`)
 - [x] Auth, organisations, invitations (Better Auth)
 - [x] CI : lint, tests, build (GitHub Actions)
-- [ ] Déploiement d'un environnement de préproduction : images prêtes (`Dockerfile`, cibles `api`, `worker`, `web`) et pile complète `deploy/compose.yml` éprouvée sur un poste ; hébergeur choisi (VPS OVH, domaine `obsio.fr`), pile serveur `deploy/compose.server.yml` éprouvée en local ; reste la mise en ligne (`docs/deploiement.md`)
+- [x] Déploiement d'un environnement de préproduction : images prêtes (`Dockerfile`, cibles `api`, `worker`, `web`), pile complète `deploy/compose.yml` ; en ligne sur https://preprod.obsio.fr (VPS OVH, `deploy/compose.server.yml`, voir `docs/deploiement.md`). Le serveur est hors de l'UE : données de test uniquement, jusqu'au passage sur un serveur européen
 
 **J1 — Jeu de test et extraction (preuve de faisabilité)**
 
