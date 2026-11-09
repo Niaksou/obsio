@@ -17,6 +17,7 @@
     "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "org:create": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/create-organisation.ts",
+    "org:export": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/export-organisation.ts",
     "storage:setup": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/setup-storage.ts",
     "demo:seed": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/seed-demo.ts"
   },
@@ -32,6 +33,7 @@
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",
     "fastify-type-provider-zod": "^7.0.0",
+    "fflate": "^0.8.3",
     "ioredis": "^6.0.0",
     "nodemailer": "^10.2.1",
     "pdfkit": "^0.20.2",

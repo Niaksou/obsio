@@ -1,7 +1,9 @@
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
   NoSuchKey,
   PutObjectCommand,
   HeadBucketCommand,
@@ -74,6 +76,39 @@ export function createStorage(config: ApiConfig) {
     /** Seuls les fichiers techniques (résultat d'extraction relancée) sont supprimés. */
     async remove(key: string) {
       await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    },
+
+    /** Tous les objets sous un préfixe, avec leur taille en octets. */
+    async list(prefix: string): Promise<{ key: string; size: number }[]> {
+      const objects: { key: string; size: number }[] = [];
+      let token: string | undefined;
+      do {
+        const page = await client.send(
+          new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix, ContinuationToken: token }),
+        );
+        for (const object of page.Contents ?? []) {
+          if (object.Key) objects.push({ key: object.Key, size: object.Size ?? 0 });
+        }
+        token = page.IsTruncated ? page.NextContinuationToken : undefined;
+      } while (token);
+      return objects;
+    },
+
+    /** Suppression d'une organisation entière uniquement (voir organisations/delete.ts). */
+    async removeMany(keys: string[]) {
+      for (let start = 0; start < keys.length; start += 1000) {
+        const batch = keys.slice(start, start + 1000);
+        const result = await client.send(
+          new DeleteObjectsCommand({
+            Bucket: bucket,
+            Delete: { Objects: batch.map((key) => ({ Key: key })), Quiet: true },
+          }),
+        );
+        const failed = result.Errors ?? [];
+        if (failed.length > 0) {
+          throw new Error(`${failed.length} fichiers non supprimés (${failed[0]?.Message ?? ''})`);
+        }
+      }
     },
 
     /** Type de contenu de l'objet, ou null s'il n'existe pas. */

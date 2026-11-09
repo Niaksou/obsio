@@ -1,9 +1,14 @@
+/** Préfixe de tous les fichiers d'une organisation : export et suppression de ses données. */
+export function organisationPrefix(organisationId: string) {
+  return `organisations/${organisationId}/`;
+}
+
 /**
  * Clés des objets d'un import de rapport. Préfixées par l'organisation pour que
  * le cloisonnement se lise aussi dans le stockage.
  */
 export function reportImportKeys(organisationId: string, importId: string) {
-  const base = `organisations/${organisationId}/imports/${importId}`;
+  const base = `${organisationPrefix(organisationId)}imports/${importId}`;
   return {
     pdf: `${base}/rapport.pdf`,
     /** Résultat de l'OCR, réutilisé si la tâche est relancée (l'OCR est facturé à la page). */
@@ -14,10 +19,10 @@ export function reportImportKeys(organisationId: string, importId: string) {
 
 /** Préfixe des fichiers de plan d'un étage ; chaque dépôt a son propre nom (pas d'écrasement). */
 export function floorPlanPrefix(organisationId: string, floorId: string) {
-  return `organisations/${organisationId}/floors/${floorId}/plans/`;
+  return `${organisationPrefix(organisationId)}floors/${floorId}/plans/`;
 }
 
 /** Préfixe des photos de preuve d'une réserve. */
 export function proofPhotoPrefix(organisationId: string, reserveId: string) {
-  return `organisations/${organisationId}/reserves/${reserveId}/proofs/`;
+  return `${organisationPrefix(organisationId)}reserves/${reserveId}/proofs/`;
 }
