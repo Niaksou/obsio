@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
-import { organization } from 'better-auth/plugins';
+import { haveIBeenPwned, organization } from 'better-auth/plugins';
 import { ac, roles } from '@obsio/shared/permissions';
 import type { ApiConfig } from '../config.js';
 import type { Database } from '../db/client.js';
@@ -10,6 +10,10 @@ import type { EmailSender } from '../email/sender.js';
 import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
+import { forbiddenWord } from './password-policy.js';
+
+/** Routes qui fixent un mot de passe : liste des mots interdits et mots de passe divulgués. */
+const PASSWORD_PATHS = ['/sign-up/email', '/reset-password', '/change-password'];
 
 export interface AuthDependencies {
   config: ApiConfig;
@@ -59,6 +63,20 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
     hooks: {
       // Pas d'inscription en libre-service : il faut une invitation en attente pour cette adresse.
       before: createAuthMiddleware(async (ctx) => {
+        if (PASSWORD_PATHS.includes(ctx.path)) {
+          const body = (ctx.body ?? {}) as Record<string, unknown>;
+          const password = body.password ?? body.newPassword;
+          const personal = [body.email, body.name].map((v) =>
+            typeof v === 'string' ? v : undefined,
+          );
+          const word = typeof password === 'string' ? forbiddenWord(password, personal) : null;
+          if (word) {
+            throw new APIError('BAD_REQUEST', {
+              code: 'PASSWORD_TOO_GUESSABLE',
+              message: `Choisissez un mot de passe qui ne contient pas « ${word} ».`,
+            });
+          }
+        }
         if (ctx.path !== '/sign-up/email') return;
         const email = typeof ctx.body?.email === 'string' ? ctx.body.email : '';
         if (!(await hasPendingInvitation(db, email))) {
@@ -86,6 +104,14 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       },
     },
     plugins: [
+      // Mot de passe connu des fuites de données refusé (ASVS 6.2.4, 6.2.12) : seuls les 5
+      // premiers caractères de son empreinte SHA-1 partent vers api.pwnedpasswords.com. Coupé
+      // dans les tests (pas d'appel réseau), sauf s'ils l'activent explicitement.
+      haveIBeenPwned({
+        enabled: config.PASSWORD_BREACH_CHECK ?? config.NODE_ENV !== 'test',
+        customPasswordCompromisedMessage:
+          'Ce mot de passe figure dans des fuites de données connues : choisissez-en un autre.',
+      }),
       organization({
         ac,
         roles,

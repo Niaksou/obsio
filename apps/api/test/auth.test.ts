@@ -29,7 +29,7 @@ describe('Inscription sur invitation uniquement', () => {
     const response = await new TestClient(ctx).post('/api/auth/sign-up/email', {
       name: 'Eve',
       email: 'eve@example.org',
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     expect(response.statusCode).toBe(403);
     expect(response.json()).toMatchObject({ code: 'SIGNUP_REQUIRES_INVITATION' });
@@ -49,7 +49,7 @@ describe('Inscription sur invitation uniquement', () => {
     const response = await new TestClient(ctx).post('/api/auth/sign-up/email', {
       name: 'Alice',
       email: 'alice@example.org',
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     expect(response.statusCode).toBe(403);
   });
@@ -109,7 +109,7 @@ describe("Ouverture d'un client (org:create)", () => {
     await provisionOrganisation(ctx, { name: 'Usine', adminEmail: 'alice@example.org' });
     const response = await new TestClient(ctx).post('/api/auth/sign-in/email', {
       email: ctx.config.OPERATOR_EMAIL,
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     expect(response.statusCode).toBe(401);
   });
@@ -120,11 +120,11 @@ describe("Ouverture d'un client (org:create)", () => {
     await client.post('/api/auth/sign-up/email', {
       name: 'Alice',
       email: 'alice@example.org',
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     const signIn = await client.post('/api/auth/sign-in/email', {
       email: 'alice@example.org',
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     expect(signIn.statusCode).toBe(403);
   });

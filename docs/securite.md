@@ -53,6 +53,13 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Nouvel en-tête, nouvelle origine (stockage, API externe) : CSP et en-têtes de `deploy/Caddyfile` mis à jour, sans élargir au-delà du nécessaire.
 - Conteneurs : utilisateur non root, système de fichiers en lecture seule, aucun port exposé inutilement.
 
+## Mots de passe
+
+- 12 caractères minimum, 128 maximum, aucune règle de composition, collage et gestionnaires de mots de passe permis ; pas de renouvellement périodique imposé.
+- Refusés à l'inscription, à la réinitialisation et au changement :
+  - les mots de passe connus des fuites de données (Have I Been Pwned) : seuls les 5 premiers caractères de l'empreinte SHA-1 sont envoyés à `api.pwnedpasswords.com` ; si le service est injoignable, l'opération est refusée et peut être retentée ;
+  - les mots propres au contexte, même avec accents, majuscules ou séparateurs : `obsio`, `motdepasse`, `password`, `azerty`, `qwerty`, `electricite`, `electrique`, `electricien`, `verification`, `conformite`, `reserve`, `apsad`, ainsi que le nom de l'utilisateur et la partie locale de son adresse e-mail (`apps/api/src/auth/password-policy.ts`).
+
 ## Garde-fous automatiques
 
 Workflow `Sécurité` (`.github/workflows/securite.yml`), à chaque push, sur chaque pull request et chaque lundi :

@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 113 |
+| Conforme | 117 |
 | Partiel | 26 |
-| À corriger | 27 |
+| À corriger | 23 |
 | Écart proposé | 2 |
 | N/A | 85 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -35,7 +35,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 **Priorité 2 : avant la bêta**
 
 7. Double authentification par application (TOTP, plugin `twoFactor` de Better Auth), obligatoire au moins pour les administrateurs (6.3.3, 6.4.3).
-8. Mots de passe compromis et courants refusés (plugin `haveIBeenPwned` de Better Auth, qui n'envoie qu'un début d'empreinte), avec une liste de mots propres à Obsio et à l'organisation (6.1.2, 6.2.4, 6.2.11, 6.2.12).
+8. **Fait.** Mots de passe compromis et courants refusés (plugin `haveIBeenPwned` de Better Auth, qui n'envoie qu'un début d'empreinte), avec une liste de mots propres à Obsio et à l'organisation (6.1.2, 6.2.4, 6.2.11, 6.2.12).
 9. Page « Mon compte » : changer son mot de passe, voir et fermer ses sessions (6.2.2, 6.2.3, 7.4.3, 7.5.2).
 10. Sessions : durée maximale absolue et délai d'inactivité décidés et documentés ; l'admin ferme les sessions d'un membre qu'il retire (7.1.1, 7.1.2, 7.3.1, 7.3.2, 7.4.5).
 11. Journalisation de sécurité : connexions réussies et échouées, refus d'accès avec l'utilisateur, échecs de validation, opérations de l'éditeur (16.2.1, 16.3.1 à 16.3.4).
@@ -167,20 +167,20 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
 | V6.1.1 | 1 | Partiel | Limitation décrite dans `auth/auth.ts` et la spec, sans section dédiée. |
-| V6.1.2 | 2 | À corriger | Pas de liste de mots interdits (Obsio, nom de l’organisation, électricité…). |
+| V6.1.2 | 2 | Conforme | Liste des mots interdits documentée dans `docs/securite.md` (section « Mots de passe »). |
 | V6.1.3 | 2 | Conforme | Un seul parcours, e-mail et mot de passe sur invitation, décrit dans la spec. |
 | V6.2.1 | 1 | Conforme | 12 caractères minimum (15 recommandés par l’ASVS). |
 | V6.2.2 | 1 | À corriger | Pas de page de changement de mot de passe, seulement la réinitialisation par e-mail. |
 | V6.2.3 | 1 | À corriger | Dépend de 6.2.2 (Better Auth exige l’ancien mot de passe, l’interface manque). |
-| V6.2.4 | 1 | À corriger | Pas de contrôle contre les mots de passe courants. |
+| V6.2.4 | 1 | Conforme | Mots de passe divulgués refusés (Have I Been Pwned, plus d’un demi-milliard d’entrées, dont les plus courants). |
 | V6.2.5 | 1 | Conforme | Pas de règle de composition. |
 | V6.2.6 | 1 | Conforme | `type="password"`. |
 | V6.2.7 | 1 | Conforme | Collage et gestionnaires de mots de passe permis (`autocomplete`). |
 | V6.2.8 | 1 | Conforme | Mot de passe vérifié tel quel. |
 | V6.2.9 | 2 | Conforme | Jusqu’à 128 caractères. |
 | V6.2.10 | 2 | Conforme | Pas de renouvellement périodique imposé. |
-| V6.2.11 | 2 | À corriger | Voir 6.1.2. |
-| V6.2.12 | 2 | À corriger | Pas de contrôle contre les mots de passe divulgués. |
+| V6.2.11 | 2 | Conforme | Mots du contexte, nom et adresse refusés (`apps/api/src/auth/password-policy.ts`, `test/password-policy.test.ts`). |
+| V6.2.12 | 2 | Conforme | Plugin `haveIBeenPwned` de Better Auth à l’inscription, à la réinitialisation et au changement (k-anonymat : 5 caractères de l’empreinte envoyés). |
 | V6.3.1 | 1 | Conforme | Limitation par adresse IP : connexion 10 par 5 min, inscription et réinitialisation 5 par heure. |
 | V6.3.2 | 1 | Conforme | Aucun compte par défaut ; le compte opérateur n’a pas de mot de passe. |
 | V6.3.3 | 2 | À corriger | Pas de double authentification. |

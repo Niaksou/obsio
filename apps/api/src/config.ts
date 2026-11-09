@@ -27,6 +27,8 @@ const apiEnvSchema = z.object({
   // de l'application (S3_ACCESS_KEY). Absent en développement, où S3_ACCESS_KEY est le principal.
   S3_ADMIN_ACCESS_KEY: z.string().min(1).optional(),
   S3_ADMIN_SECRET_KEY: z.string().min(1).optional(),
+  // Vérification des mots de passe divulgués (Have I Been Pwned) : active hors tests par défaut.
+  PASSWORD_BREACH_CHECK: z.stringbool().optional(),
   TRUST_PROXY: z
     .enum(['true', 'false'])
     .default('false')

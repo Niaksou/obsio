@@ -149,7 +149,7 @@ export class TestClient {
     const signUp = await this.post('/api/auth/sign-up/email', {
       name,
       email,
-      password: 'mot-de-passe-solide',
+      password: 'cheval-agrafe-batterie-42',
     });
     if (signUp.statusCode !== 200) throw new Error(`Inscription refusée : ${signUp.body}`);
     const link = lastLinkSentTo(this.ctx, email);
