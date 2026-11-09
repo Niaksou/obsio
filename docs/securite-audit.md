@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 145 |
+| Conforme | 146 |
 | Partiel | 16 |
-| À corriger | 11 |
+| À corriger | 10 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -50,7 +50,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
 18. **Fait.** Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
 19. SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
-20. `/api` en HTTP : refus plutôt que redirection (4.1.2).
+20. **Fait.** `/api` en HTTP : refus plutôt que redirection (4.1.2).
 
 ## Écarts proposés
 
@@ -138,7 +138,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
 | V4.1.1 | 1 | Conforme | `application/json; charset=utf-8` (vérifié), `application/pdf` pour le dossier. |
-| V4.1.2 | 2 | À corriger | Faible : Caddy redirige aussi `/api` de HTTP vers HTTPS. |
+| V4.1.2 | 2 | Conforme | En HTTP, les pages sont redirigées vers HTTPS et `/api` répond 403 (`deploy/server/Caddyfile`). |
 | V4.1.3 | 2 | Conforme | Le proxy public remplace le `X-Forwarded-For` d’un client ; seuls les proxys internes sont de confiance. |
 | V4.2.1 | 2 | Conforme | Caddy puis Node.js, analyse HTTP standard. |
 | V4.3.1 | 2 | N/A | Pas de GraphQL. |

@@ -9,6 +9,19 @@
 	header -Server
 }
 
+# HTTP : la page est redirigée vers HTTPS, mais l'API refuse (ASVS 4.1.2) : un appel en clair
+# a déjà fait passer ses données sans chiffrement, le rediriger masquerait l'erreur.
+# Les défis Let's Encrypt sur le port 80 restent traités par Caddy avant ces règles.
+http://{$APP_HOST} {
+	@api path /api /api/*
+	handle @api {
+		respond "HTTPS obligatoire" 403
+	}
+	handle {
+		redir https://{host}{uri} 308
+	}
+}
+
 # Le stockage ne sert que des fichiers inertes (images, PDF) : aucun script, aucune intégration
 # dans un cadre, et pas de lecture depuis un autre site que l'application (même site : obsio.fr).
 {$STORAGE_HOST} {
