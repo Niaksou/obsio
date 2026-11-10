@@ -1,71 +1,134 @@
-import { INSPECTION_KIND_LABELS, INSPECTION_STATUS_LABELS } from '@obsio/shared';
+import type { Inspection } from '@obsio/shared';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { Link } from 'react-router';
 import { api } from '../api.js';
-import { lastVisitLabel, nextStep, STATUS_ORDER } from '../inspections/describe.js';
+import {
+  dateParts,
+  InspectionStatusLabel,
+  keyDate,
+  KIND_SHORT,
+  PLANNED,
+  relativeDay,
+  TO_HANDLE,
+} from '../inspections/describe.js';
 import { keys } from '../queries.js';
 
-/** Échéancier de toute l'organisation, regroupé par état, les plus urgentes d'abord. */
+/**
+ * Échéancier de toute l'organisation : ce qui est à traiter, puis ce qui est planifié, par
+ * date. Les vérifications sans rapport ou non suivies sont repliées.
+ */
 export function InspectionsPage() {
-  const [showDisabled, setShowDisabled] = useState(false);
   const inspections = useQuery({ queryKey: keys.inspections, queryFn: api.inspections });
 
   if (inspections.error) return <p className="error">{inspections.error.message}</p>;
   if (!inspections.data) return <p className="loading">Chargement…</p>;
-  const disabled = inspections.data.filter((i) => i.status === 'desactivee').length;
-  const groups = STATUS_ORDER.filter((status) => showDisabled || status !== 'desactivee')
-    .map((status) => ({
-      status,
-      items: inspections.data.filter((i) => i.status === status),
-    }))
-    .filter((group) => group.items.length > 0);
+  const all = inspections.data;
+  const byDate = (a: Inspection, b: Inspection) =>
+    (keyDate(a)?.date ?? '').localeCompare(keyDate(b)?.date ?? '');
+  const toHandle = all.filter((i) => TO_HANDLE.includes(i.status)).sort(byDate);
+  const planned = all.filter((i) => PLANNED.includes(i.status)).sort(byDate);
+  const unknown = all.filter((i) => i.status === 'inconnue');
+  const disabled = all.filter((i) => i.status === 'desactivee');
 
   return (
     <div className="page">
       <h1>Vérifications</h1>
-      <p className="hint">
-        Prochaines visites des organismes de contrôle sur vos sites : vérification périodique du
-        Code du travail et vérifications demandées par l’assureur.
-      </p>
-      {groups.length === 0 && (
+      {all.length === 0 ? (
         <p className="empty">Créez un site et importez ses rapports pour suivre les échéances.</p>
-      )}
-      {groups.map(({ status, items }) => (
-        <section key={status} className="inspection-group">
-          <h2>
-            {INSPECTION_STATUS_LABELS[status]} <span className="count">{items.length}</span>
-          </h2>
-          <ul className="rows">
-            {items.map((inspection) => {
-              const last = lastVisitLabel(inspection);
-              return (
-                <li key={`${inspection.siteId}-${inspection.kind}`}>
-                  <Link to={`/sites/${inspection.siteId}#verifications`} className="row-link">
-                    <span className="row-title">{inspection.siteName}</span>
-                    <span>{INSPECTION_KIND_LABELS[inspection.kind]}</span>
-                    <span className="inspection-next">{nextStep(inspection)}</span>
-                    {last && <span className="row-meta">{last}</span>}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
-      {disabled > 0 && (
-        <p>
-          <button
-            type="button"
-            className="secondary"
-            onClick={() => setShowDisabled(!showDisabled)}
-          >
-            {showDisabled
-              ? 'Masquer les vérifications non suivies'
-              : `Afficher les vérifications non suivies (${disabled})`}
-          </button>
-        </p>
+      ) : (
+        <>
+          <section className="due-group" data-tour="due-to-handle">
+            <h2>
+              À traiter <span className="count">{toHandle.length}</span>
+            </h2>
+            {toHandle.length === 0 ? (
+              <p className="hint">Rien à traiter pour le moment.</p>
+            ) : (
+              <DueRows items={toHandle} />
+            )}
+          </section>
+          {planned.length > 0 && (
+            <section className="due-group">
+              <h2>
+                Planifiées <span className="count">{planned.length}</span>
+              </h2>
+              <DueRows items={planned} />
+            </section>
+          )}
+          {unknown.length > 0 && (
+            <details className="due-more" data-tour="due-unknown">
+              <summary>
+                Sans rapport <span className="count">{unknown.length}</span>
+              </summary>
+              <p className="hint">Importez un rapport du site pour connaître l’échéance.</p>
+              <PlainRows items={unknown} />
+            </details>
+          )}
+          {disabled.length > 0 && (
+            <details className="due-more">
+              <summary>
+                Non suivies <span className="count">{disabled.length}</span>
+              </summary>
+              <PlainRows items={disabled} />
+            </details>
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+const link = (inspection: Inspection) => `/sites/${inspection.siteId}#verifications`;
+
+function DueRows({ items }: { items: Inspection[] }) {
+  return (
+    <ul className="rows due-rows">
+      {items.map((inspection) => {
+        const key = keyDate(inspection);
+        const parts = key && dateParts(key.date);
+        return (
+          <li key={`${inspection.siteId}-${inspection.kind}`}>
+            <Link to={link(inspection)} className="due-row">
+              <span className="due-date">
+                {parts ? (
+                  <>
+                    <strong>{parts.dayMonth}</strong>
+                    <small>{parts.year}</small>
+                  </>
+                ) : (
+                  '—'
+                )}
+              </span>
+              <span className="due-main">
+                <span className="row-title">{inspection.siteName}</span>
+                <small>
+                  {KIND_SHORT[inspection.kind]}
+                  {key && ` · ${key.label}`}
+                </small>
+              </span>
+              <span className="due-side">
+                <InspectionStatusLabel status={inspection.status} />
+                {key && <small>{relativeDay(key.date)}</small>}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function PlainRows({ items }: { items: Inspection[] }) {
+  return (
+    <ul className="rows">
+      {items.map((inspection) => (
+        <li key={`${inspection.siteId}-${inspection.kind}`}>
+          <Link to={link(inspection)} className="row-link">
+            <span className="row-title">{inspection.siteName}</span>
+            <span className="row-meta">{KIND_SHORT[inspection.kind]}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

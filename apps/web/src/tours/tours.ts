@@ -166,6 +166,23 @@ export const TOURS: Tour[] = [
     ],
   },
   {
+    id: 'verifications',
+    title: 'Vérifications',
+    match: exact(/^\/verifications$/),
+    steps: [
+      {
+        target: 'due-to-handle',
+        title: 'À traiter',
+        body: 'Visites en retard ou à programmer, par date.',
+      },
+      {
+        target: 'due-unknown',
+        title: 'Sans rapport',
+        body: 'Importez un rapport pour connaître l’échéance.',
+      },
+    ],
+  },
+  {
     id: 'compte',
     title: 'Mon compte',
     match: exact(/^\/compte$/),
