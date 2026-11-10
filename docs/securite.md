@@ -69,7 +69,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Ni désactivation, ni appareil de confiance qui dispenserait du code.
 - Téléphone et codes de secours perdus : `pnpm user:reset-2fa <e-mail>` par l'éditeur, **après vérification de l'identité du demandeur auprès de l'admin de son organisation, par un autre canal que l'e-mail** (téléphone). Le secret et les passkeys sont supprimés et les sessions fermées ; le mot de passe reste exigé pour en configurer un nouveau.
 
-## Passkeys (Face ID, empreinte)
+## Passkeys (clés d’accès)
 
 - Connexion sans mot de passe ni TOTP par une passkey WebAuthn (plugin passkey de Better Auth, `apps/api/src/auth/passkey.ts`). L'appareil (clé privée qui ne le quitte pas) et la vérification de l'utilisateur (biométrie ou code de l'appareil) font deux facteurs résistants au hameçonnage (ASVS 6.6, 6.7).
 - Ajout seulement depuis une session déjà protégée par la double authentification (sinon `TWO_FACTOR_REQUIRED`) ; le TOTP reste obligatoire et sert de solution de secours.

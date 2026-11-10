@@ -166,8 +166,8 @@ export const TOURS: Tour[] = [
     steps: [
       {
         target: 'account-passkeys',
-        title: 'Face ID',
-        body: 'Connexion d’un geste sur cet appareil.',
+        title: 'Clés d’accès',
+        body: 'Connexion d’un geste, sans mot de passe.',
       },
       { target: 'account-push', title: 'Notifications', body: 'À activer sur chaque téléphone.' },
       {

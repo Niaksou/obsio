@@ -7,7 +7,7 @@ type PasskeyOptions = NonNullable<Parameters<typeof passkey>[0]>;
 const userNotVerified = () =>
   new APIError('UNAUTHORIZED', {
     code: 'PASSKEY_USER_VERIFICATION_REQUIRED',
-    message: 'Déverrouillez la passkey par Face ID, empreinte ou code de l’appareil.',
+    message: 'Déverrouillez la clé d’accès sur votre appareil.',
   });
 
 /**

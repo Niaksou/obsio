@@ -38,7 +38,7 @@ export function useAddPasskey() {
 
 const date = (value: Date | string) => new Date(value).toLocaleDateString('fr-FR');
 
-/** Section « Connexion par Face ID » de la page Mon compte. */
+/** Section « Clés d'accès » de la page Mon compte. */
 export function Passkeys() {
   const queryClient = useQueryClient();
   const { data: passkeys } = usePasskeys();
@@ -54,9 +54,9 @@ export function Passkeys() {
 
   return (
     <section className="card" data-tour="account-passkeys">
-      <h2>Connexion par Face ID</h2>
+      <h2>Clés d’accès</h2>
       <p className="hint">
-        Connectez-vous d'un geste (Face ID, empreinte ou code de l'appareil), sans mot de passe ni
+        Connexion d’un geste (déverrouillage de l’ordinateur ou du téléphone), sans mot de passe ni
         code à 6 chiffres.
       </p>
       {passkeys && passkeys.length > 0 && (
@@ -64,12 +64,12 @@ export function Passkeys() {
           {passkeys.map((p) => (
             <li key={p.id}>
               <span>
-                {p.name || 'Passkey'}
+                {p.name || 'Clé d’accès'}
                 {p.createdAt && <small> ajoutée le {date(p.createdAt)}</small>}
               </span>
               <ConfirmButton
                 label="Retirer"
-                confirmLabel="Retirer cette passkey"
+                confirmLabel="Retirer cette clé"
                 onConfirm={() => void remove(p.id)}
               />
             </li>
@@ -78,10 +78,10 @@ export function Passkeys() {
       )}
       {passkeysSupported() ? (
         <button type="button" disabled={pending} onClick={() => void add()}>
-          {pending ? 'Veuillez patienter…' : 'Activer sur cet appareil'}
+          {pending ? 'Veuillez patienter…' : 'Créer une clé d’accès'}
         </button>
       ) : (
-        <p className="hint">Ce navigateur ne permet pas la connexion par Face ID.</p>
+        <p className="hint">Ce navigateur ne gère pas les clés d’accès.</p>
       )}
       {(error ?? removeError) && (
         <p className="error" role="alert">
@@ -94,7 +94,7 @@ export function Passkeys() {
 
 const DISMISSED_KEY = 'obsio-passkey-suggestion-masquee';
 
-/** Proposition d'activer Face ID, sur l'accueil, tant que le compte n'a aucune passkey. */
+/** Proposition de créer une clé d'accès, sur l'accueil, tant que le compte n'a aucune passkey. */
 export function PasskeySuggestion() {
   const { data: passkeys } = usePasskeys();
   const { add, pending, error } = useAddPasskey();
@@ -110,7 +110,7 @@ export function PasskeySuggestion() {
   return (
     <section className="card suggestion">
       <h2>Connexion plus rapide</h2>
-      <p>Activez Face ID (ou l'empreinte) pour vous connecter d'un geste sur cet appareil.</p>
+      <p>Créez une clé d’accès pour vous connecter d’un geste, sans mot de passe.</p>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -118,7 +118,7 @@ export function PasskeySuggestion() {
       )}
       <div className="actions">
         <button type="button" disabled={pending} onClick={() => void add()}>
-          {pending ? 'Veuillez patienter…' : 'Activer Face ID'}
+          {pending ? 'Veuillez patienter…' : 'Créer une clé d’accès'}
         </button>
         <button type="button" className="link" onClick={dismiss}>
           Plus tard

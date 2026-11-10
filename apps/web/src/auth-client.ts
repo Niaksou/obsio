@@ -53,13 +53,13 @@ const ERROR_MESSAGES: Record<string, string> = {
   TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: 'Trop de codes incorrects : reconnectez-vous.',
   ACCOUNT_TEMPORARILY_LOCKED:
     'Trop de codes incorrects : compte bloqué 15 minutes. Réessayez plus tard.',
-  PASSKEY_USER_VERIFICATION_REQUIRED:
-    'Déverrouillez la passkey par Face ID, empreinte ou code de l’appareil.',
-  PASSKEY_NOT_FOUND: 'Passkey inconnue : connectez-vous avec votre mot de passe.',
-  AUTHENTICATION_FAILED: 'Connexion par passkey refusée. Réessayez.',
-  FAILED_TO_VERIFY_REGISTRATION: 'Ajout de la passkey refusé. Réessayez.',
+  PASSKEY_USER_VERIFICATION_REQUIRED: 'Déverrouillez la clé d’accès sur votre appareil.',
+  PASSKEY_NOT_FOUND: 'Clé d’accès inconnue : connectez-vous avec votre mot de passe.',
+  AUTHENTICATION_FAILED: 'Connexion par clé d’accès refusée. Réessayez.',
+  FAILED_TO_VERIFY_REGISTRATION: 'Création de la clé d’accès refusée. Réessayez.',
   CHALLENGE_NOT_FOUND: 'Délai dépassé : réessayez.',
-  ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED: 'Cet appareil a déjà une passkey pour votre compte.',
+  ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED:
+    'Cet appareil a déjà une clé d’accès pour votre compte.',
   TWO_FACTOR_REQUIRED: 'Activez la double authentification pour continuer.',
 };
 
@@ -67,6 +67,6 @@ const ERROR_MESSAGES: Record<string, string> = {
 export const passkeysSupported = () =>
   typeof window !== 'undefined' && window.isSecureContext && 'PublicKeyCredential' in window;
 
-/** Fenêtre Face ID fermée par l'utilisateur : pas une erreur à afficher. */
+/** Fenêtre de la clé d'accès fermée par l'utilisateur : pas une erreur à afficher. */
 export const passkeyCancelled = (error: { code?: string; message?: string } | null) =>
   !!error && /AUTH_CANCELLED|CEREMONY_ABORTED|PASSTHROUGH/.test(error.code ?? '');

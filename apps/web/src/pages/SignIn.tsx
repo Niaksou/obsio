@@ -119,7 +119,7 @@ export function SignIn() {
       {passkeysSupported() && (
         <>
           <button type="button" className="secondary" onClick={() => void signInWithPasskey()}>
-            Se connecter avec Face ID
+            Se connecter avec une clé d’accès
           </button>
           <p className="separator">ou</p>
         </>
