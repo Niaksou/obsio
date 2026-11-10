@@ -152,7 +152,8 @@ send() {
   trap 'rm -rf "$tmp"' EXIT
   decrypt "$file" "$tmp"
   archive=/dev/shm/obsio-secrets.tar
-  tar -C "$tmp" -cf - . | ssh "$host" "umask 077 && cat >$archive"
+  # COPYFILE_DISABLE : sans les fichiers ._* que le tar de macOS ajoute (attributs étendus).
+  COPYFILE_DISABLE=1 tar -C "$tmp" -cf - . | ssh "$host" "umask 077 && cat >$archive"
   ssh -t "$host" "sudo sh -c 'mkdir -p $remote && find $remote -mindepth 1 -delete && tar -xf $archive -C $remote && chown -R root:root $remote && chmod 0444 $remote/* && chmod 0700 $remote'; status=\$?; rm -f $archive; exit \$status"
   echo "Secrets déposés dans $host:$remote ; relancer les services pour les prendre en compte."
 }
