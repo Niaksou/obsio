@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { authClient } from '../auth-client.js';
+import { authClient, errorMessage, passkeyCancelled, passkeysSupported } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
 import { isInvitationPath, safeRedirect } from '../components/RequireSession.js';
 import { useSubmit } from '../components/useSubmit.js';
@@ -20,6 +20,31 @@ export function SignIn() {
   useEffect(() => {
     if (session) navigate(redirect, { replace: true });
   }, [session, navigate, redirect]);
+
+  // Suggestion de la passkey dans le champ e-mail (« autofill »), sur les navigateurs qui la
+  // proposent ; sans effet ailleurs. Un abandon n'est pas une erreur.
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  useEffect(() => {
+    if (step !== 'password' || !passkeysSupported()) return;
+    let active = true;
+    void (async () => {
+      if (!(await PublicKeyCredential.isConditionalMediationAvailable?.())) return;
+      const result = await authClient.signIn.passkey({ autoFill: true });
+      if (active && result.error && !passkeyCancelled(result.error)) {
+        setPasskeyError(errorMessage(result.error));
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [step]);
+
+  async function signInWithPasskey() {
+    setPasskeyError(null);
+    const result = await authClient.signIn.passkey();
+    if (result.error && !passkeyCancelled(result.error))
+      setPasskeyError(errorMessage(result.error));
+  }
 
   async function submit(data: FormData) {
     let needsCode = false;
@@ -82,7 +107,7 @@ export function SignIn() {
       title="Connexion"
       submitLabel="Se connecter"
       pending={pending}
-      error={error}
+      error={error ?? passkeyError}
       onSubmit={submit}
       footer={
         <>
@@ -91,7 +116,15 @@ export function SignIn() {
         </>
       }
     >
-      <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" />
+      {passkeysSupported() && (
+        <>
+          <button type="button" className="secondary" onClick={() => void signInWithPasskey()}>
+            Se connecter avec Face ID
+          </button>
+          <p className="separator">ou</p>
+        </>
+      )}
+      <Field label="Adresse e-mail" name="email" type="email" autoComplete="username webauthn" />
       <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" />
     </Form>
   );

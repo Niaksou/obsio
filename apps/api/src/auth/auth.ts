@@ -1,3 +1,4 @@
+import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
 import { eq } from 'drizzle-orm';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -12,6 +13,7 @@ import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
 import { composeNameInBody } from './names.js';
+import { passkeyOptions } from './passkey.js';
 import { forbiddenWord } from './password-policy.js';
 import {
   backupCodeOptions,
@@ -76,6 +78,7 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
         '/request-password-reset': { window: 3600, max: 5 },
         '/send-verification-email': { window: 3600, max: 5 },
         '/reset-password': { window: 3600, max: 10 },
+        '/passkey/verify-authentication': { window: 300, max: 10 },
       },
     },
     hooks: {
@@ -142,6 +145,11 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       // TOTP (application d'authentification), secret chiffré en base, et 10 codes de secours à
       // usage unique, hachés ; compte verrouillé 15 minutes après 10 codes faux de suite.
       twoFactor({ issuer: 'Obsio', backupCodeOptions }),
+      // Connexion par passkey (Face ID, empreinte, clé de sécurité), ajoutée depuis une session
+      // déjà protégée par la double authentification. L'appareil et la vérification de
+      // l'utilisateur (biométrie ou code de l'appareil) font deux facteurs résistants au
+      // hameçonnage (ASVS 6.6) : la connexion par passkey dispense du mot de passe et du TOTP.
+      passkey(passkeyOptions(config)),
       // Mot de passe connu des fuites de données refusé (ASVS 6.2.4, 6.2.12) : seuls les 5
       // premiers caractères de son empreinte SHA-1 partent vers api.pwnedpasswords.com. Coupé
       // dans les tests (pas d'appel réseau), sauf s'ils l'activent explicitement.

@@ -19,7 +19,7 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
 
 - TypeScript partout, monorepo **pnpm workspaces** :
   - `apps/web` : React + Vite, PWA (service worker, IndexedDB), Konva pour le plan 2D
-  - `apps/api` : Node.js, Fastify (routes validées par Zod), Better Auth (plugin organisation)
+  - `apps/api` : Node.js, Fastify (routes validées par Zod), Better Auth (plugins organisation, double authentification TOTP obligatoire, passkeys)
   - `apps/worker` : worker BullMQ pour l'extraction des rapports
   - `packages/shared` : types et schémas Zod partagés entre front, API et worker ; rôles Better Auth dans `@obsio/shared/permissions`
 - PostgreSQL 17 + Drizzle, avec **Row Level Security** : accès aux tables métier uniquement via `withOrganisation()` (`apps/api/src/db/client.ts`)

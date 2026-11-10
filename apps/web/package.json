@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@better-auth/passkey": "1.7.12",
     "@fontsource/barlow": "^5.3.0",
     "@fontsource/barlow-semi-condensed": "^5.3.0",
     "@obsio/shared": "workspace:*",

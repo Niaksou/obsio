@@ -238,7 +238,8 @@ Mise en œuvre (J0) :
 - L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
 - Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
 - L'inscription demande le prénom et le nom (colonnes `first_name` et `last_name`) ; le nom affiché `name` en est composé (« Prénom Nom »).
-- Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
+- Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion, puis code TOTP (double authentification obligatoire).
+- Connexion par passkey (Face ID, empreinte) : proposée sur l'accueil et sur « Mon compte » une fois la double authentification activée ; elle dispense du mot de passe et du code TOTP, qui reste la solution de secours (détails dans `docs/securite.md`).
 - La suppression d'une organisation est désactivée dans l'application : seul l'éditeur peut la faire, à la demande du client (voir « RGPD »).
 - Fichiers en stockage privé, servis uniquement par URLs signées à courte durée.
 

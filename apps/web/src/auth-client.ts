@@ -1,3 +1,4 @@
+import { passkeyClient } from '@better-auth/passkey/client';
 import { ac, roles } from '@obsio/shared/permissions';
 import {
   inferAdditionalFields,
@@ -11,6 +12,7 @@ export const authClient = createAuthClient({
   plugins: [
     organizationClient({ ac, roles }),
     twoFactorClient(),
+    passkeyClient(),
     inferAdditionalFields({
       user: {
         firstName: { type: 'string', required: false },
@@ -51,5 +53,20 @@ const ERROR_MESSAGES: Record<string, string> = {
   TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: 'Trop de codes incorrects : reconnectez-vous.',
   ACCOUNT_TEMPORARILY_LOCKED:
     'Trop de codes incorrects : compte bloqué 15 minutes. Réessayez plus tard.',
+  PASSKEY_USER_VERIFICATION_REQUIRED:
+    'Déverrouillez la passkey par Face ID, empreinte ou code de l’appareil.',
+  PASSKEY_NOT_FOUND: 'Passkey inconnue : connectez-vous avec votre mot de passe.',
+  AUTHENTICATION_FAILED: 'Connexion par passkey refusée. Réessayez.',
+  FAILED_TO_VERIFY_REGISTRATION: 'Ajout de la passkey refusé. Réessayez.',
+  CHALLENGE_NOT_FOUND: 'Délai dépassé : réessayez.',
+  ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED: 'Cet appareil a déjà une passkey pour votre compte.',
   TWO_FACTOR_REQUIRED: 'Activez la double authentification pour continuer.',
 };
+
+/** Passkeys utilisables : navigateur compatible et contexte sécurisé (HTTPS ou localhost). */
+export const passkeysSupported = () =>
+  typeof window !== 'undefined' && window.isSecureContext && 'PublicKeyCredential' in window;
+
+/** Fenêtre Face ID fermée par l'utilisateur : pas une erreur à afficher. */
+export const passkeyCancelled = (error: { code?: string; message?: string } | null) =>
+  !!error && /AUTH_CANCELLED|CEREMONY_ABORTED|PASSTHROUGH/.test(error.code ?? '');

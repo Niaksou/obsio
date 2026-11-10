@@ -2,10 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { authClient, errorMessage } from '../auth-client.js';
 import { BackupCodes } from '../components/BackupCodes.js';
+import { device } from '../components/device.js';
+import { Passkeys } from '../components/Passkeys.js';
 import { field, Field, Form } from '../components/Form.js';
 import { useSubmit } from '../components/useSubmit.js';
 
-// Mon compte : mot de passe, sessions ouvertes et codes de secours de la double authentification.
+// Mon compte : passkeys, mot de passe, sessions ouvertes et codes de secours de la double
+// authentification.
 
 export function AccountPage() {
   const { data: session } = authClient.useSession();
@@ -19,6 +22,7 @@ export function AccountPage() {
           {session.user.name} <small>{session.user.email}</small>
         </p>
       </section>
+      <Passkeys />
       <ChangePassword />
       <Sessions currentToken={session.session.token} />
       <RegenerateBackupCodes />
@@ -71,32 +75,6 @@ function ChangePassword() {
       {done && <p role="status">Mot de passe changé ; vos autres sessions sont fermées.</p>}
     </Form>
   );
-}
-
-/** Appareil lisible à partir de l'agent utilisateur : navigateur et système. */
-function device(userAgent: string | null | undefined) {
-  if (!userAgent) return 'Appareil inconnu';
-  const browser = /Edg\//.test(userAgent)
-    ? 'Edge'
-    : /Firefox\//.test(userAgent)
-      ? 'Firefox'
-      : /Chrome\//.test(userAgent)
-        ? 'Chrome'
-        : /Safari\//.test(userAgent)
-          ? 'Safari'
-          : 'Navigateur';
-  const system =
-    /iPhone|iPad/.exec(userAgent)?.[0] ??
-    (/Android/.test(userAgent)
-      ? 'Android'
-      : /Mac OS X/.test(userAgent)
-        ? 'macOS'
-        : /Windows/.test(userAgent)
-          ? 'Windows'
-          : /Linux/.test(userAgent)
-            ? 'Linux'
-            : null);
-  return system ? `${browser} sur ${system}` : browser;
 }
 
 const dateTime = (value: Date | string) =>

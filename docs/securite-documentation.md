@@ -28,7 +28,7 @@ Dépôt par URL signée valable 10 minutes, qui impose le type et la taille ; cl
 
 ## Authentification (V6)
 
-Limitation des tentatives, par adresse IP : connexion 10 par 5 minutes, inscription et demande de réinitialisation 5 par heure, réinitialisation 10 par heure, routes de double authentification 3 par 10 secondes ; compte verrouillé 15 minutes après 10 codes TOTP faux de suite. Détails des règles de mot de passe, de double authentification et de session : [`securite.md`](securite.md).
+Limitation des tentatives, par adresse IP : connexion 10 par 5 minutes, inscription et demande de réinitialisation 5 par heure, réinitialisation 10 par heure, routes de double authentification 3 par 10 secondes, connexion par passkey 10 par 5 minutes ; compte verrouillé 15 minutes après 10 codes TOTP faux de suite. Détails des règles de mot de passe, de double authentification et de session : [`securite.md`](securite.md).
 
 ## Matrice des autorisations (V8)
 
@@ -89,6 +89,7 @@ Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur
 | Secret TOTP | Chiffrement symétrique de Better Auth (XChaCha20-Poly1305), clé dérivée de `BETTER_AUTH_SECRET` | table `two_factor` |
 | Codes de secours | 120 bits aléatoires, stockés en SHA-256 | table `two_factor` |
 | Codes TOTP | HMAC-SHA-1, 6 chiffres, 30 secondes (RFC 6238) | Better Auth |
+| Passkeys | Clé publique WebAuthn (ES256 ou RS256) de l'appareil ; signature d'un défi aléatoire à usage unique | table `passkey` (clé publique seulement) |
 | Liens intervenant | 32 octets aléatoires, stockés en SHA-256 | `apps/api/src/routes/reserves.ts` |
 | URL signées du stockage | AWS SigV4 (HMAC-SHA-256) | `apps/api/src/storage.ts` |
 | Nombres aléatoires | Générateur cryptographique de Node.js (`crypto.randomBytes`, `crypto.randomUUID`) | — |

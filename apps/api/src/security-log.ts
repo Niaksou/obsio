@@ -5,7 +5,7 @@ import { redactUrl } from './logging.js';
 // `securite: true` et au nom de l'événement. Jamais de mot de passe, de jeton ni de contenu métier.
 //
 // Événements : authentification (connexion, inscription, déconnexion, mot de passe, adresse
-// vérifiée, invitations et membres), acces-refuse (401, 403), lien-intervention-refuse,
+// vérifiée, invitations et membres, passkeys), acces-refuse (401, 403), lien-intervention-refuse,
 // limite-depassee (429), validation-refusee (400 d'un schéma), fichier-infecte (antivirus).
 
 export type SecurityEvent =
@@ -50,6 +50,9 @@ const AUTH_EVENTS: Record<string, string> = {
   '/api/auth/organization/accept-invitation': 'acceptation-invitation',
   '/api/auth/organization/remove-member': 'retrait-membre',
   '/api/auth/organization/update-member-role': 'changement-role',
+  '/api/auth/passkey/verify-authentication': 'connexion-passkey',
+  '/api/auth/passkey/verify-registration': 'ajout-passkey',
+  '/api/auth/passkey/delete-passkey': 'suppression-passkey',
 };
 
 /** Journalise les événements déduits de la réponse ; à enregistrer avant les routes. */

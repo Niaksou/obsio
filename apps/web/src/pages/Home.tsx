@@ -1,5 +1,6 @@
 import { authClient } from '../auth-client.js';
 import { field, Field, Form } from '../components/Form.js';
+import { PasskeySuggestion } from '../components/Passkeys.js';
 import { useSubmit } from '../components/useSubmit.js';
 
 const ROLE_LABELS: Record<string, string> = { admin: 'Administrateur', membre: 'Membre' };
@@ -19,6 +20,8 @@ export function Home() {
         <h1>{organisation.name}</h1>
         <p>Vous êtes {ROLE_LABELS[me?.role ?? ''] ?? me?.role}.</p>
       </section>
+
+      <PasskeySuggestion />
 
       <section className="card">
         <h2>Membres</h2>

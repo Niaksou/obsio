@@ -63,11 +63,19 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 ## Double authentification
 
 - **Obligatoire pour tous les comptes** (les intervenants, qui passent par un lien sans compte, ne sont pas concernés). Tant qu'elle n'est pas activée, la session ne sert qu'à la configurer : l'API répond 403 et les routes de Better Auth (organisation, invitations, sessions, mot de passe) refusent avec `TWO_FACTOR_REQUIRED` (`apps/api/src/auth/two-factor.ts`).
-- Application d'authentification (TOTP, 6 chiffres, 30 secondes) : activation après confirmation du mot de passe, QR code ou clé à saisir, puis premier code. Secret chiffré en base avec `BETTER_AUTH_SECRET`.
+- Application d'authentification (TOTP, 6 chiffres, 30 secondes) : activation après confirmation du mot de passe, QR code ou clé à saisir, codes de secours, puis premier code. Secret chiffré en base avec `BETTER_AUTH_SECRET`.
 - 10 codes de secours à usage unique (24 caractères, 120 bits), stockés hachés, affichés une seule fois à l'activation ; de nouveaux codes, qui remplacent les anciens, se génèrent sur la page « Mon compte » avec le mot de passe.
 - Un code TOTP accepté ne sert qu'une fois, même pendant sa validité. Compte verrouillé 15 minutes après 10 codes faux de suite.
 - Ni désactivation, ni appareil de confiance qui dispenserait du code.
-- Téléphone et codes de secours perdus : `pnpm user:reset-2fa <e-mail>` par l'éditeur, **après vérification de l'identité du demandeur auprès de l'admin de son organisation, par un autre canal que l'e-mail** (téléphone). Le secret est supprimé et les sessions fermées ; le mot de passe reste exigé pour en configurer un nouveau.
+- Téléphone et codes de secours perdus : `pnpm user:reset-2fa <e-mail>` par l'éditeur, **après vérification de l'identité du demandeur auprès de l'admin de son organisation, par un autre canal que l'e-mail** (téléphone). Le secret et les passkeys sont supprimés et les sessions fermées ; le mot de passe reste exigé pour en configurer un nouveau.
+
+## Passkeys (Face ID, empreinte)
+
+- Connexion sans mot de passe ni TOTP par une passkey WebAuthn (plugin passkey de Better Auth, `apps/api/src/auth/passkey.ts`). L'appareil (clé privée qui ne le quitte pas) et la vérification de l'utilisateur (biométrie ou code de l'appareil) font deux facteurs résistants au hameçonnage (ASVS 6.6, 6.7).
+- Ajout seulement depuis une session déjà protégée par la double authentification (sinon `TWO_FACTOR_REQUIRED`) ; le TOTP reste obligatoire et sert de solution de secours.
+- Vérification de l'utilisateur exigée à l'ajout et à chaque connexion (indicateur UV de l'authentificateur, refus `PASSKEY_USER_VERIFICATION_REQUIRED`) ; passkey liée au domaine du front (`rpID`), réponse vérifiée contre l'origine exacte de `WEB_URL`, jamais contre l'en-tête `Origin` ; défi à usage unique valable 5 minutes ; compteur de signatures mis à jour.
+- Seule la clé publique est stockée (table `passkey`, sans `organisation_id`, comme les autres tables de Better Auth). Liste et retrait sur la page « Mon compte » ; ajout, retrait et connexion journalisés.
+- 10 essais de connexion par passkey par 5 minutes et par adresse IP. WebAuthn exige HTTPS (ou `localhost`) : pas de passkey en `pnpm dev:lan` depuis un téléphone.
 
 ## Sessions
 
@@ -95,7 +103,7 @@ L'API écrit une ligne JSON par événement de sécurité, reconnaissable à `"s
 
 | Événement | Quand |
 | --- | --- |
-| `authentification` | Connexion, inscription, déconnexion, demande et réinitialisation de mot de passe, changement de mot de passe, vérification d'adresse, fermeture de sessions, invitation, acceptation, retrait de membre, changement de rôle, double authentification : réussite ou échec, avec l'adresse saisie |
+| `authentification` | Connexion, inscription, déconnexion, demande et réinitialisation de mot de passe, changement de mot de passe, vérification d'adresse, fermeture de sessions, invitation, acceptation, retrait de membre, changement de rôle, double authentification, connexion, ajout et retrait de passkey : réussite ou échec, avec l'adresse saisie |
 | `acces-refuse` | Réponse 401 ou 403 d'une route de l'API |
 | `lien-intervention-refuse` | Lien intervenant inconnu, expiré ou révoqué |
 | `limite-depassee` | Réponse 429 (limitation de débit) |

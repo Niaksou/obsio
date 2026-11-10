@@ -591,6 +591,22 @@ form.card > button[type='submit'] {
   justify-content: flex-end;
 }
 
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
+
 .step-label {
   margin: 0;
   font-size: 0.875rem;

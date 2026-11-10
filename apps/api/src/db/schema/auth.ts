@@ -46,6 +46,28 @@ export const twoFactor = pgTable(
   (table) => [index().on(table.userId)],
 );
 
+// Passkeys (plugin passkey) : connexion par Face ID, empreinte ou clé de sécurité. Seule la clé
+// publique est stockée ; la clé privée ne quitte pas l'appareil.
+export const passkey = pgTable(
+  'passkey',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name'),
+    publicKey: text('public_key').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    credentialID: text('credential_id').notNull().unique(),
+    counter: integer('counter').notNull(),
+    deviceType: text('device_type').notNull(),
+    backedUp: boolean('backed_up').notNull(),
+    transports: text('transports'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    aaguid: text('aaguid'),
+  },
+  (table) => [index().on(table.userId)],
+);
+
 export const session = pgTable(
   'session',
   {
