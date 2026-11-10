@@ -6,6 +6,7 @@ import {
   floorDetailSchema,
   floorSchema,
   invitationDetailsSchema,
+  myReserveSchema,
   planUploadResponseSchema,
   presignedPostSchema,
   interventionSchema,
@@ -18,6 +19,7 @@ import {
   siteSchema,
   type AssignmentInput,
   type BuildingInput,
+  type CollaboratorAssignmentInput,
   type ContractorInput,
   type DraftUpdate,
   type EquipmentInput,
@@ -171,6 +173,11 @@ export const api = {
   createAssignment: (input: AssignmentInput) =>
     request(assignmentCreatedSchema, 'POST', '/api/assignments', input),
   revokeAssignment: (id: string) => request(z.null(), 'POST', `/api/assignments/${id}/revoke`),
+  assignCollaborators: (input: CollaboratorAssignmentInput) =>
+    request(z.null(), 'POST', '/api/collaborator-assignments', input),
+  removeCollaborator: (reserveId: string, userId: string) =>
+    request(z.null(), 'POST', `/api/reserves/${reserveId}/collaborators/${userId}/remove`),
+  myReserves: () => request(z.array(myReserveSchema), 'GET', '/api/me/reserves'),
 
   intervention: (token: string) => request(interventionSchema, 'GET', `/api/intervention/${token}`),
   interventionPhotoUpload: (

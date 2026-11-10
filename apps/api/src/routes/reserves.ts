@@ -3,9 +3,11 @@ import { createHash, randomBytes } from 'node:crypto';
 import {
   assignmentCreatedSchema,
   assignmentInputSchema,
+  collaboratorAssignmentInputSchema,
   commentInputSchema,
   contractorInputSchema,
   contractorSchema,
+  myReserveSchema,
   photoUploadRequestSchema,
   presignedPostSchema,
   PROOF_PHOTO_MAX_BYTES,
@@ -36,10 +38,16 @@ import {
   site,
 } from '../db/schema/index.js';
 import type { EmailSender } from '../email/sender.js';
-import { assignmentEmail } from '../email/templates.js';
+import { assignmentEmail, collaboratorAssignmentEmail } from '../email/templates.js';
 import { notifyCorrection, recordEvent } from '../reserves/events.js';
 import { addProof, checkPhotos, ProofError } from '../reserves/proofs.js';
-import { currentAssignments, listReserves, reserveDetail } from '../reserves/queries.js';
+import {
+  assignCollaborators,
+  myReserves,
+  removeCollaborator,
+  stillAssigned,
+} from '../reserves/collaborators.js';
+import { listReserves, reserveDetail } from '../reserves/queries.js';
 import type { Storage } from '../storage.js';
 
 // Suivi des réserves (J4, J5) : liste, détail, journal, modification, intervenants,
@@ -91,10 +99,16 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     async (request, reply) => {
       const rows = await scoped(request, async (tx) => {
         if (!(await activeSite(tx, request.params.id))) return null;
-        return listReserves(tx, request.params.id, request.query);
+        return listReserves(tx, request.params.id, request.query, undefined, request.user!.id);
       });
       return rows ?? fail(reply, 404, 'Site introuvable');
     },
+  );
+
+  app.get(
+    '/api/me/reserves',
+    { preHandler: member, schema: { response: { 200: z.array(myReserveSchema) } } },
+    async (request) => scoped(request, (tx) => myReserves(tx, request.user!.id)),
   );
 
   app.get(
@@ -282,7 +296,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
             .set({ status: 'levee', closedAt: new Date() })
             .where(eq(reserve.id, current.id));
         } else {
-          const assigned = (await currentAssignments(tx, [current.id])).has(current.id);
+          const assigned = (await stillAssigned(tx, [current.id])).has(current.id);
           await tx
             .update(reserve)
             .set({ status: assigned ? 'assignee' : 'ouverte' })
@@ -472,7 +486,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
           .select({ reserveId: assignmentReserve.reserveId })
           .from(assignmentReserve)
           .where(eq(assignmentReserve.assignmentId, row.id));
-        const stillAssigned = await currentAssignments(
+        const assigned = await stillAssigned(
           tx,
           links.map((link) => link.reserveId),
         );
@@ -484,8 +498,8 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
             actorUserId: request.user!.id,
             data: { assignmentId: row.id },
           });
-          // Sans autre assignation en cours, la réserve redevient simplement ouverte.
-          if (!stillAssigned.has(reserveId)) {
+          // Sans autre lien ni collaborateur, la réserve redevient simplement ouverte.
+          if (!assigned.has(reserveId)) {
             await tx
               .update(reserve)
               .set({ status: 'ouverte' })
@@ -495,6 +509,77 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
         return true;
       });
       return found ? reply.code(204).send(null) : fail(reply, 404, 'Assignation introuvable');
+    },
+  );
+
+  // --- Collaborateurs (membres de l'organisation)
+
+  app.post(
+    '/api/collaborator-assignments',
+    {
+      preHandler: admin,
+      schema: { body: collaboratorAssignmentInputSchema, response: { 204: z.null(), ...errors } },
+    },
+    async (request, reply) => {
+      const organisationId = request.organisation!.id;
+      const { userIds, reserveIds, dueDate, message } = request.body;
+      const result = await scoped(request, async (tx) => {
+        const assigned = await assignCollaborators(tx, {
+          organisationId,
+          actorUserId: request.user!.id,
+          userIds,
+          reserveIds,
+          dueDate,
+        });
+        if (typeof assigned === 'string') return assigned;
+        const org = await tx.query.organisation.findFirst({
+          where: eq(organisation.id, organisationId),
+        });
+        return { ...assigned, organisationName: org?.name ?? '' };
+      });
+      if (typeof result === 'string') return fail(reply, 400, result);
+
+      for (const { person, reserveIds: ids } of result.notified) {
+        // Pas d'e-mail à l'admin qui se confie une réserve à lui-même.
+        if (person.id === request.user!.id) continue;
+        await emailSender.send(
+          collaboratorAssignmentEmail(person.email, {
+            firstName: person.firstName,
+            assignerName: request.user!.name,
+            organisationName: result.organisationName,
+            reserveCount: ids.length,
+            dueDate,
+            message,
+            url:
+              ids.length === 1
+                ? `${config.WEB_URL}/reserves/${ids[0]}`
+                : `${config.WEB_URL}/mes-reserves`,
+          }),
+        );
+      }
+      return reply.code(204).send(null);
+    },
+  );
+
+  app.post(
+    '/api/reserves/:id/collaborators/:userId/remove',
+    {
+      preHandler: admin,
+      schema: {
+        params: z.object({ id: z.uuid(), userId: z.uuid() }),
+        response: { 204: z.null(), ...errors },
+      },
+    },
+    async (request, reply) => {
+      const removed = await scoped(request, (tx) =>
+        removeCollaborator(tx, {
+          organisationId: request.organisation!.id,
+          actorUserId: request.user!.id,
+          reserveId: request.params.id,
+          userId: request.params.userId,
+        }),
+      );
+      return removed ? reply.code(204).send(null) : fail(reply, 404, 'Assignation introuvable');
     },
   );
 };

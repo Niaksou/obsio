@@ -10,11 +10,13 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { api } from '../api.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { AssignPanel } from '../reserves/AssignPanel.js';
+import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
 import { DossierExport } from '../reserves/DossierExport.js';
 import { equipmentLabel, formatDay, plural, StatusLabel } from '../reserves/status.js';
 
 const VIEWS = {
   en_cours: { label: 'En cours', filters: { open: 'true' } },
+  mes_reserves: { label: 'Mes réserves', filters: { open: 'true', mine: 'true' } },
   en_retard: { label: 'En retard', filters: { overdue: 'true' } },
   a_verifier: { label: 'Corrigées, à vérifier', filters: { status: 'corrigee' } },
   levees: { label: 'Levées', filters: { status: 'levee' } },
@@ -48,7 +50,7 @@ export function ReservesPage() {
     queryFn: () => api.reserves(siteId, filters),
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [assigning, setAssigning] = useState(false);
+  const [assigning, setAssigning] = useState<'contractor' | 'collaborators' | null>(null);
 
   const floors = useMemo(() => {
     const byId = new Map<string, string>();
@@ -135,7 +137,9 @@ export function ReservesPage() {
         <p className="empty">
           {view === 'en_cours'
             ? 'Aucune réserve en cours sur ce site. Les réserves apparaissent ici une fois le rapport importé et validé.'
-            : 'Aucune réserve ne correspond à ces filtres.'}
+            : view === 'mes_reserves'
+              ? 'Aucune réserve ne vous est confiée sur ce site.'
+              : 'Aucune réserve ne correspond à ces filtres.'}
         </p>
       )}
 
@@ -176,12 +180,21 @@ export function ReservesPage() {
 
       {isAdmin && selected.size > 0 && (
         <div className="selection-bar">
-          {assigning ? (
+          {assigning === 'contractor' ? (
             <AssignPanel
               siteId={siteId}
               reserveIds={[...selected]}
               onClose={(done) => {
-                setAssigning(false);
+                setAssigning(null);
+                if (done) setSelected(new Set());
+              }}
+            />
+          ) : assigning === 'collaborators' ? (
+            <CollaboratorPanel
+              siteId={siteId}
+              reserveIds={[...selected]}
+              onClose={(done) => {
+                setAssigning(null);
                 if (done) setSelected(new Set());
               }}
             />
@@ -190,7 +203,14 @@ export function ReservesPage() {
               <p>
                 {plural(selected.size, 'réserve')} sélectionnée{selected.size > 1 ? 's' : ''}
               </p>
-              <button type="button" onClick={() => setAssigning(true)}>
+              <button type="button" onClick={() => setAssigning('collaborators')}>
+                Confier à des collaborateurs
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setAssigning('contractor')}
+              >
                 Assigner à un intervenant
               </button>
               <button type="button" className="quiet" onClick={() => setSelected(new Set())}>
@@ -202,6 +222,17 @@ export function ReservesPage() {
       )}
     </div>
   );
+}
+
+/** « Bob, Carol, Marc Volta, pour le 30/06/2099 » : qui corrige, et pour quand. */
+function assigneeLine(item: ReserveListItem) {
+  if (item.status === 'levee') return '';
+  const names = [
+    ...item.collaborators.map((c) => c.name),
+    ...(item.assignedTo ? [item.assignedTo.name] : []),
+  ];
+  const due = item.dueDate ? `pour le ${formatDay(item.dueDate)}` : '';
+  return [names.join(', '), due].filter(Boolean).join(', ');
 }
 
 export function ReserveRow({ item }: { item: ReserveListItem }) {
@@ -223,11 +254,7 @@ export function ReserveRow({ item }: { item: ReserveListItem }) {
       </span>
       <span className="reserve-side">
         <StatusLabel status={item.status} overdue={item.overdue} />
-        <span className="row-meta">
-          {item.assignedTo && item.status !== 'levee' ? `${item.assignedTo.name}` : ''}
-          {item.assignedTo && item.dueDate && item.status !== 'levee' ? ', ' : ''}
-          {item.dueDate && item.status !== 'levee' ? `pour le ${formatDay(item.dueDate)}` : ''}
-        </span>
+        <span className="row-meta">{assigneeLine(item)}</span>
       </span>
     </Link>
   );

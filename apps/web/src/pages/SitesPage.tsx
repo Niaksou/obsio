@@ -3,14 +3,30 @@ import { Link } from 'react-router';
 import { api } from '../api.js';
 import { field } from '../components/Form.js';
 import { MutationError } from '../components/MutationError.js';
+import { PasskeySuggestion } from '../components/Passkeys.js';
 import { keys, useIsAdmin } from '../queries.js';
+import { plural } from '../reserves/status.js';
 
 export function SitesPage() {
   const isAdmin = useIsAdmin();
   const sites = useQuery({ queryKey: keys.sites, queryFn: api.sites });
+  const mine = useQuery({ queryKey: keys.myReserves, queryFn: api.myReserves });
+  const toFix = mine.data?.filter((r) => r.status !== 'corrigee') ?? [];
+  const overdue = toFix.filter((r) => r.overdue).length;
 
   return (
     <div className="page">
+      <PasskeySuggestion />
+      {toFix.length > 0 && (
+        <Link to="/mes-reserves" className="my-reserves-banner">
+          <strong>
+            {plural(toFix.length, 'réserve')} à corriger vous{' '}
+            {toFix.length > 1 ? 'sont confiées' : 'est confiée'}
+          </strong>
+          {overdue > 0 && <span className="late"> dont {overdue} en retard</span>}
+          <span aria-hidden="true"> →</span>
+        </Link>
+      )}
       <h1>Sites</h1>
       {sites.isPending && <p className="loading">Chargement…</p>}
       {sites.error && <p className="error">{sites.error.message}</p>}

@@ -78,6 +78,13 @@
       "when": 1794321357188,
       "tag": "0010_passkey",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794321738726,
+      "tag": "0011_reserve_member",
+      "breakpoints": true
     }
   ]
 }

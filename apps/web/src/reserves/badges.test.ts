@@ -28,6 +28,7 @@ const item = (
     : null,
   sources: [],
   assignedTo: null,
+  collaborators: [],
   createdAt: new Date().toISOString(),
 });
 

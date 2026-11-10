@@ -9,6 +9,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth.js';
@@ -93,6 +94,42 @@ export const assignmentReserve = pgTable(
       foreignColumns: [reserve.id, reserve.organisationId],
     }),
     organisationIsolation('assignment_reserve'),
+  ],
+);
+
+/**
+ * Collaborateur (membre de l'organisation) chargé de corriger une réserve ; plusieurs par
+ * réserve. Retiré par l'admin ou au retrait du membre (`removedAt`), jamais supprimé.
+ */
+export const reserveMember = pgTable(
+  'reserve_member',
+  {
+    id: id(),
+    organisationId: organisationId(),
+    reserveId: uuid('reserve_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id),
+    assignedBy: uuid('assigned_by')
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    removedAt: timestamp('removed_at', { withTimezone: true }),
+    removedBy: uuid('removed_by').references(() => user.id),
+  },
+  (table) => [
+    index().on(table.organisationId),
+    index().on(table.reserveId),
+    index().on(table.userId),
+    // Une seule assignation en cours par réserve et par collaborateur.
+    uniqueIndex()
+      .on(table.reserveId, table.userId)
+      .where(sql`${table.removedAt} is null`),
+    foreignKey({
+      columns: [table.reserveId, table.organisationId],
+      foreignColumns: [reserve.id, reserve.organisationId],
+    }),
+    organisationIsolation('reserve_member'),
   ],
 );
 

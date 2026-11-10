@@ -40,12 +40,13 @@ Rôles : **admin** et **membre** d'une organisation (Better Auth, `@obsio/shared
 | Imports de rapports | Lecture | Dépôt, relecture des brouillons, validation, relance | — | — |
 | Réserves | Lecture, commentaire, photo, preuve (passe à « corrigée ») | En plus : modification (description, préconisation, gravité, échéance, équipement), revue (levée ou refus) | Lecture et preuve, pour les réserves de son assignation | — |
 | Intervenants et assignations | Lecture | Création, modification, révocation des liens | — | — |
+| Réserves confiées à des collaborateurs | Lecture ; « Mes réserves » (les siennes) | Confier à des membres de l'organisation, retirer | — | — |
 | Vérifications périodiques | Lecture | Modification | — | — |
 | Tableau de bord, dossier de preuves PDF | Oui | Oui | — | — |
 | Membres et invitations | Lecture | Invitation, changement de rôle, retrait | — | — |
 | Organisation | — | — | — | Création, export, suppression (`pnpm org:*`), réinitialisation de la double authentification |
 
-Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute seulement commentaires, photos et preuves ; le statut ne change que par une preuve (« corrigée ») ou par la revue d'un admin (« levée » ou retour à « ouverte ») ; l'organisation d'une donnée n'est jamais lue dans la requête, toujours dans la session.
+Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute seulement commentaires, photos et preuves ; le statut ne change que par une preuve (« corrigée ») ou par la revue d'un admin (« levée » ou retour à « ouverte ») et par les assignations (« assignée ») ; seul un membre de l'organisation peut se voir confier une réserve, et ses assignations prennent fin à son retrait ; l'organisation d'une donnée n'est jamais lue dans la requête, toujours dans la session.
 
 ## Classification des données (V14)
 

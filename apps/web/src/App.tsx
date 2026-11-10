@@ -9,6 +9,7 @@ import { ContractorsPage } from './pages/ContractorsPage.js';
 import { ForgotPassword } from './pages/ForgotPassword.js';
 import { Home } from './pages/Home.js';
 import { InspectionsPage } from './pages/InspectionsPage.js';
+import { MyReservesPage } from './pages/MyReservesPage.js';
 import { ReservePage } from './pages/ReservePage.js';
 import { ReservesPage } from './pages/ReservesPage.js';
 import { ResetPassword } from './pages/ResetPassword.js';
@@ -54,6 +55,7 @@ const router = createBrowserRouter([
       { path: '/sites/:siteId', element: session(<SitePage />) },
       { path: '/sites/:siteId/reserves', element: session(<ReservesPage />) },
       { path: '/reserves/:reserveId', element: session(<ReservePage />) },
+      { path: '/mes-reserves', element: session(<MyReservesPage />) },
       { path: '/verifications', element: session(<InspectionsPage />) },
       { path: '/intervenants', element: session(<ContractorsPage />) },
       { path: '/organisation', element: session(<Home />) },

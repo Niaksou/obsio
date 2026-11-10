@@ -13,6 +13,7 @@ import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys, useIsAdmin } from '../queries.js';
+import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
 import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, StatusLabel } from '../reserves/status.js';
 
@@ -32,6 +33,7 @@ function useRefresh(reserve: ReserveDetail) {
   return async () => {
     await queryClient.invalidateQueries({ queryKey: keys.reserve(reserve.id) });
     await queryClient.invalidateQueries({ queryKey: keys.siteReserves(reserve.siteId) });
+    await queryClient.invalidateQueries({ queryKey: keys.myReserves });
   };
 }
 
@@ -106,6 +108,10 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
       </header>
 
       {isAdmin && reserve.status === 'corrigee' && <Review reserve={reserve} />}
+
+      {(reserve.collaborators.length > 0 || (isAdmin && open)) && (
+        <Collaborators reserve={reserve} isAdmin={isAdmin} canAssign={open} />
+      )}
 
       <section className="reserve-section">
         <h2>Preuves de correction</h2>
@@ -219,6 +225,14 @@ export function describeEvent(event: ReserveEvent): string {
       }.`;
     case 'assignation_revoquee':
       return 'a révoqué le lien de l’intervenant.';
+    case 'collaborateur_assigne':
+      return `a confié la réserve à ${String(data.collaborator ?? 'un collaborateur')}${
+        typeof data.dueDate === 'string' ? `, pour le ${formatDay(data.dueDate)}` : ''
+      }.`;
+    case 'collaborateur_retire':
+      return event.actor
+        ? `a retiré la réserve à ${String(data.collaborator ?? 'un collaborateur')}.`
+        : `Réserve retirée à ${String(data.collaborator ?? 'un collaborateur')}, qui a quitté l’organisation.`;
     case 'preuve': {
       const photos = Number(data.photos ?? 0);
       return `a ajouté une preuve${photos ? ` (${photos} photo${photos > 1 ? 's' : ''})` : ''}.`;
@@ -292,6 +306,63 @@ function Review({ reserve }: { reserve: ReserveDetail }) {
           Refuser la correction
         </button>
       </div>
+    </section>
+  );
+}
+
+/** Collaborateurs chargés de corriger la réserve : liste, ajout et retrait par l'admin. */
+function Collaborators({
+  reserve,
+  isAdmin,
+  canAssign,
+}: {
+  reserve: ReserveDetail;
+  isAdmin: boolean;
+  canAssign: boolean;
+}) {
+  const refresh = useRefresh(reserve);
+  const [adding, setAdding] = useState(false);
+  const remove = useMutation({
+    mutationFn: (userId: string) => api.removeCollaborator(reserve.id, userId),
+    onSuccess: refresh,
+  });
+  return (
+    <section className="reserve-section">
+      <h2>Collaborateurs</h2>
+      {reserve.collaborators.length === 0 ? (
+        <p className="empty">Aucun collaborateur n’est chargé de cette réserve.</p>
+      ) : (
+        <ul className="rows">
+          {reserve.collaborators.map((c) => (
+            <li key={c.id} className="assignment-row">
+              <span className="row-title">{c.name}</span>
+              {isAdmin && reserve.status !== 'levee' && (
+                <ConfirmButton
+                  label="Retirer"
+                  confirmLabel={`Retirer ${c.name}`}
+                  disabled={remove.isPending}
+                  onConfirm={() => remove.mutate(c.id)}
+                />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <MutationError error={remove.error} />
+      {isAdmin &&
+        canAssign &&
+        (adding ? (
+          <CollaboratorPanel
+            siteId={reserve.siteId}
+            reserveIds={[reserve.id]}
+            exclude={reserve.collaborators.map((c) => c.id)}
+            onClose={() => setAdding(false)}
+          />
+        ) : (
+          <button type="button" className="secondary" onClick={() => setAdding(true)}>
+            Confier à des collaborateurs
+          </button>
+        ))}
     </section>
   );
 }

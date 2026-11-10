@@ -29,6 +29,8 @@ export const reserveListItemSchema = z.object({
   equipment: reserveEquipmentSchema.nullable(),
   sources: z.array(z.object({ documentType: documentTypeSchema, reference: z.string() })),
   assignedTo: z.object({ name: z.string(), company: z.string().nullable() }).nullable(),
+  /** Collaborateurs (membres de l'organisation) chargés de la corriger. */
+  collaborators: z.array(z.object({ id: z.uuid(), name: z.string() })),
   createdAt: z.iso.datetime(),
 });
 export type ReserveListItem = z.infer<typeof reserveListItemSchema>;
@@ -41,6 +43,8 @@ export const reserveFiltersSchema = z.object({
   equipmentId: z.uuid().optional(),
   floorId: z.uuid().optional(),
   documentType: documentTypeSchema.optional(),
+  /** Réserves confiées à l'utilisateur connecté. */
+  mine: z.enum(['true', 'false']).optional(),
 });
 export type ReserveFilters = z.infer<typeof reserveFiltersSchema>;
 
@@ -175,6 +179,26 @@ export const assignmentCreatedSchema = assignmentSummarySchema.extend({
   /** Lien de l'intervenant, montré une seule fois (seule l'empreinte du jeton est stockée). */
   link: z.url(),
 });
+
+// --- Collaborateurs (membres de l'organisation)
+
+export const collaboratorAssignmentInputSchema = z.object({
+  userIds: z.array(z.uuid()).min(1).max(50),
+  reserveIds: z.array(z.uuid()).min(1).max(500),
+  dueDate: z.iso.date().nullable().default(null),
+  message: z
+    .string()
+    .trim()
+    .max(2000)
+    .transform((value) => value || null)
+    .nullable()
+    .default(null),
+});
+export type CollaboratorAssignmentInput = z.input<typeof collaboratorAssignmentInputSchema>;
+
+/** Réserve confiée à l'utilisateur connecté, tous sites confondus. */
+export const myReserveSchema = reserveListItemSchema.extend({ siteName: z.string() });
+export type MyReserve = z.infer<typeof myReserveSchema>;
 
 // --- Preuves (membres et intervenants)
 

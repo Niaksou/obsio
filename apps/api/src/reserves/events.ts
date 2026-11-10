@@ -13,6 +13,8 @@ export type ReserveEventType =
   | 'commentaire'
   | 'assignee'
   | 'assignation_revoquee'
+  | 'collaborateur_assigne'
+  | 'collaborateur_retire'
   | 'preuve'
   | 'corrigee'
   | 'levee'

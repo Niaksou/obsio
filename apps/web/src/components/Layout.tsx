@@ -1,4 +1,4 @@
-import { Factory, CalendarCheck, HardHat, LogOut, Users } from 'lucide-react';
+import { Factory, CalendarCheck, ClipboardCheck, HardHat, LogOut, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
@@ -101,6 +101,9 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
         <nav className="nav" aria-label="Navigation principale">
           <NavItem to="/" icon={<Factory {...iconProps} />} active={inSites}>
             Sites
+          </NavItem>
+          <NavItem to="/mes-reserves" icon={<ClipboardCheck {...iconProps} />}>
+            Mes réserves
           </NavItem>
           <NavItem to="/verifications" icon={<CalendarCheck {...iconProps} />}>
             Vérifications

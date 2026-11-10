@@ -126,6 +126,35 @@ export function assignmentEmail(
   };
 }
 
+export function collaboratorAssignmentEmail(
+  to: string,
+  data: {
+    firstName: string | null;
+    assignerName: string;
+    organisationName: string;
+    reserveCount: number;
+    dueDate: string | null;
+    message: string | null;
+    url: string;
+  },
+): Email {
+  const n = data.reserveCount;
+  const reserves = `${n} réserve${n > 1 ? 's' : ''}`;
+  return {
+    to,
+    subject: `${data.organisationName} : ${reserves} à corriger`,
+    ...layout(
+      [
+        data.firstName ? `Bonjour ${data.firstName},` : 'Bonjour,',
+        `${data.assignerName} vous confie ${reserves} à corriger${data.dueDate ? ` avant le ${formatDate(data.dueDate)}` : ''}.`,
+        ...(data.message ? [data.message] : []),
+        'Une fois la correction faite, ajoutez une photo et indiquez que la réserve est corrigée.',
+      ],
+      { label: n > 1 ? 'Voir mes réserves' : 'Voir la réserve', url: data.url },
+    ),
+  };
+}
+
 export function correctionEmail(
   to: string,
   data: { author: string; description: string; url: string },

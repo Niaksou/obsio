@@ -177,6 +177,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `SourceReserve` | document (rapport du Code du travail, Q18, Q19), référence, code d'observation, texte, article, page, constatation Q18, relevé thermique | relie une réserve à chaque document qui la signale |
 | `Intervenant` | nom, société, e-mail | externe à l'organisation |
 | `Assignation` | réserves, intervenant, échéance, jeton signé, expiration | donne accès aux réserves assignées |
+| `ReserveCollaborateur` | réserve, membre, assignée par, date, retrait | membres de l'organisation chargés de corriger une réserve (table `reserve_member`) |
 | `Preuve` | photo(s), commentaire, date, auteur | jointe à une réserve |
 | `Evenement` | type, auteur, date, avant/après | journal d'audit de chaque réserve |
 | `EcheancierVerification` | type (`periodique`, `q18`, `q19`), suivie ou non, périodicité en mois, visite programmée, contact de l'organisme | un par site et par type ; la dernière visite vient des rapports validés (table `inspection_plan`) |
@@ -189,7 +190,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
   - L'import, la relecture et la validation sont réservés à l'admin ; les membres consultent.
   - En développement, `EXTRACTION_PROVIDER=fixtures` rejoue le résultat attendu d'un PDF du jeu de test pour démontrer l'import sans Mistral ; ce mode est refusé en production.
 - Décisions prises en J4 et J5, à relire :
-  - Statuts : `ouverte` → `assignee` (lien envoyé) → `corrigee` (preuve avec « corrigée », par un membre ou l'intervenant) → `levee` (admin). L'admin peut refuser la correction : la réserve revient à `assignee` si un lien est encore actif, sinon à `ouverte`. Révoquer le dernier lien actif ramène une réserve assignée à `ouverte`.
+  - Statuts : `ouverte` → `assignee` (lien envoyé ou collaborateur chargé) → `corrigee` (preuve avec « corrigée », par un membre ou l'intervenant) → `levee` (admin). L'admin peut refuser la correction : la réserve revient à `assignee` si un lien est encore actif ou un collaborateur chargé, sinon à `ouverte`. Révoquer le dernier lien actif ou retirer le dernier collaborateur ramène une réserve assignée à `ouverte`.
   - Une réserve est « en retard » si elle est ouverte ou assignée et que son échéance est passée (date du jour à Paris) ; une réserve corrigée attend l'admin et n'est plus en retard.
   - L'échéance de l'assignation devient celle des réserves assignées. Une réserve corrigée ou levée ne peut pas être assignée ; une réserve réassignée sort de la vue du lien précédent.
   - Modification d'une réserve (description, préconisation, échéance, équipement), assignation, révocation et levée : admin. Consultation, commentaires et preuves : tout membre.
@@ -333,6 +334,15 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 - [x] Étages empilés selon leur niveau, chacun texturé par l'image de son plan (même largeur pour tous tant que l'échelle n'est pas calibrée), équipements en repères verticaux colorés comme sur le plan 2D (statut le plus urgent, hauteur selon le nombre de réserves, anneau si retard) ; écartement réglable, étage isolable, repère sélectionnable avec ses réserves et le lien vers le plan
 - Choix techniques : three.js et React Three Fiber, chargés seulement à l'ouverture de la vue (`/batiments/:id/3d`) ; aucune nouvelle route d'API (étages, plans signés, équipements et réserves existants) ; message de repli sans WebGL. Pas de cloisons extrudées : un plan PDF ou image n'en décrit pas.
+
+**Après le MVP — Réserves confiées à des collaborateurs**
+
+- [x] L'admin confie une ou plusieurs réserves à un ou plusieurs membres de l'organisation (sélection multiple de la liste des réserves, ou fiche d'une réserve), avec échéance et message facultatifs ; e-mail aux collaborateurs nouvellement chargés (sauf à soi-même)
+- [x] « Mes réserves » : page et entrée de menu, bandeau sur la liste des sites, filtre dans la liste des réserves d'un site
+- Décisions prises, à relire :
+  - Plusieurs collaborateurs par réserve ; la première preuve « corrigée » de l'un d'eux la fait passer à `corrigee`. Cette assignation s'ajoute aux liens intervenant, sans les remplacer.
+  - Comme pour un lien, l'échéance donnée devient celle des réserves ; une réserve corrigée ou levée ne peut pas être confiée.
+  - Un collaborateur est retiré par l'admin, ou automatiquement quand il quitte l'organisation ; l'assignation est marquée retirée, jamais supprimée, et le journal de la réserve garde chaque ajout et retrait.
 
 **Après le MVP — Échelle des étages**
 

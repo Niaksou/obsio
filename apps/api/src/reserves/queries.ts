@@ -17,6 +17,7 @@ import {
   user,
 } from '../db/schema/index.js';
 import type { Storage } from '../storage.js';
+import { activeCollaborators, reservesOf } from './collaborators.js';
 
 // Lectures des réserves, partagées par l'API, l'export du dossier de preuves et le tableau de bord.
 
@@ -81,6 +82,8 @@ export async function listReserves(
   filters: ReserveFilters = {},
   /** Consultation directe de réserves précises, reconduites comprises. */
   only?: string[],
+  /** Utilisateur connecté, pour le filtre `mine`. */
+  viewerId?: string,
 ): Promise<ReserveListItem[]> {
   const on = today();
   const conditions: SQL[] = [eq(reserve.siteId, siteId)];
@@ -93,6 +96,7 @@ export async function listReserves(
       sql`${reserve.status} in ('ouverte', 'assignee') and ${reserve.dueDate} < ${on}`,
     );
   }
+  if (filters.mine === 'true' && viewerId) conditions.push(reservesOf(viewerId));
   if (filters.equipmentId) conditions.push(eq(reserve.equipmentId, filters.equipmentId));
   if (filters.floorId) conditions.push(eq(equipment.floorId, filters.floorId));
   if (filters.documentType) {
@@ -124,6 +128,7 @@ export async function listReserves(
         .orderBy(reportDocument.position)
     : [];
   const assignments = await currentAssignments(tx, ids);
+  const collaborators = await activeCollaborators(tx, ids);
 
   return rows.map(({ reserve: r, equipment: e, floorName, buildingName }) => ({
     id: r.id,
@@ -152,6 +157,7 @@ export async function listReserves(
       const current = assignments.get(r.id);
       return current ? { name: current.name, company: current.company } : null;
     })(),
+    collaborators: collaborators.get(r.id) ?? [],
     createdAt: r.createdAt.toISOString(),
   }));
 }

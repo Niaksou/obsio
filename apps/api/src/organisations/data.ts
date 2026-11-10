@@ -3,6 +3,7 @@ import type { Database } from '../db/client.js';
 import {
   assignment,
   assignmentReserve,
+  reserveMember,
   building,
   contractor,
   draftReserve,
@@ -39,6 +40,7 @@ export const ORGANISATION_TABLES = [
   { table: draftReserve },
   { table: reserveSource },
   { table: assignmentReserve },
+  { table: reserveMember },
   { table: proof },
   { table: reserveEvent },
 ] as const;
