@@ -51,6 +51,8 @@ export interface AppDependencies {
   queue: ExtractionQueue;
   /** Tests : journal écrit dans ce flux, quel que soit NODE_ENV. */
   logStream?: Writable;
+  /** Certificat et clé : l'API répond en HTTPS (déploiement, ASVS 12.3.3), sinon en HTTP. */
+  tls?: { cert: Buffer; key: Buffer };
 }
 
 export async function buildApp({
@@ -63,8 +65,10 @@ export async function buildApp({
   scanner,
   queue,
   logStream,
+  tls,
 }: AppDependencies) {
   const app = Fastify({
+    https: tls ?? null,
     logger: logStream
       ? { stream: logStream, serializers: logSerializers }
       : loggerOptions(config.NODE_ENV),

@@ -8,11 +8,11 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 171 |
+| Conforme | 173 |
 | Partiel | 2 |
 | À corriger | 0 |
-| Écart proposé | 1 |
-| N/A | 79 |
+| Écart proposé | 0 |
+| N/A | 78 |
 | **Total (niveaux 1 et 2)** | **253** |
 
 Points forts : cloisonnement par la base (RLS forcée et testée), validation Zod de toutes les entrées et sorties, autorisations vérifiées par l'API et la base, liens intervenant hachés et limités, en-têtes de sécurité et CSP sur l'application, TLS et HSTS, outils de sécurité dans la CI.
@@ -56,7 +56,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 À accepter ou non ; s'ils le sont, ils rejoignent la table des écarts de `docs/securite.md`.
 
-- **Communications internes en clair** (12.3.3) : PostgreSQL, Redis et le stockage communiquent sur le réseau Docker interne d'un seul serveur, sans port exposé. Le chiffrement deviendra nécessaire si les services sont répartis sur plusieurs machines.
+Aucun à ce jour.
 
 ## Détail par exigence
 
@@ -281,10 +281,10 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V12.1.3 | 2 | N/A | Pas de certificat client. |
 | V12.2.1 | 1 | Conforme | HTTPS partout, HSTS. |
 | V12.2.2 | 1 | Conforme | Certificats Let’s Encrypt. |
-| V12.3.1 | 2 | Conforme | Mistral en HTTPS ; relais SMTP authentifié en TLS 1.2 au moins, obligatoire (`requireTLS`) ; services internes traités en 12.3.3. |
+| V12.3.1 | 2 | Conforme | Mistral en HTTPS ; relais SMTP authentifié en TLS 1.2 au moins, obligatoire (requireTLS) ; services internes en TLS (12.3.3). |
 | V12.3.2 | 2 | Conforme | Certificats vérifiés par Node.js (comportement par défaut). |
-| V12.3.3 | 2 | Écart proposé | PostgreSQL, Redis et stockage en clair sur le réseau Docker interne d’un seul serveur. |
-| V12.3.4 | 2 | N/A | Pas de TLS interne (12.3.3). |
+| V12.3.3 | 2 | Conforme | TLS entre tous les services : proxy vers web et stockage, web vers API, API et worker vers PostgreSQL (hostssl seulement) et Redis (port en clair fermé), sauvegarde vers PostgreSQL ; ClamAV, sans TLS, joint par une socket Unix. Aucun repli en clair. |
+| V12.3.4 | 2 | Conforme | Certificat par service, signé par une autorité interne (deploy/secrets.sh, clé détruite après signature) ; clients configurés avec cette autorité (NODE_EXTRA_CA_CERTS, tls_trust_pool, sslmode=verify-full), nom du service vérifié. |
 
 ### V13 — Configuration
 

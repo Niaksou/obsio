@@ -1,12 +1,17 @@
-import { createServer, type AddressInfo, type Server } from 'node:net';
+import { createServer, type AddressInfo, type NetConnectOpts, type Server } from 'node:net';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { PresignedPost } from '@obsio/shared';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createClamavScanner, InfectedFile } from '../src/antivirus.js';
 import { verifiedContentType } from '../src/file-signature.js';
 import { buildTestApp, clientHelpers, EICAR, resetDatabase } from './helpers.js';
 
-/** clamd simulé : relit le flux INSTREAM et répond comme ClamAV. */
-async function fakeClamd(): Promise<{ port: number; received: () => Buffer; server: Server }> {
+/** clamd simulé : relit le flux INSTREAM et répond comme ClamAV, en TCP ou sur une socket Unix. */
+async function fakeClamd(
+  socketPath?: string,
+): Promise<{ address: NetConnectOpts; received: () => Buffer; server: Server }> {
   let received = Buffer.alloc(0);
   const server = createServer((socket) => {
     let buffer = Buffer.alloc(0);
@@ -31,15 +36,20 @@ async function fakeClamd(): Promise<{ port: number; received: () => Buffer; serv
       }
     });
   });
+  if (socketPath) {
+    await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+    return { address: { path: socketPath }, received: () => received, server };
+  }
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  return { port: (server.address() as AddressInfo).port, received: () => received, server };
+  const { port } = server.address() as AddressInfo;
+  return { address: { host: '127.0.0.1', port }, received: () => received, server };
 }
 
 describe('client clamd', () => {
   it('envoie le fichier par morceaux et lit le verdict', async () => {
     const clamd = await fakeClamd();
     try {
-      const scanner = createClamavScanner('127.0.0.1', clamd.port);
+      const scanner = createClamavScanner(clamd.address);
       const big = Buffer.alloc(200 * 1024, 7);
       expect(await scanner.scan(big)).toEqual({ infected: false });
       expect(clamd.received().equals(big)).toBe(true);
@@ -52,8 +62,20 @@ describe('client clamd', () => {
     }
   });
 
+  it('joint clamd par sa socket Unix', async () => {
+    const clamd = await fakeClamd(join(mkdtempSync(join(tmpdir(), 'clamd-')), 'clamd.sock'));
+    try {
+      const scanner = createClamavScanner(clamd.address);
+      expect(await scanner.scan(Buffer.from(EICAR))).toMatchObject({ infected: true });
+    } finally {
+      clamd.server.close();
+    }
+  });
+
   it('échoue si clamd est injoignable', async () => {
-    await expect(createClamavScanner('127.0.0.1', 1).scan(Buffer.from('x'))).rejects.toThrow();
+    await expect(
+      createClamavScanner({ host: '127.0.0.1', port: 1 }).scan(Buffer.from('x')),
+    ).rejects.toThrow();
   });
 });
 

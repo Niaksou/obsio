@@ -174,6 +174,27 @@ deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
 
 Sur le serveur, mettre `deploy/server.env` à jour d'après `deploy/server.env.example` (ajouter `SECRETS_DIR=/etc/obsio/secrets`, supprimer les lignes des mots de passe, clés et jetons), puis `obsio up -d --build --wait`.
 
+Chiffrement entre les services (novembre 2026) : les certificats internes font partie des secrets. Pour un fichier chiffré créé avant, les ajouter puis renvoyer (les adresses de la base et de Redis passent en TLS au passage) :
+
+```sh
+deploy/secrets.sh dechiffrer ~/obsio-secrets.sops.yaml ~/obsio-secrets
+deploy/secrets.sh generer ~/obsio-secrets          # ajoute l'autorité interne et les certificats
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+```
+
+Les certificats internes sont valables deux ans (date affichée à leur création). Avant l'échéance, les refaire tous, avec une nouvelle autorité, puis relancer tous les services :
+
+```sh
+deploy/secrets.sh dechiffrer ~/obsio-secrets.sops.yaml ~/obsio-secrets
+deploy/secrets.sh certificats ~/obsio-secrets
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+obsio up -d --force-recreate --wait
+```
+
 | Besoin | Commande |
 |---|---|
 | Mettre à jour après un `git push` | `cd ~/obsio && git pull && obsio up -d --build --wait` |

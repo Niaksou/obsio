@@ -13,6 +13,8 @@ name: obsio-preprod
 # Aucun secret dans l'environnement déclaré des conteneurs ni dans le fichier de variables.
 x-common-env: &common-env
   NODE_ENV: production
+  # Autorité interne : PostgreSQL, Redis et l'API présentent un certificat qu'elle a signé.
+  NODE_EXTRA_CA_CERTS: /run/secrets/tls_ca
   REDIS_URL_FILE: /run/secrets/redis_url
   S3_ENDPOINT: ${S3_ENDPOINT}
   S3_REGION: ${S3_REGION}
@@ -36,7 +38,7 @@ x-api-env: &api-env
   OPERATOR_EMAIL: ${OPERATOR_EMAIL}
   OPERATOR_NAME: ${OPERATOR_NAME}
   BETTER_AUTH_SECRET_FILE: /run/secrets/better_auth_secret
-  CLAMAV_HOST: clamav
+  CLAMAV_SOCKET: /run/clamav/clamd.sock
 
 # Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
 # jamais l'API ni le worker, qui n'en ont pas besoin (moindre privilège, ASVS 13.2.2).
@@ -50,6 +52,9 @@ x-owner-env: &owner-env
 
 # Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
 # mémoire et nombre de processus bornés.
+# Flux internes chiffrés (ASVS 12.3.3) : PostgreSQL, Redis et l'API n'acceptent que TLS, avec un
+# certificat par service signé par l'autorité interne (deploy/secrets.sh). ClamAV, qui ne
+# connaît pas TLS, n'écoute que dans son conteneur et sur une socket Unix partagée avec l'API.
 x-locked: &locked
   cap_drop: [ALL]
   security_opt: ['no-new-privileges:true']
@@ -64,10 +69,28 @@ services:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       APP_OWNER_PASSWORD_FILE: /run/secrets/app_owner_password
       APP_USER_PASSWORD_FILE: /run/secrets/app_user_password
-    secrets: [postgres_password, app_owner_password, app_user_password]
+    secrets:
+      - postgres_password
+      - app_owner_password
+      - app_user_password
+      - tls_postgres_cert
+      - tls_postgres_key
+    # PostgreSQL exige une clé lisible par lui seul : copie privée avant le démarrage.
+    command:
+      - sh
+      - -c
+      - >-
+        install -D -m 600 -o postgres -g postgres /run/secrets/tls_postgres_key
+        /var/lib/postgresql/tls/server.key &&
+        exec docker-entrypoint.sh postgres
+        -c ssl=on -c ssl_min_protocol_version=TLSv1.2
+        -c ssl_cert_file=/run/secrets/tls_postgres_cert
+        -c ssl_key_file=/var/lib/postgresql/tls/server.key
+        -c hba_file=/etc/postgresql/pg_hba.conf
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ../docker/postgres:/docker-entrypoint-initdb.d:ro
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres -d obsio']
       interval: 2s
@@ -76,16 +99,24 @@ services:
 
   redis:
     image: redis:8-alpine
-    # Mot de passe exigé, même sur le réseau interne (ASVS 13.2.1).
+    # Mot de passe exigé, même sur le réseau interne (ASVS 13.2.1), et TLS seulement : le port
+    # en clair est fermé (--port 0). Le script de l'image lance Redis sous son utilisateur.
     command:
       - sh
       - -c
-      - exec redis-server --maxmemory-policy noeviction --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)"
-    secrets: [redis_password]
+      - >-
+        exec docker-entrypoint.sh redis-server --maxmemory-policy noeviction --appendonly yes
+        --requirepass "$$(cat /run/secrets/redis_password)"
+        --port 0 --tls-port 6379 --tls-auth-clients no --tls-protocols "TLSv1.2 TLSv1.3"
+        --tls-cert-file /run/secrets/tls_redis_cert --tls-key-file /run/secrets/tls_redis_key
+        --tls-ca-cert-file /run/secrets/tls_ca
+    secrets: [redis_password, tls_ca, tls_redis_cert, tls_redis_key]
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$(cat /run/secrets/redis_password)" redis-cli ping']
+      test:
+        - CMD-SHELL
+        - REDISCLI_AUTH="$$(cat /run/secrets/redis_password)" redis-cli --tls --cacert /run/secrets/tls_ca -h localhost ping
       interval: 2s
       timeout: 3s
       retries: 30
@@ -119,10 +150,23 @@ services:
       CLAMD_CONF_StreamMaxLength: 60M
       # Rechargement des signatures sans doubler la mémoire (environ 1 Go au lieu de 2).
       CLAMD_CONF_ConcurrentDatabaseReload: 'no'
+      # Socket Unix dans un volume partagé avec l'API seule (même groupe, 1000) ; le port TCP
+      # n'écoute que dans le conteneur, pour son contrôle de santé.
+      CLAMD_CONF_LocalSocketGroup: clamav
+      CLAMD_CONF_LocalSocketMode: '660'
+      CLAMD_CONF_TCPAddr: 127.0.0.1
+    # L'image ne remplace que les options commentées : la socket est déplacée ici.
+    entrypoint:
+      - sh
+      - -c
+      - >-
+        sed -i 's|^LocalSocket .*|LocalSocket /run/clamav/clamd.sock|' /etc/clamav/clamd.conf &&
+        chown clamav:clamav /run/clamav && exec /init
     security_opt: ['no-new-privileges:true']
     mem_limit: 1536m
     volumes:
       - clamav-data:/var/lib/clamav
+      - clamav-socket:/run/clamav
 
   mailpit:
     image: axllent/mailpit:v1.32
@@ -136,6 +180,7 @@ services:
     image: obsio-api:preprod
     environment: *owner-env
     secrets:
+      - tls_ca
       - database_url
       - database_owner_url
       - redis_url
@@ -154,16 +199,33 @@ services:
   api:
     <<: *locked
     image: obsio-api:preprod
-    environment: *api-env
+    environment:
+      <<: *api-env
+      TLS_CERT_FILE: /run/secrets/tls_api_cert
+      TLS_KEY_FILE: /run/secrets/tls_api_key
     secrets:
-      [database_url, redis_url, s3_access_key, s3_secret_key, smtp_password, better_auth_secret]
+      - database_url
+      - redis_url
+      - s3_access_key
+      - s3_secret_key
+      - smtp_password
+      - better_auth_secret
+      - tls_ca
+      - tls_api_cert
+      - tls_api_key
+    volumes:
+      - clamav-socket:/run/clamav
     mem_limit: 512m
     depends_on:
       setup: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
       clamav: { condition: service_healthy }
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/health']
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('https://localhost:3000/health').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
       interval: 5s
       timeout: 3s
       retries: 20
@@ -174,7 +236,7 @@ services:
     environment:
       <<: *common-env
       MISTRAL_API_KEY_FILE: /run/secrets/mistral_api_key
-    secrets: [redis_url, s3_access_key, s3_secret_key, mistral_api_key]
+    secrets: [tls_ca, redis_url, s3_access_key, s3_secret_key, mistral_api_key]
     mem_limit: 1g
     depends_on:
       redis: { condition: service_healthy }
@@ -185,6 +247,7 @@ services:
     build: { context: .., target: web, args: { VITE_API_URL: '${PUBLIC_URL}' } }
     environment:
       STORAGE_ORIGIN: ${S3_ENDPOINT}
+    secrets: [tls_ca, tls_web_cert, tls_web_key]
     # Le binaire de Caddy porte cette capacité : sans elle, il refuse de démarrer.
     cap_add: [NET_BIND_SERVICE]
     tmpfs: ['/tmp', '/config', '/data']
@@ -199,6 +262,7 @@ volumes:
   redis-data:
   storage-data:
   clamav-data:
+  clamav-socket:
 
 # Fichiers créés par deploy/secrets.sh (dossier lisible par root seulement sur le serveur).
 secrets:
@@ -230,3 +294,21 @@ secrets:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/better_auth_secret
   mistral_api_key:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/mistral_api_key
+  tls_ca:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_ca
+  tls_postgres_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_postgres_cert
+  tls_postgres_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_postgres_key
+  tls_redis_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_redis_cert
+  tls_redis_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_redis_key
+  tls_api_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_api_cert
+  tls_api_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_api_key
+  tls_web_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_web_cert
+  tls_web_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_web_key

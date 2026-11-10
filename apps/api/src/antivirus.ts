@@ -1,4 +1,4 @@
-import { connect } from 'node:net';
+import { connect, type NetConnectOpts } from 'node:net';
 
 // Antivirus des fichiers déposés (ASVS 5.4.3) : chaque rapport, plan ou photo est analysé par
 // ClamAV (service clamd, protocole INSTREAM) avant tout traitement. Si clamd est injoignable,
@@ -21,11 +21,12 @@ export class InfectedFile extends Error {
 /** Morceaux envoyés à clamd, sous sa limite StreamMaxLength découpée en blocs. */
 const CHUNK_BYTES = 64 * 1024;
 
-export function createClamavScanner(host: string, port: number, timeoutMs = 60_000): FileScanner {
+/** clamd joint par TCP (`{ host, port }`) ou par sa socket Unix (`{ path }`). */
+export function createClamavScanner(address: NetConnectOpts, timeoutMs = 60_000): FileScanner {
   return {
     scan: (data) =>
       new Promise((resolve, reject) => {
-        const socket = connect({ host, port });
+        const socket = connect(address);
         let reply = '';
         socket.setTimeout(timeoutMs, () => socket.destroy(new Error('Antivirus : délai dépassé')));
         socket.on('error', reject);

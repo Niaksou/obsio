@@ -64,23 +64,26 @@ Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extr
 | --- | --- | --- | --- |
 | Navigateur | Caddy (application, API) | HTTPS, HSTS | Cookie de session `__Host-` |
 | Navigateur | Caddy (stockage) | HTTPS | URL signée |
-| Caddy | web, API, stockage | HTTP, réseau Docker interne | — |
-| API, worker | PostgreSQL | Réseau Docker interne | Rôle `app_user` (RLS) ; `app_owner` pour setup et les commandes de l'éditeur |
-| API, worker | Redis | Réseau Docker interne | Mot de passe |
-| API, worker | Stockage (RustFS) | HTTPS par l'adresse publique, puis interne | Compte limité au bucket |
-| API | ClamAV | TCP, réseau Docker interne | — (non exposé) |
+| Proxy Caddy | web (Caddy), stockage | HTTPS, certificat interne vérifié | — |
+| web (Caddy) | API | HTTPS, certificat interne vérifié | Cookie de session transmis |
+| API, worker, setup | PostgreSQL | TLS 1.2 au moins exigé (`hostssl`, `sslmode=verify-full`) | Rôle `app_user` (RLS) ; `app_owner` pour setup et les commandes de l'éditeur |
+| API, worker | Redis | TLS seulement (port en clair fermé), certificat vérifié | Mot de passe |
+| Sauvegarde | PostgreSQL | TLS, `sslmode=verify-full` | Rôle `postgres` |
+| API, worker | Stockage (RustFS) | HTTPS par l'adresse publique (proxy), puis HTTPS interne | Compte limité au bucket |
+| API | ClamAV | Socket Unix dans un volume partagé avec l'API seule (aucun passage par le réseau) | Droits du fichier (groupe 1000) |
 | API | Brevo | SMTP, TLS 1.2 au moins obligatoire | Identifiant SMTP |
 | API | Have I Been Pwned | HTTPS | — (5 premiers caractères de l'empreinte seulement) |
 | Worker | Mistral | HTTPS | Clé d'API |
 | Vector | Better Stack | HTTPS | Jeton d'ajout seul |
 
-Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur. Le chiffrement des flux internes est traité à part (écart 12.3.3).
+Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur. Entre les services, tout passe en TLS avec un certificat par service (nom du service sur le réseau Docker), signé par une autorité interne créée par `deploy/secrets.sh` ; les clients vérifient le certificat et son nom, sans repli en clair. ClamAV, qui ne connaît pas TLS, n'écoute que dans son conteneur. En préproduction sur une machine (`deploy/compose.yml` seul), le navigateur joint le front et le stockage en HTTP sur le poste : seul le serveur ajoute le proxy HTTPS devant eux.
 
 ## Inventaire cryptographique et gestion des clés (V11)
 
 | Usage | Algorithme | Où |
 | --- | --- | --- |
 | Transport | TLS 1.2 et 1.3 (Caddy, certificats Let's Encrypt) | `deploy/server/Caddyfile` |
+| Transport interne | TLS 1.2 et 1.3, certificats ECDSA P-256 d'une autorité interne, deux ans | `deploy/secrets.sh`, `deploy/compose.yml` |
 | Mots de passe | scrypt (Better Auth) | table `account` |
 | Jetons de session, signature du cookie | 32 octets aléatoires, HMAC-SHA-256 avec `BETTER_AUTH_SECRET` | Better Auth |
 | Secret TOTP | Chiffrement symétrique de Better Auth (XChaCha20-Poly1305), clé dérivée de `BETTER_AUTH_SECRET` | table `two_factor` |
@@ -101,6 +104,7 @@ Les secrets du serveur sont des fichiers créés par `deploy/secrets.sh` ; l'exe
 | Mots de passe PostgreSQL (`app_user`, `app_owner`, `postgres`) | `deploy/secrets.sh generer` (32 octets) | Annuelle et au départ d'une personne ayant eu accès au serveur : `ALTER ROLE … PASSWORD`, puis le secret (`deploy/secrets.sh deriver` recalcule les adresses) | Idem |
 | Clés du stockage (principale, application) | `deploy/secrets.sh generer` (16 octets, limite de RustFS) | Annuelle : nouvelle clé d'application créée par setup, puis l'ancienne supprimée | Idem |
 | Mot de passe Redis | `deploy/secrets.sh generer` (32 octets) | Annuelle | Remplacer, envoyer, redémarrer |
+| Certificats internes (`tls_*`) | `deploy/secrets.sh generer` : autorité interne dont la clé est détruite après signature | Avant expiration (deux ans) : `deploy/secrets.sh certificats` refait l'autorité et tous les certificats, puis envoyer et relancer tous les services | Idem |
 | Clé Mistral, mot de passe SMTP Brevo, jeton Better Stack | Console du fournisseur | Annuelle | Révoquer chez le fournisseur |
 | Clé SSH du serveur | Sur le poste de l'éditeur, avec phrase de passe | Au changement de poste | Retirer de `authorized_keys` |
 

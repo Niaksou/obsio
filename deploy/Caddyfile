@@ -1,6 +1,8 @@
 # Une seule origine publique : le front, et l'API sous /api (cookies de session sans CORS).
 {
 	admin off
+	# Certificats fournis (autorité interne, deploy/secrets.sh), aucun certificat à obtenir.
+	auto_https off
 	# Sur le serveur, le proxy (deploy/server/Caddyfile) est devant : garder l'adresse du client
 	# qu'il transmet, pour la limitation de débit de l'API.
 	servers {
@@ -8,11 +10,16 @@
 	}
 }
 
-:{$PORT:8080} {
+(app) {
 	encode zstd gzip
 
+	# HTTPS jusqu'à l'API, certificat vérifié par l'autorité interne (ASVS 12.3.3).
 	handle /api/* {
-		reverse_proxy api:3000
+		reverse_proxy https://api:3000 {
+			transport http {
+				tls_trust_pool file /run/secrets/tls_ca
+			}
+		}
 	}
 
 	handle {
@@ -38,4 +45,17 @@
 		Cross-Origin-Resource-Policy same-origin
 		-Server
 	}
+}
+
+# Proxy du serveur (deploy/server/Caddyfile) : HTTPS avec le certificat interne du service.
+https://:8443 {
+	tls /run/secrets/tls_web_cert /run/secrets/tls_web_key
+	import app
+}
+
+# Navigateur, sans proxy devant (préproduction sur une machine). Sur le serveur, ce port n'écoute
+# que dans le conteneur (HTTP_BIND=127.0.0.1) : le proxy ne peut joindre que le port HTTPS.
+http://:8080 {
+	bind {$HTTP_BIND:0.0.0.0}
+	import app
 }

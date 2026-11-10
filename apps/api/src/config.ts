@@ -30,9 +30,14 @@ const apiEnvSchema = z
     S3_ADMIN_SECRET_KEY: z.string().min(1).optional(),
     // Vérification des mots de passe divulgués (Have I Been Pwned) : active hors tests par défaut.
     PASSWORD_BREACH_CHECK: z.stringbool().optional(),
-    // Antivirus (service clamd) : obligatoire en production, facultatif en développement.
+    // Antivirus (service clamd) : obligatoire en production, facultatif en développement. Par
+    // une socket Unix partagée en déploiement (les fichiers ne passent pas par le réseau).
     CLAMAV_HOST: z.string().min(1).optional(),
     CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
+    CLAMAV_SOCKET: z.string().min(1).optional(),
+    // Certificat et clé de l'API : HTTPS entre le proxy et l'API (ASVS 12.3.3).
+    TLS_CERT_FILE: z.string().min(1).optional(),
+    TLS_KEY_FILE: z.string().min(1).optional(),
     // Derrière un proxy (Caddy, répartiteur de l'hébergeur) : l'adresse du client est lue dans
     // X-Forwarded-For, sinon la limitation de débit compterait tout le monde comme le proxy.
     TRUST_PROXY: z
@@ -40,9 +45,14 @@ const apiEnvSchema = z
       .default('false')
       .transform((value) => value === 'true'),
   })
-  .refine((env) => env.NODE_ENV !== 'production' || env.CLAMAV_HOST, {
+  .refine((env) => env.NODE_ENV !== 'production' || env.CLAMAV_HOST || env.CLAMAV_SOCKET, {
     path: ['CLAMAV_HOST'],
-    message: 'obligatoire en production (antivirus des fichiers déposés)',
+    message:
+      'CLAMAV_HOST ou CLAMAV_SOCKET obligatoire en production (antivirus des fichiers déposés)',
+  })
+  .refine((env) => !env.TLS_CERT_FILE === !env.TLS_KEY_FILE, {
+    path: ['TLS_KEY_FILE'],
+    message: 'TLS_CERT_FILE et TLS_KEY_FILE vont ensemble',
   });
 
 export type ApiConfig = z.infer<typeof apiEnvSchema>;

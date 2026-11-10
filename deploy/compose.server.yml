@@ -34,6 +34,8 @@ services:
       - '80:80'
       - '443:443'
       - '443:443/udp'
+    # Autorité interne : le proxy joint l'application et le stockage en HTTPS (ASVS 12.3.3).
+    secrets: [tls_ca]
     volumes:
       - ./server/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -46,9 +48,17 @@ services:
   postgres: *restart
   redis: *restart
 
+  # Stockage en HTTPS seulement, derrière le proxy (certificat de l'autorité interne).
   storage:
     <<: *restart
     ports: !reset []
+    environment:
+      RUSTFS_TLS_PATH: /tls
+    secrets:
+      - source: tls_storage_cert
+        target: /tls/rustfs_cert.pem
+      - source: tls_storage_key
+        target: /tls/rustfs_key.pem
 
   # Sans Brevo seulement (COMPOSE_PROFILES=local) : messages conservés d'un redémarrage à l'autre.
   mailpit:
@@ -67,9 +77,12 @@ services:
   api: *restart
   worker: *restart
 
+  # Le proxy joint le port HTTPS (8443) ; le port HTTP n'écoute que dans le conteneur.
   web:
     <<: *restart
     ports: !reset []
+    environment:
+      HTTP_BIND: 127.0.0.1
 
   # Sauvegarde quotidienne de la base dans BACKUP_DIR, sept jours conservés.
   backup:
@@ -78,7 +91,9 @@ services:
     environment:
       PGHOST: postgres
       PGUSER: postgres
-    secrets: [postgres_password]
+      PGSSLMODE: verify-full
+      PGSSLROOTCERT: /run/secrets/tls_ca
+    secrets: [postgres_password, tls_ca]
     volumes:
       - ${BACKUP_DIR:-/var/backups/obsio}:/backups
     depends_on:
@@ -121,5 +136,9 @@ volumes:
   vector-data:
 
 secrets:
+  tls_storage_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_storage_cert
+  tls_storage_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_storage_key
   betterstack_token:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/betterstack_token

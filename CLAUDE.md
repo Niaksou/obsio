@@ -24,7 +24,8 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
   - `packages/shared` : types et schémas Zod partagés entre front, API et worker ; rôles Better Auth dans `@obsio/shared/permissions`
 - PostgreSQL 17 + Drizzle, avec **Row Level Security** : accès aux tables métier uniquement via `withOrganisation()` (`apps/api/src/db/client.ts`)
 - Redis pour BullMQ, la limitation de débit et les quotas
-- Antivirus ClamAV (clamd) sur chaque fichier déposé, obligatoire en production (`CLAMAV_HOST`)
+- Antivirus ClamAV (clamd) sur chaque fichier déposé, obligatoire en production (`CLAMAV_SOCKET` en déploiement, `CLAMAV_HOST` sinon)
+- Déploiement : TLS entre tous les services (autorité interne et certificats créés par `deploy/secrets.sh`) ; toute nouvelle connexion interne passe en TLS avec vérification du certificat
 - Stockage objet compatible S3 (RustFS en local : MinIO ne publie plus d'images Docker)
 - Extraction : **Mistral OCR** puis modèle Mistral en sortie structurée, derrière une interface `ExtractionProvider`
 - Développement local via `docker compose` (PostgreSQL sur le port 5433, Redis, RustFS, Mailpit)

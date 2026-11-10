@@ -4,8 +4,18 @@
 	email {$ACME_EMAIL}
 }
 
+# Vers l'application et le stockage : HTTPS, certificat vérifié par l'autorité interne
+# (deploy/secrets.sh), jamais de repli en clair (ASVS 12.3.3).
+(interne) {
+	transport http {
+		tls_trust_pool file /run/secrets/tls_ca
+	}
+}
+
 {$APP_HOST} {
-	reverse_proxy web:8080
+	reverse_proxy https://web:8443 {
+		import interne
+	}
 	header -Server
 }
 
@@ -25,7 +35,9 @@ http://{$APP_HOST} {
 # Le stockage ne sert que des fichiers inertes (images, PDF) : aucun script, aucune intégration
 # dans un cadre, et pas de lecture depuis un autre site que l'application (même site : obsio.fr).
 {$STORAGE_HOST} {
-	reverse_proxy storage:9100
+	reverse_proxy https://storage:9100 {
+		import interne
+	}
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; sandbox"

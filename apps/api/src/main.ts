@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { createClamavScanner, noScanner } from './antivirus.js';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
@@ -17,9 +18,15 @@ const storage = createStorage(config);
 if (config.NODE_ENV === 'development') await storage.ensureBucket(config.WEB_URL);
 const queue = createExtractionQueue(redis);
 const emailSender = createSmtpSender(config);
-const scanner = config.CLAMAV_HOST
-  ? createClamavScanner(config.CLAMAV_HOST, config.CLAMAV_PORT)
-  : noScanner;
+const scanner = config.CLAMAV_SOCKET
+  ? createClamavScanner({ path: config.CLAMAV_SOCKET })
+  : config.CLAMAV_HOST
+    ? createClamavScanner({ host: config.CLAMAV_HOST, port: config.CLAMAV_PORT })
+    : noScanner;
+const tls =
+  config.TLS_CERT_FILE && config.TLS_KEY_FILE
+    ? { cert: readFileSync(config.TLS_CERT_FILE), key: readFileSync(config.TLS_KEY_FILE) }
+    : undefined;
 const app = await buildApp({
   config,
   pool,
@@ -29,6 +36,7 @@ const app = await buildApp({
   storage,
   scanner,
   queue,
+  tls,
 });
 // Range le brouillon dès la fin de l'extraction (la consultation de l'import le fait aussi).
 queue.watch(({ organisationId, importId }) => {
