@@ -8,6 +8,7 @@ import {
   totp,
 } from './helpers.js';
 import { resetTwoFactor } from '../src/auth/reset-two-factor.js';
+import { twoFactor } from '../src/db/schema/index.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
 
 const ctx = await buildTestApp();
@@ -88,6 +89,27 @@ describe('Double authentification obligatoire', () => {
     };
     expect((await useBackupCode()).statusCode).toBe(200);
     expect((await useBackupCode()).statusCode).toBe(401);
+  });
+
+  it('codes de secours de 120 bits, stockés hachés, saisis sans tenir compte de la casse', async () => {
+    const { admin } = await openClient('Usine', 'Alice', 'alice@example.org');
+    expect(admin.backupCodes[0]).toMatch(/^([A-Z2-9]{4}-){5}[A-Z2-9]{4}$/);
+    const [row] = await ctx.db.select({ codes: twoFactor.backupCodes }).from(twoFactor);
+    const stored = JSON.parse(row!.codes) as string[];
+    expect(stored).toHaveLength(10);
+    expect(stored.every((value) => /^[0-9a-f]{64}$/.test(value))).toBe(true);
+    expect(row!.codes).not.toContain(admin.backupCodes[0]);
+
+    const browser = new TestClient(ctx);
+    await browser.post('/api/auth/sign-in/email', {
+      email: 'alice@example.org',
+      password: TEST_PASSWORD,
+    });
+    const typed = admin.backupCodes[1]!.toLowerCase().replaceAll('-', ' ');
+    const used = await browser.post('/api/auth/two-factor/verify-backup-code', { code: typed });
+    expect(used.statusCode).toBe(200);
+    const [after] = await ctx.db.select({ codes: twoFactor.backupCodes }).from(twoFactor);
+    expect(JSON.parse(after!.codes)).toHaveLength(9);
   });
 
   it('ne peut être ni désactivée, ni contournée par un appareil de confiance', async () => {

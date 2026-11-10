@@ -53,7 +53,7 @@ Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute 
 | --- | --- | --- |
 | **Confidentiel client** | Rapports de vérification, réserves, plans, photos de preuve, commentaires, journal des réserves | Cloisonnement par organisation (RLS forcée), accès authentifié avec double authentification, stockage privé et URL signées courtes, sauvegardes de la base sur le serveur, pas de cache navigateur (`no-store`), cache du front vidé à la déconnexion, export et suppression sur demande |
 | **Données personnelles** | Membres : nom, adresse e-mail, adresse IP et navigateur des sessions. Intervenants : nom, entreprise, adresse e-mail, téléphone | Mêmes protections ; jamais dans les URL ; dans les journaux, seulement l'adresse IP et l'adresse e-mail saisie à la connexion |
-| **Secret** | Mots de passe, secrets TOTP et codes de secours, jetons de session, de lien intervenant, d'invitation et de réinitialisation, clés et mots de passe du serveur | Mots de passe hachés (scrypt), secrets TOTP et codes de secours chiffrés, jetons de lien hachés (SHA-256), jamais journalisés ni renvoyés ; secrets du serveur dans `deploy/server.env`, lisible par root seul |
+| **Secret** | Mots de passe, secrets TOTP et codes de secours, jetons de session, de lien intervenant, d'invitation et de réinitialisation, clés et mots de passe du serveur | Mots de passe hachés (scrypt), secrets TOTP chiffrés, codes de secours hachés, jetons de lien hachés (SHA-256), jamais journalisés ni renvoyés ; secrets du serveur dans `deploy/server.env`, lisible par root seul |
 | **Interne** | Résultats bruts d'extraction, versions des modèles et du prompt | Stockés à côté du rapport, mêmes protections que les données client |
 
 Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extraction, sous ses conditions d'API (pas d'entraînement sur les données des clients payants, à confirmer dans l'accord de traitement) ; les e-mails (adresse, nom, liens) à Brevo (UE) ; les journaux à Better Stack (UE). Durées de conservation : données client jusqu'à la suppression de l'organisation ; sauvegardes 7 jours ; journaux du serveur 5 fichiers de 10 Mo par conteneur ; journaux Better Stack selon l'offre (3 jours en gratuit).
@@ -83,7 +83,8 @@ Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur
 | Transport | TLS 1.2 et 1.3 (Caddy, certificats Let's Encrypt) | `deploy/server/Caddyfile` |
 | Mots de passe | scrypt (Better Auth) | table `account` |
 | Jetons de session, signature du cookie | 32 octets aléatoires, HMAC-SHA-256 avec `BETTER_AUTH_SECRET` | Better Auth |
-| Secret TOTP, codes de secours | Chiffrement symétrique de Better Auth (XChaCha20-Poly1305), clé dérivée de `BETTER_AUTH_SECRET` | table `two_factor` |
+| Secret TOTP | Chiffrement symétrique de Better Auth (XChaCha20-Poly1305), clé dérivée de `BETTER_AUTH_SECRET` | table `two_factor` |
+| Codes de secours | 120 bits aléatoires, stockés en SHA-256 | table `two_factor` |
 | Codes TOTP | HMAC-SHA-1, 6 chiffres, 30 secondes (RFC 6238) | Better Auth |
 | Liens intervenant | 32 octets aléatoires, stockés en SHA-256 | `apps/api/src/routes/reserves.ts` |
 | URL signées du stockage | AWS SigV4 (HMAC-SHA-256) | `apps/api/src/storage.ts` |

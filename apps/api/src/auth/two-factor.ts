@@ -1,3 +1,4 @@
+import { createHash, randomInt } from 'node:crypto';
 import { APIError, getSessionFromCtx, type createAuthMiddleware } from 'better-auth/api';
 
 // Double authentification obligatoire pour tous les comptes (ASVS 6.3.3) : TOTP par une
@@ -93,4 +94,42 @@ export async function rememberUsedCode(ctx: HookContext) {
     value: accepted.user.id,
     expiresAt: new Date(Date.now() + USED_CODE_TTL_MS),
   });
+}
+
+// Codes de secours (ASVS 6.5.2) : 24 caractères en base 32, soit 120 bits, stockés hachés
+// (SHA-256, suffisant au-delà de 112 bits) et non chiffrés : même avec BETTER_AUTH_SECRET, la
+// base ne les révèle pas. Le code saisi est haché avant la comparaison de Better Auth.
+
+const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Forme canonique : majuscules, sans espaces ni tirets, comme on le recopie d'un papier. */
+const canonical = (code: string) => code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+export const hashBackupCode = (code: string) =>
+  createHash('sha256').update(canonical(code)).digest('hex');
+
+const isHash = (value: string) => /^[0-9a-f]{64}$/.test(value);
+
+export const backupCodeOptions = {
+  customBackupCodesGenerate: () =>
+    Array.from({ length: 10 }, () => {
+      const chars = Array.from({ length: 24 }, () => BASE32[randomInt(BASE32.length)]).join('');
+      return chars.match(/.{4}/g)!.join('-');
+    }),
+  storeBackupCodes: {
+    // Better Auth réenregistre la liste après usage d'un code : les empreintes restent telles quelles.
+    encrypt: async (json: string) =>
+      JSON.stringify(
+        (JSON.parse(json) as string[]).map((code) => (isHash(code) ? code : hashBackupCode(code))),
+      ),
+    decrypt: async (stored: string) => stored,
+  },
+};
+
+/** Vérification d'un code de secours : le code saisi est remplacé par son empreinte. */
+export function hashBackupCodeInBody(ctx: HookContext) {
+  const code = codeOf(ctx);
+  if (ctx.path === '/two-factor/verify-backup-code' && code) {
+    (ctx.body as Record<string, unknown>).code = hashBackupCode(code);
+  }
 }

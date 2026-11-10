@@ -12,7 +12,12 @@ import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
 import { forbiddenWord } from './password-policy.js';
-import { enforceTwoFactor, rememberUsedCode } from './two-factor.js';
+import {
+  backupCodeOptions,
+  enforceTwoFactor,
+  hashBackupCodeInBody,
+  rememberUsedCode,
+} from './two-factor.js';
 
 /** Routes qui fixent un mot de passe : liste des mots interdits et mots de passe divulgués. */
 const PASSWORD_PATHS = ['/sign-up/email', '/reset-password', '/change-password'];
@@ -77,6 +82,7 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       // pas d'inscription en libre-service : il faut une invitation en attente pour l'adresse.
       before: createAuthMiddleware(async (ctx) => {
         await enforceTwoFactor(ctx);
+        hashBackupCodeInBody(ctx);
         if (PASSWORD_PATHS.includes(ctx.path)) {
           const body = (ctx.body ?? {}) as Record<string, unknown>;
           const password = body.password ?? body.newPassword;
@@ -125,9 +131,9 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       },
     },
     plugins: [
-      // TOTP (application d'authentification) et 10 codes de secours à usage unique, chiffrés
-      // en base ; compte verrouillé 15 minutes après 10 codes faux de suite.
-      twoFactor({ issuer: 'Obsio' }),
+      // TOTP (application d'authentification), secret chiffré en base, et 10 codes de secours à
+      // usage unique, hachés ; compte verrouillé 15 minutes après 10 codes faux de suite.
+      twoFactor({ issuer: 'Obsio', backupCodeOptions }),
       // Mot de passe connu des fuites de données refusé (ASVS 6.2.4, 6.2.12) : seuls les 5
       // premiers caractères de son empreinte SHA-1 partent vers api.pwnedpasswords.com. Coupé
       // dans les tests (pas d'appel réseau), sauf s'ils l'activent explicitement.

@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 167 |
-| Partiel | 5 |
+| Conforme | 170 |
+| Partiel | 2 |
 | À corriger | 0 |
 | Écart proposé | 2 |
 | N/A | 79 |
@@ -190,7 +190,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 | V6.4.3 | 2 | Conforme | Lien de réinitialisation à durée limitée, qui ferme les sessions ; la connexion suivante demande toujours le code TOTP. |
 | V6.4.4 | 2 | Conforme | Facteur perdu : codes de secours, sinon `pnpm user:reset-2fa` par l’éditeur après vérification de l’identité auprès de l’admin de l’organisation, par un autre canal que l’e-mail ; le mot de passe reste exigé. |
 | V6.5.1 | 2 | Conforme | Codes de secours à usage unique ; un code TOTP accepté est refusé s’il est rejoué pendant sa validité. |
-| V6.5.2 | 2 | Partiel | Codes de secours (environ 50 bits) chiffrés en base avec BETTER_AUTH_SECRET, et non hachés avec sel comme demandé sous 112 bits ; secret TOTP chiffré. |
+| V6.5.2 | 2 | Conforme | Codes de secours de 24 caractères en base 32 (120 bits), stockés en SHA-256 (`apps/api/src/auth/two-factor.ts`) ; secret TOTP chiffré. |
 | V6.5.3 | 2 | Conforme | Secret TOTP et codes de secours tirés par le générateur aléatoire cryptographique de Better Auth. |
 | V6.5.4 | 2 | Conforme | Codes de secours de 10 caractères alphanumériques, codes TOTP de 6 chiffres : au-delà de 20 bits. |
 | V6.5.5 | 2 | Conforme | Code TOTP valable 30 secondes, une période de part et d’autre tolérée (90 secondes au plus) ; compte verrouillé 15 minutes après 10 codes faux. |
@@ -326,7 +326,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V15.1.1 | 1 | Conforme | Délais de correction par gravité dans `docs/securite-documentation.md`. |
 | V15.1.2 | 2 | Conforme | `pnpm-lock.yaml` (versions et empreintes) et SBOM CycloneDX produit par la CI à chaque passage (workflow `Sécurité`, Syft). |
 | V15.1.3 | 2 | Conforme | Fonctions coûteuses et leurs protections dans `docs/securite-documentation.md`. |
-| V15.2.1 | 1 | Partiel | Aucune faille connue en production (`pnpm audit`), mais pas de délai défini. |
+| V15.2.1 | 1 | Conforme | Aucune faille connue en production (`pnpm audit`) ; délais de correction par gravité dans `docs/securite-documentation.md`. |
 | V15.2.2 | 2 | Conforme | Extraction en file BullMQ, limitation par adresse IP, quotas par organisation sur l’analyse et le dossier PDF. |
 | V15.2.3 | 2 | Conforme | Images sans tests ; la démonstration n’est qu’une commande, rien n’est exposé. |
 | V15.3.1 | 1 | Conforme | Schémas de réponse Zod. |
@@ -346,7 +346,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V16.2.2 | 2 | Conforme | Horodatage UTC (millisecondes epoch), horloge système synchronisée. |
 | V16.2.3 | 2 | Conforme | Journaux du serveur, rotation et copie Better Stack documentés dans `docs/securite-documentation.md`. |
 | V16.2.4 | 2 | Conforme | JSON (pino). |
-| V16.2.5 | 2 | Partiel | URL journalisées sans leurs jetons (`test/logging.test.ts`) ; règles par niveau de protection à définir avec la classification des données (14.1.1). |
+| V16.2.5 | 2 | Conforme | URL journalisées sans leurs jetons (`test/logging.test.ts`) ; règles par catégorie de données (secrets jamais journalisés, données personnelles limitées à l’adresse IP et à l’e-mail saisi) dans `docs/securite-documentation.md`. |
 | V16.3.1 | 2 | Conforme | Connexion, inscription, déconnexion, réinitialisation et changement de mot de passe, réussite comme échec (`apps/api/src/security-log.ts`, `test/security-log.test.ts`). |
 | V16.3.2 | 2 | Conforme | Réponses 401 et 403 journalisées avec l’utilisateur, l’organisation et la route ; liens intervenant refusés. |
 | V16.3.3 | 2 | Conforme | Événements définis dans `docs/securite.md` (« Journal de sécurité ») : refus de validation, dépassements de limite, refus d’accès. |
