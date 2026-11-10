@@ -2,7 +2,7 @@
 #   docker build --target api|worker|web .
 # Le front est construit pour une URL publique donnée (VITE_API_URL, connue au build).
 
-FROM node:24-alpine AS base
+FROM node:25-alpine AS base
 RUN corepack enable
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN pnpm build
 RUN pnpm --filter @obsio/api deploy --prod /out/api \
  && pnpm --filter @obsio/worker deploy --prod /out/worker
 
-FROM node:24-alpine AS api
+FROM node:25-alpine AS api
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/api .
@@ -26,7 +26,7 @@ EXPOSE 3000
 # Migrations : node dist/db/migrate.js ; ouverture d'un client : node dist/cli/create-organisation.js
 CMD ["node", "dist/main.js"]
 
-FROM node:24-alpine AS worker
+FROM node:25-alpine AS worker
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /out/worker .
