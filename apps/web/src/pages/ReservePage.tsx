@@ -56,7 +56,7 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
         <Link to={`/sites/${reserve.siteId}/reserves`}>Réserves</Link>
       </p>
 
-      <header className="reserve-head">
+      <header className="reserve-head" data-tour="reserve-head">
         <StatusLabel status={reserve.status} overdue={reserve.overdue} />
         <h1>{reserve.description}</h1>
         <dl className="facts">
@@ -175,7 +175,7 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
 
       {reserve.assignments.length > 0 && <Assignments reserve={reserve} isAdmin={isAdmin} />}
 
-      <section className="reserve-section">
+      <section className="reserve-section" data-tour="reserve-journal">
         <h2>Journal</h2>
         <ol className="journal">
           {reserve.events.map((event) => (
@@ -282,7 +282,11 @@ function Review({ reserve }: { reserve: ReserveDetail }) {
     onSuccess: refresh,
   });
   return (
-    <section className="review-box" aria-label="Vérification de la correction">
+    <section
+      className="review-box"
+      aria-label="Vérification de la correction"
+      data-tour="reserve-review"
+    >
       <h2>Correction à vérifier</h2>
       <p>
         Regardez les preuves ci-dessous. Levez la réserve si la correction est faite, sinon
@@ -327,7 +331,7 @@ function Collaborators({
     onSuccess: refresh,
   });
   return (
-    <section className="reserve-section">
+    <section className="reserve-section" data-tour="reserve-collaborators">
       <h2>Collaborateurs</h2>
       {reserve.collaborators.length === 0 ? (
         <p className="empty">Aucun collaborateur n’est chargé de cette réserve.</p>

@@ -17,7 +17,7 @@ export function DossierExport({ siteId }: { siteId: string }) {
   });
 
   return (
-    <section className="inline-form dossier-export">
+    <section className="inline-form dossier-export" data-tour="dossier-export">
       <h2>Dossier de preuves</h2>
       <p className="hint">
         Un PDF avec, pour chaque réserve, le rapport d’origine, son état et les photos de la

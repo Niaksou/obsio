@@ -28,6 +28,7 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
     <section
       ref={section}
       className="inspections"
+      data-tour="site-inspections"
       id="verifications"
       aria-labelledby="verifications-title"
     >

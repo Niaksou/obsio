@@ -47,7 +47,7 @@ export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: b
   });
 
   return (
-    <section className="reports">
+    <section className="reports" data-tour="site-reports">
       <div className="title-row section-title">
         <h2>Rapports de vérification</h2>
       </div>

@@ -103,7 +103,7 @@ function Sessions({ currentToken }: { currentToken: string }) {
 
   const others = sessions?.filter((s) => s.token !== currentToken) ?? [];
   return (
-    <section className="card">
+    <section className="card" data-tour="account-sessions">
       <h2>Sessions ouvertes</h2>
       <p className="hint">
         Une session se ferme après 2 heures sans activité, et au plus tard 12 heures après la

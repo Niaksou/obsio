@@ -195,7 +195,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
           <span>{floor.building.name}</span>
         </p>
         <h1>{floor.name}</h1>
-        <div className="tools">
+        <div className="tools" data-tour="plan-tools">
           {floor.plan && !showUpload && (
             <button type="button" className="quiet" onClick={() => viewer.current?.fit()}>
               Tout afficher
@@ -265,7 +265,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
         </div>
       </div>
 
-      <div className="plan-area">
+      <div className="plan-area" data-tour="plan-area">
         {showUpload && (
           <div className="plan-empty">
             <h2>{replacingPlan ? 'Remplacer le plan' : 'Plan de l’étage'}</h2>
@@ -395,7 +395,7 @@ function EquipmentReserves({ reserves }: { reserves: ReserveListItem[] }) {
 /** Cartouche de plan technique, en bas à droite : où se trouve-t-on. */
 function TitleBlock({ floor }: { floor: FloorDetail }) {
   return (
-    <dl className="title-block" aria-label="Cartouche">
+    <dl className="title-block" aria-label="Cartouche" data-tour="title-block">
       <div className="tb-site">
         <dt>Site</dt>
         <dd>{floor.site.name}</dd>

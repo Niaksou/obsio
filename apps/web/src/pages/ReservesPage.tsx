@@ -92,7 +92,7 @@ export function ReservesPage() {
         {reserves.data && <p className="row-meta">{plural(rows.length, 'réserve')}</p>}
       </div>
 
-      <div className="filters">
+      <div className="filters" data-tour="reserves-filters">
         <div className="segmented" role="group" aria-label="Statut">
           {(Object.keys(VIEWS) as View[]).map((key) => (
             <button
@@ -166,6 +166,7 @@ export function ReservesPage() {
                   type="checkbox"
                   aria-label={`Sélectionner : ${item.description}`}
                   disabled={!assignable(item)}
+                  data-tour={assignable(item) ? 'reserve-select' : undefined}
                   checked={selected.has(item.id)}
                   onChange={() => toggle(item.id)}
                 />
@@ -179,7 +180,7 @@ export function ReservesPage() {
       <DossierExport siteId={siteId} />
 
       {isAdmin && selected.size > 0 && (
-        <div className="selection-bar">
+        <div className="selection-bar" data-tour="selection-bar">
           {assigning === 'contractor' ? (
             <AssignPanel
               siteId={siteId}
@@ -237,7 +238,7 @@ function assigneeLine(item: ReserveListItem) {
 
 export function ReserveRow({ item }: { item: ReserveListItem }) {
   return (
-    <Link to={`/reserves/${item.id}`} className="reserve-row">
+    <Link to={`/reserves/${item.id}`} className="reserve-row" data-tour="reserve-row">
       <span className="reserve-main">
         <span className="reserve-text">{item.description}</span>
         <span className="row-meta">

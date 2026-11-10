@@ -41,7 +41,7 @@ export function SitesPage() {
         <ul className="rows">
           {sites.data.map((site) => (
             <li key={site.id}>
-              <Link to={`/sites/${site.id}`} className="row-link">
+              <Link to={`/sites/${site.id}`} className="row-link" data-tour="site-row">
                 <span className="row-title">{site.name}</span>
                 {site.address && <span className="row-meta">{site.address}</span>}
               </Link>
@@ -64,6 +64,7 @@ function AddSite() {
   return (
     <form
       className="inline-form"
+      data-tour="add-site"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;

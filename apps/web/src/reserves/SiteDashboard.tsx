@@ -17,7 +17,7 @@ export function SiteDashboard({ siteId }: { siteId: string }) {
   const list = (vue?: string) => `/sites/${siteId}/reserves${vue ? `?vue=${vue}` : ''}`;
 
   return (
-    <section className="dashboard" aria-label="Tableau de bord">
+    <section className="dashboard" aria-label="Tableau de bord" data-tour="site-dashboard">
       <Q18Alerts q18={q18} />
 
       <ul className="counters">

@@ -144,7 +144,7 @@ export function ProofForm({
           }}
         />
         {photos.length < PROOF_MAX_PHOTOS && (
-          <label htmlFor={inputId} className="photo-add">
+          <label htmlFor={inputId} className="photo-add" data-tour="photo-add">
             {preparing ? 'Préparation…' : photos.length ? 'Autre photo' : 'Prendre une photo'}
           </label>
         )}
@@ -161,7 +161,7 @@ export function ProofForm({
         />
       </label>
       {canMarkCorrected && (
-        <label className="check">
+        <label className="check" data-tour="proof-corrected">
           <input
             type="checkbox"
             checked={markCorrected}
@@ -175,7 +175,12 @@ export function ProofForm({
           {error}
         </p>
       )}
-      <button type="button" disabled={preparing} onClick={() => void submit()}>
+      <button
+        type="button"
+        disabled={preparing}
+        data-tour="proof-send"
+        onClick={() => void submit()}
+      >
         {canMarkCorrected && markCorrected ? 'Envoyer et indiquer corrigée' : 'Envoyer la preuve'}
       </button>
     </div>

@@ -37,7 +37,7 @@ export function MyReservesPage() {
 
 function MyList({ items }: { items: Awaited<ReturnType<typeof api.myReserves>> }) {
   return (
-    <ul className="rows reserve-rows">
+    <ul className="rows reserve-rows" data-tour="my-reserves">
       {items.map((item) => (
         <li key={item.id}>
           <div className="my-reserve">

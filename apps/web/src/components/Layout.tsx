@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 import { disablePush } from '../push/push.js';
+import { HelpButton } from '../tours/HelpButton.js';
 import { Logo } from './Logo.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
@@ -47,16 +48,20 @@ function NavItem({
   to,
   icon,
   active,
+  tour,
   children,
 }: {
   to: string;
   icon: ReactNode;
   active?: boolean;
+  /** Repère des tutoriels. */
+  tour?: string;
   children: ReactNode;
 }) {
   return (
     <NavLink
       to={to}
+      data-tour={tour}
       className={
         active === undefined ? undefined : ({ isActive }) => (active || isActive ? 'active' : '')
       }
@@ -102,16 +107,24 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
       <aside className="sidebar">
         <Brand />
         <nav className="nav" aria-label="Navigation principale">
-          <NavItem to="/" icon={<Factory {...iconProps} />} active={inSites}>
+          <NavItem tour="nav-sites" to="/" icon={<Factory {...iconProps} />} active={inSites}>
             Sites
           </NavItem>
-          <NavItem to="/mes-reserves" icon={<ClipboardCheck {...iconProps} />}>
+          <NavItem
+            tour="nav-mes-reserves"
+            to="/mes-reserves"
+            icon={<ClipboardCheck {...iconProps} />}
+          >
             Mes réserves
           </NavItem>
-          <NavItem to="/verifications" icon={<CalendarCheck {...iconProps} />}>
+          <NavItem
+            tour="nav-verifications"
+            to="/verifications"
+            icon={<CalendarCheck {...iconProps} />}
+          >
             Vérifications
           </NavItem>
-          <NavItem to="/intervenants" icon={<HardHat {...iconProps} />}>
+          <NavItem tour="nav-intervenants" to="/intervenants" icon={<HardHat {...iconProps} />}>
             Intervenants
           </NavItem>
           <NavItem to="/organisation" icon={<Users {...iconProps} />}>
@@ -119,6 +132,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
           </NavItem>
         </nav>
         <div className="session">
+          <HelpButton />
           <OrganisationSwitcher />
           <Link to="/compte" className="session-user" title="Mon compte">
             {session.user.name}

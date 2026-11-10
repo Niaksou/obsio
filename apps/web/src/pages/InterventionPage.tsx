@@ -6,6 +6,7 @@ import { api, ApiError } from '../api.js';
 import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, plural, StatusLabel } from '../reserves/status.js';
 import { Logo } from '../components/Logo.js';
+import { HelpButton } from '../tours/HelpButton.js';
 
 // Vue de l'électricien, ouverte depuis le lien reçu par e-mail : pas de compte, pensée pour le
 // téléphone, utilisable sans réseau une fois ouverte (dernière version gardée sur l'appareil).
@@ -68,6 +69,7 @@ export function InterventionPage() {
           <Logo />
         </span>
         {intervention.data && <span>{intervention.data.organisationName}</span>}
+        <HelpButton compact />
       </header>
       {!online && (
         <p className="offline-banner" role="status">
@@ -145,7 +147,13 @@ function ReserveItem({
   const toFix = reserve.status === 'ouverte' || reserve.status === 'assignee';
   return (
     <li className={open ? 'open' : undefined}>
-      <button type="button" className="intervention-item" aria-expanded={open} onClick={onToggle}>
+      <button
+        type="button"
+        className="intervention-item"
+        aria-expanded={open}
+        data-tour="intervention-item"
+        onClick={onToggle}
+      >
         <span className="item-number">{index}</span>
         <span className="item-main">
           {reserve.equipment && (

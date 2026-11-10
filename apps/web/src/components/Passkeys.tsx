@@ -53,7 +53,7 @@ export function Passkeys() {
   }
 
   return (
-    <section className="card">
+    <section className="card" data-tour="account-passkeys">
       <h2>Connexion par Face ID</h2>
       <p className="hint">
         Connectez-vous d'un geste (Face ID, empreinte ou code de l'appareil), sans mot de passe ni

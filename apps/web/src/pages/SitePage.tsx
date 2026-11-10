@@ -82,7 +82,7 @@ function BuildingSection({ building, isAdmin }: { building: Building; isAdmin: b
   });
 
   return (
-    <section className="building">
+    <section className="building" data-tour="site-building">
       <div className="title-row">
         <h2>{building.name}</h2>
         {floors.data && floors.data.length > 0 && (
@@ -130,6 +130,7 @@ function AddBuilding({ siteId }: { siteId: string }) {
   return (
     <form
       className="inline-form"
+      data-tour="add-building"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;

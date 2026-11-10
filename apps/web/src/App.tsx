@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
 import { Layout } from './components/Layout.js';
 import { RequireOrganisation } from './components/RequireOrganisation.js';
 import { RequireSession } from './components/RequireSession.js';
@@ -17,6 +17,7 @@ import { SignIn } from './pages/SignIn.js';
 import { SignUp } from './pages/SignUp.js';
 import { SitePage } from './pages/SitePage.js';
 import { SitesPage } from './pages/SitesPage.js';
+import { TourProvider } from './tours/TourProvider.js';
 
 // Konva et pdf.js ne sont chargés qu'à l'ouverture d'un étage.
 const FloorPage = lazy(() =>
@@ -49,45 +50,55 @@ const session = (page: ReactNode) => (
 
 const router = createBrowserRouter([
   {
-    element: <Layout />,
-    children: [
-      { path: '/', element: session(<SitesPage />) },
-      { path: '/sites/:siteId', element: session(<SitePage />) },
-      { path: '/sites/:siteId/reserves', element: session(<ReservesPage />) },
-      { path: '/reserves/:reserveId', element: session(<ReservePage />) },
-      { path: '/mes-reserves', element: session(<MyReservesPage />) },
-      { path: '/verifications', element: session(<InspectionsPage />) },
-      { path: '/intervenants', element: session(<ContractorsPage />) },
-      { path: '/organisation', element: session(<Home />) },
-      // Sans organisation active : chacun gère son compte, même s'il n'est membre de rien.
-      {
-        path: '/compte',
-        element: (
-          <RequireSession>
-            <AccountPage />
-          </RequireSession>
-        ),
-      },
-      { path: '/connexion', element: <SignIn /> },
-      { path: '/inscription', element: <SignUp /> },
-      { path: '/mot-de-passe-oublie', element: <ForgotPassword /> },
-      { path: '/reinitialiser-mot-de-passe', element: <ResetPassword /> },
-      { path: '/invitations/:id', element: <AcceptInvitation /> },
-    ],
-  },
-  {
-    // Le plan occupe toute la fenêtre, sous l'en-tête.
-    element: <Layout fullBleed />,
+    // Tutoriels interactifs, sur toutes les pages (voir src/tours).
+    element: (
+      <TourProvider>
+        <Outlet />
+      </TourProvider>
+    ),
     children: [
       {
-        path: '/etages/:floorId',
-        element: session(lazyPage(<FloorPage />)),
+        element: <Layout />,
+        children: [
+          { path: '/', element: session(<SitesPage />) },
+          { path: '/sites/:siteId', element: session(<SitePage />) },
+          { path: '/sites/:siteId/reserves', element: session(<ReservesPage />) },
+          { path: '/reserves/:reserveId', element: session(<ReservePage />) },
+          { path: '/mes-reserves', element: session(<MyReservesPage />) },
+          { path: '/verifications', element: session(<InspectionsPage />) },
+          { path: '/intervenants', element: session(<ContractorsPage />) },
+          { path: '/organisation', element: session(<Home />) },
+          // Sans organisation active : chacun gère son compte, même s'il n'est membre de rien.
+          {
+            path: '/compte',
+            element: (
+              <RequireSession>
+                <AccountPage />
+              </RequireSession>
+            ),
+          },
+          { path: '/connexion', element: <SignIn /> },
+          { path: '/inscription', element: <SignUp /> },
+          { path: '/mot-de-passe-oublie', element: <ForgotPassword /> },
+          { path: '/reinitialiser-mot-de-passe', element: <ResetPassword /> },
+          { path: '/invitations/:id', element: <AcceptInvitation /> },
+        ],
       },
-      { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
-      { path: '/batiments/:buildingId/3d', element: session(lazyPage(<BuildingPage3D />)) },
+      {
+        // Le plan occupe toute la fenêtre, sous l'en-tête.
+        element: <Layout fullBleed />,
+        children: [
+          {
+            path: '/etages/:floorId',
+            element: session(lazyPage(<FloorPage />)),
+          },
+          { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
+          { path: '/batiments/:buildingId/3d', element: session(lazyPage(<BuildingPage3D />)) },
+        ],
+      },
+      { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },
     ],
   },
-  { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },
 ]);
 
 export function App() {

@@ -55,7 +55,7 @@ function InstallFirst() {
 export function PushSettings() {
   const { state, pending, error, enable, disable } = usePush();
   return (
-    <section className="card">
+    <section className="card" data-tour="account-push">
       <h2>Notifications sur cet appareil</h2>
       <p className="hint">Prévenu quand une réserve vous est confiée, en plus de l’e-mail.</p>
       {state === 'unsupported' && (
@@ -109,7 +109,7 @@ export function PushSuggestion() {
   }
 
   return (
-    <section className="card suggestion">
+    <section className="card suggestion" data-tour="push-suggestion">
       <h2>Être prévenu sur ce téléphone</h2>
       {state === 'install-first' ? (
         <InstallFirst />

@@ -114,6 +114,7 @@ function ImportReview({ detail }: { detail: ReportImportDetail }) {
               <button
                 type="button"
                 disabled={pending > 0 || validate.isPending}
+                data-tour="import-validate"
                 onClick={() => validate.mutate()}
               >
                 Valider l’import
@@ -181,7 +182,7 @@ function ImportReview({ detail }: { detail: ReportImportDetail }) {
                 }}
               />
             )}
-            <div className="review-pdf">
+            <div className="review-pdf" data-tour="review-pdf">
               {pdfError && <p className="error">Le PDF du rapport n’a pas pu être ouvert.</p>}
               {pdf && selected && (
                 <PdfPage
@@ -239,6 +240,7 @@ function DocumentDrafts({
               <button
                 type="button"
                 className={draft.id === selectedId ? 'draft selected' : 'draft'}
+                data-tour="draft-row"
                 aria-current={draft.id === selectedId}
                 onClick={() => onSelect(draft.id)}
               >
@@ -355,6 +357,7 @@ function DraftEditor({
   return (
     <form
       className="draft-editor"
+      data-tour="draft-editor"
       onSubmit={(event) => {
         event.preventDefault();
         save.mutate('retenue');

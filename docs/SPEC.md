@@ -347,6 +347,12 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
   - Comme pour un lien, l'échéance donnée devient celle des réserves ; une réserve corrigée ou levée ne peut pas être confiée.
   - Un collaborateur est retiré par l'admin, ou automatiquement quand il quitte l'organisation ; l'assignation est marquée retirée, jamais supprimée, et le journal de la réserve garde chaque ajout et retrait.
 
+**Après le MVP — Tutoriels interactifs**
+
+- [x] Visites guidées courtes sur les vrais éléments de la page (projecteur et bulle d'une phrase), sur l'application et la vue téléphone de l'intervenant : premiers pas, site, liste des réserves, fiche d'une réserve, plan, relecture d'un import, « Mes réserves », compte, intervention
+- [x] Rejouables à tout moment depuis le bouton « Tutoriels » de l'en-tête (tutoriels de la page courante), et « Revoir les tutoriels d'accueil » relance les tutoriels automatiques
+- Choix techniques : aucun appel à l'API ni donnée en base ; tutoriels vus mémorisés dans le navigateur (`localStorage`, clé `obsio-tutoriels-vus`). Seuls les premiers pas et la vue intervention se lancent seuls, à la première visite. Éléments repérés par l'attribut `data-tour` ; une étape dont l'élément est absent (droits, page vide) est sautée. Une étape « à faire » avance quand l'utilisateur touche l'élément. Bulle en bas de l'écran sur téléphone ; Échap ferme, flèches pour naviguer. Code dans `apps/web/src/tours/`.
+
 **Après le MVP — Échelle des étages**
 
 - [x] Calibrage par l'admin : deux points cliqués sur une longueur connue du plan (cote, porte, mur), puis la longueur réelle ; l'échelle est stockée en mètres par pixel de l'image (`floor.scale`) et effacée quand le plan est remplacé
