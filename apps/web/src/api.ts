@@ -1,6 +1,7 @@
 import {
   assignmentCreatedSchema,
   buildingSchema,
+  contractorReserveSchema,
   contractorSchema,
   equipmentSchema,
   floorDetailSchema,
@@ -167,6 +168,8 @@ export const api = {
     request(inspectionSchema, 'PUT', `/api/sites/${siteId}/inspections/${kind}`, input),
 
   contractors: () => request(z.array(contractorSchema), 'GET', '/api/contractors'),
+  contractorReserves: () =>
+    request(z.array(contractorReserveSchema), 'GET', '/api/contractors/reserves'),
   createContractor: (input: ContractorInput) =>
     request(contractorSchema, 'POST', '/api/contractors', input),
   updateContractor: (id: string, input: Partial<ContractorInput>) =>

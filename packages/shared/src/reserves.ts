@@ -157,6 +157,24 @@ export const contractorInputSchema = z.object({
 });
 export type ContractorInput = z.infer<typeof contractorInputSchema>;
 
+/**
+ * Suivi d'un électricien externe : une réserve non levée dont son dernier lien (non révoqué)
+ * est l'assignation la plus récente.
+ */
+export const contractorReserveSchema = z.object({
+  contractorId: z.uuid(),
+  reserveId: z.uuid(),
+  description: z.string(),
+  siteId: z.uuid(),
+  siteName: z.string(),
+  status: z.enum(['assignee', 'corrigee']),
+  dueDate: z.iso.date().nullable(),
+  overdue: z.boolean(),
+  /** Lien expiré : l'électricien ne peut plus déposer de preuve, il faut lui en renvoyer un. */
+  linkExpired: z.boolean(),
+});
+export type ContractorReserve = z.infer<typeof contractorReserveSchema>;
+
 export const ASSIGNMENT_DEFAULT_DAYS = 30;
 
 export const assignmentInputSchema = z.object({

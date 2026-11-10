@@ -1,11 +1,10 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router';
 import { Layout } from './components/Layout.js';
 import { RequireOrganisation } from './components/RequireOrganisation.js';
 import { RequireSession } from './components/RequireSession.js';
 import { AcceptInvitation } from './pages/AcceptInvitation.js';
 import { AccountPage } from './pages/AccountPage.js';
-import { ContractorsPage } from './pages/ContractorsPage.js';
 import { ForgotPassword } from './pages/ForgotPassword.js';
 import { Home } from './pages/Home.js';
 import { InspectionsPage } from './pages/InspectionsPage.js';
@@ -66,7 +65,8 @@ const router = createBrowserRouter([
           { path: '/reserves/:reserveId', element: session(<ReservePage />) },
           { path: '/mes-reserves', element: session(<MyReservesPage />) },
           { path: '/verifications', element: session(<InspectionsPage />) },
-          { path: '/intervenants', element: session(<ContractorsPage />) },
+          // Ancienne rubrique : les électriciens externes sont dans Organisation.
+          { path: '/intervenants', element: <Navigate to="/organisation" replace /> },
           { path: '/organisation', element: session(<Home />) },
           // Sans organisation active : chacun gère son compte, même s'il n'est membre de rien.
           {

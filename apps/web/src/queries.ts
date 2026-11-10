@@ -22,6 +22,8 @@ export const keys = {
   inspections: ['inspections'] as const,
   siteInspections: (siteId: string) => ['inspections', siteId] as const,
   contractors: ['contractors'] as const,
+  /** Suivi des électriciens : sous-clé, rafraîchie avec la liste. */
+  contractorReserves: ['contractors', 'reserves'] as const,
   myReserves: ['my-reserves'] as const,
   intervention: (token: string) => ['intervention', token] as const,
 };

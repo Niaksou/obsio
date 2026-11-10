@@ -193,6 +193,31 @@ describe('suivi des réserves', () => {
     ).toHaveLength(1);
   });
 
+  it('suit les réserves en cours de chaque électricien externe', async () => {
+    const [first, second] = reserveIds as [string, string];
+    const created = await createAssignment([first, second]);
+    const follow = await membre.get('/api/contractors/reserves');
+    expect(follow.statusCode).toBe(200);
+    expect(follow.json()).toHaveLength(2);
+    expect(follow.json()[0]).toMatchObject({
+      contractorId: created.contractor.id,
+      siteName: 'Usine de Lyon',
+      status: 'assignee',
+      dueDate: '2099-06-30',
+      overdue: false,
+      linkExpired: false,
+    });
+
+    // Lien révoqué : les réserves ne sont plus à sa charge.
+    expect((await admin.post(`/api/assignments/${created.id}/revoke`)).statusCode).toBe(204);
+    expect((await admin.get('/api/contractors/reserves')).json()).toEqual([]);
+
+    // Une autre organisation ne voit rien.
+    await createAssignment([first]);
+    const other = await openClient('Usine Martin', 'Chloé', 'chloe@martin.fr');
+    expect((await other.admin.get('/api/contractors/reserves')).json()).toEqual([]);
+  });
+
   it('refuse un lien révoqué, inconnu ou expiré', async () => {
     const created = await createAssignment([reserveIds[0]!]);
     const anonymous = new TestClient(ctx);

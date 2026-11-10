@@ -75,7 +75,7 @@ export function ContractorForm({
             });
           }}
         >
-          {initial ? 'Enregistrer' : 'Ajouter l’intervenant'}
+          {initial ? 'Enregistrer' : 'Ajouter l’électricien'}
         </button>
         {onCancel && (
           <button type="button" className="quiet" onClick={onCancel}>

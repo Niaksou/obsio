@@ -6,6 +6,7 @@ import {
   collaboratorAssignmentInputSchema,
   commentInputSchema,
   contractorInputSchema,
+  contractorReserveSchema,
   contractorSchema,
   myReserveSchema,
   photoUploadRequestSchema,
@@ -48,6 +49,7 @@ import {
   removeCollaborator,
   stillAssigned,
 } from '../reserves/collaborators.js';
+import { contractorReserves } from '../reserves/contractors.js';
 import { listReserves, reserveDetail } from '../reserves/queries.js';
 import type { PushQueue } from '../push/push.js';
 import type { Storage } from '../storage.js';
@@ -335,6 +337,13 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
       );
       return rows.map(({ id, name, company, email }) => ({ id, name, company, email }));
     },
+  );
+
+  // Suivi : réserves en cours de chaque électricien externe (page Organisation).
+  app.get(
+    '/api/contractors/reserves',
+    { preHandler: member, schema: { response: { 200: z.array(contractorReserveSchema) } } },
+    async (request) => scoped(request, (tx) => contractorReserves(tx)),
   );
 
   app.post(

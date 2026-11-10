@@ -1,4 +1,4 @@
-import { CalendarCheck, ClipboardCheck, Factory, HardHat, LogOut, Menu, Users } from 'lucide-react';
+import { CalendarCheck, ClipboardCheck, Factory, LogOut, Menu, Users } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
@@ -96,7 +96,7 @@ function AccountLink({ name }: { name: string }) {
 }
 
 /**
- * Volet « Plus » de la barre d'onglets (téléphone) : compte, rubriques secondaires,
+ * Volet « Plus » de la barre d'onglets (téléphone) : compte, organisation,
  * tutoriels, organisation et déconnexion. Fenêtre modale native (focus, Échap).
  */
 function MoreSheet({
@@ -130,10 +130,7 @@ function MoreSheet({
       <div className="more-body">
         <AccountLink name={name} />
         <nav className="nav" aria-label="Autres rubriques">
-          <NavItem to="/intervenants" icon={<HardHat {...iconProps} />}>
-            Intervenants
-          </NavItem>
-          <NavItem to="/organisation" icon={<Users {...iconProps} />}>
+          <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
             Organisation
           </NavItem>
         </nav>
@@ -164,7 +161,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   }
   // Tout ce qui se trouve dans un site (plans, réserves, rapports) relève de la rubrique Sites.
   const inSites = SITE_PATHS.test(pathname);
-  const inMore = /^\/(?:compte|intervenants|organisation)(?:\/|$)/.test(pathname);
+  const inMore = /^\/(?:compte|organisation)(?:\/|$)/.test(pathname);
   const main = (
     <main className={fullBleed ? 'main main-full' : 'main'}>
       <Outlet />
@@ -212,10 +209,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
           >
             Échéances de contrôle
           </NavItem>
-          <NavItem tour="nav-intervenants" to="/intervenants" icon={<HardHat {...iconProps} />}>
-            Intervenants
-          </NavItem>
-          <NavItem to="/organisation" icon={<Users {...iconProps} />}>
+          <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
             Organisation
           </NavItem>
         </nav>

@@ -356,7 +356,9 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 **Après le MVP — Navigation**
 
 - [x] Ordinateur : menu latéral, avec en bas une ligne « Mon compte » explicite (initiales, nom).
-- [x] Téléphone : barre d'onglets en bas de l'écran (Mes réserves, Sites, Échéances, Plus) ; « Plus » ouvre un volet avec Mon compte, Intervenants, Organisation, Tutoriels, le choix de l'organisation et la déconnexion. En haut, le logo seul.
+- [x] Téléphone : barre d'onglets en bas de l'écran (Mes réserves, Sites, Échéances, Plus) ; « Plus » ouvre un volet avec Mon compte, Organisation, Tutoriels, le choix de l'organisation et la déconnexion. En haut, le logo seul.
+
+- [x] Plus d'onglet « Intervenants » : les électriciens externes sont dans la page Organisation, sous les membres, avec pour chacun le suivi de ce qui lui est confié (réserves en cours, en retard, corrigées à vérifier, lien expiré ; route `GET /api/contractors/reserves`). `/intervenants` redirige vers `/organisation`.
 
 **Après le MVP — Échelle des étages**
 

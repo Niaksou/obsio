@@ -18,8 +18,8 @@ export function AccountPage() {
   if (!session) return <p className="loading">Chargement…</p>;
 
   return (
-    <div className="account">
-      <header className="account-head">
+    <div className="settings-page">
+      <header className="settings-head">
         <span className="avatar avatar-large" aria-hidden>
           {initials(session.user.name)}
         </span>

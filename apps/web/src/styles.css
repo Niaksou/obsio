@@ -1881,22 +1881,6 @@ label.check input {
   gap: 8px;
 }
 
-.contractor-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 16px;
-  padding: 12px 16px;
-}
-
-.contractor-row > .quiet {
-  margin-left: auto;
-}
-
-.contractor-row .contractor-form {
-  flex-basis: 100%;
-}
-
 /* --- Détail d'une réserve */
 
 .reserve-page {
@@ -3248,27 +3232,27 @@ li.open .item-number {
   }
 }
 
-/* --- Mon compte : page de réglages en groupes et en lignes */
+/* --- Pages de réglages (Mon compte, Organisation) : groupes et lignes */
 
-.account {
+.settings-page {
   display: grid;
   max-width: 880px;
 }
 
-.account-head {
+.settings-head {
   display: flex;
   align-items: center;
   gap: 16px;
   padding-bottom: 32px;
 }
 
-.account-head h1 {
+.settings-head h1 {
   margin: 0;
   font-size: 1.75rem;
   line-height: 1.2;
 }
 
-.account-head p {
+.settings-head p {
   margin: 2px 0 0;
   color: var(--muted);
   overflow-wrap: anywhere;
@@ -3394,7 +3378,7 @@ li.open .item-number {
 }
 
 @media (max-width: 720px) {
-  .account-head {
+  .settings-head {
     padding-bottom: 24px;
   }
 
@@ -3416,4 +3400,56 @@ li.open .item-number {
 
 .setting > button.link {
   justify-self: start;
+}
+
+/* Organisation : suivi d'un électricien externe. */
+.contractor-summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.setting-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.setting-link:hover .clamp {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+}
+
+.setting-items li:has(> .setting-link) {
+  display: block;
+}
+
+.setting-link .badge {
+  flex: none;
+}
+
+.clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.badge-danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.badge-pending {
+  color: var(--pending);
+  border-color: color-mix(in srgb, var(--pending) 35%, transparent);
+}
+
+.setting .contractor-form {
+  max-width: 640px;
 }
