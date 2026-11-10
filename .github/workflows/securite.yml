@@ -48,11 +48,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Faux positifs : .gitleaksignore (empreinte de chaque alerte).
+      # Faux positifs : .gitleaksignore (empreinte de chaque alerte), ou .gitleaks.toml pour une
+      # valeur fictive répétée (mot de passe des tests).
       - name: gitleaks
         run: >
           docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.30.1
-          git /repo --redact --verbose --gitleaks-ignore-path /repo/.gitleaksignore
+          git /repo --redact --verbose --config /repo/.gitleaks.toml
+          --gitleaks-ignore-path /repo/.gitleaksignore
 
   analyse-statique:
     name: Analyse statique (Semgrep)

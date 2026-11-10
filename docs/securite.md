@@ -119,7 +119,7 @@ Jamais de mot de passe, de jeton ni de contenu métier dans le journal. Les acti
 Workflow `Sécurité` (`.github/workflows/securite.yml`), à chaque push, sur chaque pull request et chaque lundi :
 
 - **Dépendances** : `pnpm audit`. Échec dès une faille modérée dans les dépendances de production, élevée dans les outils de développement.
-- **Secrets** : gitleaks sur tout l'historique. Un faux positif s'ajoute à `.gitleaksignore` par son empreinte, avec un commentaire.
+- **Secrets** : gitleaks sur tout l'historique. Un faux positif s'ajoute à `.gitleaksignore` par son empreinte, avec un commentaire ; une valeur fictive répétée (mot de passe des tests) s'ajoute aux `stopwords` de `.gitleaks.toml`, qui garde les règles par défaut.
 - **Analyse statique** : Semgrep, règles OWASP Top 10, TypeScript, Node.js, React et Dockerfile. Un faux positif se marque sur la ligne par `// nosemgrep: <règle>`, précédé de la raison.
 - **Inventaire des composants** : SBOM CycloneDX produit par Syft à partir de `pnpm-lock.yaml`, en pièce jointe de chaque passage (90 jours).
 

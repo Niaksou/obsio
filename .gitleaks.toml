@@ -1,0 +1,9 @@
+# Configuration de gitleaks : règles par défaut, plus les valeurs fictives connues.
+# Pour une alerte isolée, préférer une empreinte dans .gitleaksignore.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valeurs fictives des tests"
+# Mot de passe des comptes créés par les tests de l'API (TEST_PASSWORD, apps/api/test/helpers.ts).
+stopwords = ["cheval-agrafe-batterie-42"]
