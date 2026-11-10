@@ -24,8 +24,8 @@ export const TOURS: Tour[] = [
       },
       {
         target: 'nav-verifications',
-        title: 'Vérifications',
-        body: 'Les prochaines visites de l’organisme.',
+        title: 'Échéances',
+        body: 'Les prochaines visites de l’organisme de contrôle.',
       },
       {
         target: 'nav-intervenants',
@@ -55,7 +55,7 @@ export const TOURS: Tour[] = [
       },
       {
         target: 'site-inspections',
-        title: 'Vérifications',
+        title: 'Échéances',
         body: 'Prochaine visite pour chaque type de contrôle.',
       },
       {
@@ -167,7 +167,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: 'verifications',
-    title: 'Vérifications',
+    title: 'Échéances de contrôle',
     match: exact(/^\/verifications$/),
     steps: [
       {

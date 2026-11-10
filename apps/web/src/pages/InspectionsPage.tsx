@@ -2,19 +2,12 @@ import type { Inspection } from '@obsio/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { api } from '../api.js';
-import {
-  dateParts,
-  InspectionStatusLabel,
-  keyDate,
-  KIND_SHORT,
-  PLANNED,
-  relativeDay,
-  TO_HANDLE,
-} from '../inspections/describe.js';
+import { keyDate, KIND_SHORT, PLANNED, TO_HANDLE } from '../inspections/describe.js';
+import { DueLine } from '../inspections/DueLine.js';
 import { keys } from '../queries.js';
 
 /**
- * Échéancier de toute l'organisation : ce qui est à traiter, puis ce qui est planifié, par
+ * Échéances de contrôle de toute l'organisation : ce qui est à traiter, puis ce qui est planifié, par
  * date. Les vérifications sans rapport ou non suivies sont repliées.
  */
 export function InspectionsPage() {
@@ -32,7 +25,7 @@ export function InspectionsPage() {
 
   return (
     <div className="page">
-      <h1>Vérifications</h1>
+      <h1>Échéances de contrôle</h1>
       {all.length === 0 ? (
         <p className="empty">Créez un site et importez ses rapports pour suivre les échéances.</p>
       ) : (
@@ -85,31 +78,14 @@ function DueRows({ items }: { items: Inspection[] }) {
     <ul className="rows due-rows">
       {items.map((inspection) => {
         const key = keyDate(inspection);
-        const parts = key && dateParts(key.date);
         return (
           <li key={`${inspection.siteId}-${inspection.kind}`}>
             <Link to={link(inspection)} className="due-row">
-              <span className="due-date">
-                {parts ? (
-                  <>
-                    <strong>{parts.dayMonth}</strong>
-                    <small>{parts.year}</small>
-                  </>
-                ) : (
-                  '—'
-                )}
-              </span>
-              <span className="due-main">
-                <span className="row-title">{inspection.siteName}</span>
-                <small>
-                  {KIND_SHORT[inspection.kind]}
-                  {key && ` · ${key.label}`}
-                </small>
-              </span>
-              <span className="due-side">
-                <InspectionStatusLabel status={inspection.status} />
-                {key && <small>{relativeDay(key.date)}</small>}
-              </span>
+              <DueLine
+                inspection={inspection}
+                title={inspection.siteName}
+                detail={`${KIND_SHORT[inspection.kind]}${key ? ` · ${key.label}` : ''}`}
+              />
             </Link>
           </li>
         );

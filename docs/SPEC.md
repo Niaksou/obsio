@@ -324,7 +324,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 **Après le MVP — Échéancier des vérifications**
 
-- [x] Prochaine visite par site et par type (vérification périodique du Code du travail, Q18, Q19) : dernière visite d'après les rapports validés, plus la périodicité ; visite programmée et contact de l'organisme saisis par l'admin ; page « Vérifications » pour tous les sites et section sur la page du site
+- [x] Prochaine visite par site et par type (vérification périodique du Code du travail, Q18, Q19) : dernière visite d'après les rapports validés, plus la périodicité ; visite programmée et contact de l'organisme saisis par l'admin ; page « Échéances de contrôle » pour tous les sites (À traiter, Planifiées, par date ; sans rapport et non suivies repliées) et section sur la page du site, même présentation
 - [x] Relances e-mail aux admins, avec les relances de retard de 8 h
 - Décisions prises, à relire (règles par défaut, faute de règle métier confirmée) :
   - Périodicité proposée : 12 mois pour les trois types, réglable de 1 à 60 mois par site. Un type peut être « non suivi » (par exemple un Q19 que l'assureur n'exige pas).
@@ -356,7 +356,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 **Après le MVP — Navigation**
 
 - [x] Ordinateur : menu latéral, avec en bas une ligne « Mon compte » explicite (initiales, nom).
-- [x] Téléphone : barre d'onglets en bas de l'écran (Mes réserves, Sites, Vérifications, Plus) ; « Plus » ouvre un volet avec Mon compte, Intervenants, Organisation, Tutoriels, le choix de l'organisation et la déconnexion. En haut, le logo seul.
+- [x] Téléphone : barre d'onglets en bas de l'écran (Mes réserves, Sites, Échéances, Plus) ; « Plus » ouvre un volet avec Mon compte, Intervenants, Organisation, Tutoriels, le choix de l'organisation et la déconnexion. En haut, le logo seul.
 
 **Après le MVP — Échelle des étages**
 

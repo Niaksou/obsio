@@ -1,4 +1,4 @@
-import { INSPECTION_KIND_LABELS, type Inspection } from '@obsio/shared';
+import type { Inspection } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
@@ -6,7 +6,8 @@ import { api } from '../api.js';
 import { field } from '../components/Form.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys } from '../queries.js';
-import { InspectionStatusLabel, lastVisitLabel, nextStep } from './describe.js';
+import { dateParts, keyDate, KIND_SHORT } from './describe.js';
+import { DueLine } from './DueLine.js';
 
 /** Échéancier d'un site : une ligne par type de vérification, réglable par l'admin. */
 export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
@@ -14,7 +15,7 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
     queryKey: keys.siteInspections(siteId),
     queryFn: () => api.siteInspections(siteId),
   });
-  // Lien depuis la page « Vérifications » : la section arrive après le reste de la page.
+  // Lien depuis la page « Échéances de contrôle » : la section arrive après le reste de la page.
   const { hash } = useLocation();
   const section = useRef<HTMLElement>(null);
   const loaded = Boolean(inspections.data);
@@ -32,8 +33,8 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
       id="verifications"
       aria-labelledby="verifications-title"
     >
-      <h2 id="verifications-title">Prochaines vérifications</h2>
-      <ul className="rows">
+      <h2 id="verifications-title">Échéances de contrôle</h2>
+      <ul className="rows due-rows">
         {inspections.data.map((inspection) => (
           <InspectionRow key={inspection.kind} inspection={inspection} isAdmin={isAdmin} />
         ))}
@@ -42,25 +43,35 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
   );
 }
 
+const shortDay = (day: string) => {
+  const { dayMonth, year } = dateParts(day);
+  return `${dayMonth} ${year}`;
+};
+
 function InspectionRow({ inspection, isAdmin }: { inspection: Inspection; isAdmin: boolean }) {
   const [editing, setEditing] = useState(false);
-  const last = lastVisitLabel(inspection);
+  const key = keyDate(inspection);
+  const last = inspection.lastVisit;
+  // Précision : ce que représente la date, et la dernière visite (l'interlocuteur est dans
+  // « Régler »).
+  const detail = [key?.label, last && `dernière visite le ${shortDay(last.date)}`]
+    .filter(Boolean)
+    .join(' · ');
   return (
-    <li className={`inspection-row${inspection.enabled ? '' : ' disabled'}`}>
-      <div className="inspection-summary">
-        <span className="row-title">{INSPECTION_KIND_LABELS[inspection.kind]}</span>
-        <InspectionStatusLabel status={inspection.status} />
-        <span className="inspection-next">{nextStep(inspection)}</span>
-        {isAdmin && !editing && (
-          <button type="button" className="secondary" onClick={() => setEditing(true)}>
-            Régler
-          </button>
-        )}
-        {(last || inspection.contact) && (
-          <span className="row-meta">
-            {[last, inspection.contact && `Contact : ${inspection.contact}`]
-              .filter(Boolean)
-              .join('. ')}
+    <li className={inspection.enabled ? undefined : 'disabled'}>
+      <div className={isAdmin ? 'due-row has-action' : 'due-row'}>
+        <DueLine
+          inspection={inspection}
+          title={KIND_SHORT[inspection.kind]}
+          detail={detail || undefined}
+        />
+        {isAdmin && (
+          <span className="due-action">
+            {!editing && (
+              <button type="button" className="quiet" onClick={() => setEditing(true)}>
+                Régler
+              </button>
+            )}
           </span>
         )}
       </div>
@@ -96,7 +107,7 @@ function InspectionForm({ inspection, onDone }: { inspection: Inspection; onDone
     >
       <label className="check">
         <input type="checkbox" name="enabled" defaultChecked={inspection.enabled} />
-        Suivre cette vérification sur le site
+        Suivre ce contrôle sur le site
       </label>
       <div className="fields">
         <label className="narrow">
@@ -131,8 +142,8 @@ function InspectionForm({ inspection, onDone }: { inspection: Inspection; onDone
         />
       </label>
       <p className="hint">
-        L’échéance part de la dernière visite d’après les rapports importés. Les admins reçoivent un
-        rappel 60 et 30 jours avant, puis 7 jours avant la visite programmée.
+        Échéance calculée depuis la dernière visite. Rappel aux admins 60 et 30 jours avant, puis 7
+        jours avant la visite programmée.
       </p>
       <div className="actions">
         <button type="submit" disabled={save.isPending}>

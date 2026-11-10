@@ -2453,7 +2453,7 @@ li.open .item-number {
   }
 }
 
-/* --- Échéancier des vérifications */
+/* --- Échéances de contrôle */
 
 .inspections {
   margin-top: 32px;
@@ -2463,34 +2463,54 @@ li.open .item-number {
   margin-bottom: 8px;
 }
 
-.inspection-row {
-  padding: 12px 16px;
+/* Section d'un site : bouton « Régler » de l'admin en dernière colonne. */
+.due-row.has-action {
+  grid-template-columns: 64px minmax(0, 1fr) auto auto;
 }
 
-.inspection-summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 16px;
+.due-action {
+  min-width: 72px;
+  text-align: right;
 }
 
-.inspection-summary .row-meta {
-  flex-basis: 100%;
-  font-size: 0.875rem;
-}
-
-.inspection-summary button {
-  margin-left: auto;
-}
-
-.inspection-row.disabled .row-title,
-.inspection-row.disabled .inspection-next {
+.due-rows > li.disabled .row-title,
+.due-rows > li.disabled .due-date strong {
   color: var(--muted);
 }
 
 .inspection-form {
-  margin-top: 12px;
   max-width: 640px;
+  margin: 0 16px 16px 96px;
+}
+
+@media (max-width: 720px) {
+  /* Régler sur la ligne de l'état, à droite. */
+  .due-row.has-action {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+  }
+
+  .due-row.has-action .due-date {
+    grid-row: span 2;
+    align-self: start;
+  }
+
+  .due-row.has-action .due-main {
+    grid-column: 2 / 4;
+  }
+
+  .due-action {
+    grid-column: 3;
+    min-width: 0;
+  }
+
+  .due-action button {
+    min-height: 32px;
+    padding-block: 0;
+  }
+
+  .inspection-form {
+    margin: 0 16px 16px;
+  }
 }
 
 .inspection-status-a_jour {

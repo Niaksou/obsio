@@ -210,7 +210,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
             to="/verifications"
             icon={<CalendarCheck {...iconProps} />}
           >
-            Vérifications
+            Échéances de contrôle
           </NavItem>
           <NavItem tour="nav-intervenants" to="/intervenants" icon={<HardHat {...iconProps} />}>
             Intervenants
@@ -247,7 +247,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
           to="/verifications"
           icon={<CalendarCheck {...iconProps} />}
         >
-          Vérifications
+          Échéances
         </NavItem>
         <button
           type="button"

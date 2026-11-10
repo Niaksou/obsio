@@ -253,6 +253,6 @@ export function inspectionReminderEmail(
   return {
     to,
     subject: content.subject,
-    ...layout(['Bonjour,', ...content.lines], { label: 'Voir les vérifications', url: data.url }),
+    ...layout(['Bonjour,', ...content.lines], { label: 'Voir les échéances', url: data.url }),
   };
 }
