@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { authClient, errorMessage } from '../auth-client.js';
+import { BackupCodes } from '../components/BackupCodes.js';
 import { field, Field, Form } from '../components/Form.js';
 import { useSubmit } from '../components/useSubmit.js';
 
@@ -20,7 +21,7 @@ export function AccountPage() {
       </section>
       <ChangePassword />
       <Sessions currentToken={session.session.token} />
-      <BackupCodes />
+      <RegenerateBackupCodes />
     </div>
   );
 }
@@ -170,7 +171,7 @@ function Sessions({ currentToken }: { currentToken: string }) {
   );
 }
 
-function BackupCodes() {
+function RegenerateBackupCodes() {
   const { pending, error, run } = useSubmit();
   const [codes, setCodes] = useState<string[] | null>(null);
 
@@ -196,15 +197,7 @@ function BackupCodes() {
         La double authentification est activée. Si vous avez utilisé ou égaré vos codes de secours,
         générez-en de nouveaux : les anciens ne fonctionneront plus.
       </p>
-      {codes && (
-        <ul className="backup-codes" aria-label="Nouveaux codes de secours">
-          {codes.map((code) => (
-            <li key={code}>
-              <code>{code}</code>
-            </li>
-          ))}
-        </ul>
-      )}
+      {codes && <BackupCodes codes={codes} />}
       <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" />
     </Form>
   );

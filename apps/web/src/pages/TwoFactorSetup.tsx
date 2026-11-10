@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { authClient } from '../auth-client.js';
+import { BackupCodes } from '../components/BackupCodes.js';
 import { field, Field, Form } from '../components/Form.js';
 import { QrCode } from '../components/QrCode.js';
 import { useSubmit } from '../components/useSubmit.js';
@@ -9,12 +10,23 @@ interface Enrolment {
   backupCodes: string[];
 }
 
+type Step = 'scan' | 'backup' | 'verify';
+
+const STEPS: Record<Step, { number: number; title: string }> = {
+  scan: { number: 1, title: 'Scannez le QR code' },
+  backup: { number: 2, title: 'Gardez vos codes de secours' },
+  verify: { number: 3, title: 'Saisissez le code' },
+};
+
 /**
  * Activation de la double authentification, obligatoire avant d'accéder à l'application :
- * mot de passe, puis QR code à scanner, codes de secours à conserver et premier code.
+ * mot de passe, puis trois étapes courtes. Les codes de secours passent avant le code de
+ * confirmation : une fois le code accepté, la session est renouvelée et l'application s'affiche.
  */
 export function TwoFactorSetup() {
   const [enrolment, setEnrolment] = useState<Enrolment | null>(null);
+  const [step, setStep] = useState<Step>('scan');
+  const [saved, setSaved] = useState(false);
   const { pending, error, run } = useSubmit();
 
   async function start(data: FormData) {
@@ -28,27 +40,25 @@ export function TwoFactorSetup() {
   }
 
   async function confirm(data: FormData) {
-    // Une fois le code accepté, la session est renouvelée et l'application s'affiche.
     await run(() => authClient.twoFactor.verifyTotp({ code: field(data, 'code') }));
   }
 
   if (!enrolment) {
     return (
       <Form
-        title="Double authentification"
+        title="Sécurisez votre compte"
         submitLabel="Continuer"
         pending={pending}
         error={error}
         onSubmit={start}
       >
         <p>
-          Pour protéger les données de votre organisation, chaque connexion demande, en plus du mot
-          de passe, un code à 6 chiffres donné par une application d'authentification sur votre
-          téléphone (Google Authenticator, Microsoft Authenticator, Authy…).
+          À chaque connexion, un code à 6 chiffres vous sera demandé en plus du mot de passe. Il
+          vous faut une application d'authentification (Google Authenticator, Microsoft
+          Authenticator…).
         </p>
-        <p className="hint">Confirmez d'abord votre mot de passe.</p>
         <Field
-          label="Mot de passe"
+          label="Votre mot de passe"
           name="password"
           type="password"
           autoComplete="current-password"
@@ -57,7 +67,65 @@ export function TwoFactorSetup() {
     );
   }
 
-  const secret = new URL(enrolment.totpURI).searchParams.get('secret') ?? '';
+  const { number, title } = STEPS[step];
+  const heading = (
+    <p className="step-label">
+      Étape {number} sur 3 · <strong>{title}</strong>
+    </p>
+  );
+
+  if (step === 'scan') {
+    const secret = new URL(enrolment.totpURI).searchParams.get('secret') ?? '';
+    return (
+      <Form
+        title="Double authentification"
+        submitLabel="Suivant"
+        pending={false}
+        error={null}
+        onSubmit={() => setStep('backup')}
+      >
+        {heading}
+        <p>Ouvrez votre application d'authentification et scannez ce code.</p>
+        <QrCode value={enrolment.totpURI} label="QR code à scanner avec l'application" />
+        <details className="hint">
+          <summary>Pas d'appareil photo ?</summary>
+          Saisissez cette clé dans l'application :{' '}
+          <code className="secret-key">{secret.match(/.{1,4}/g)?.join(' ')}</code>
+        </details>
+      </Form>
+    );
+  }
+
+  if (step === 'backup') {
+    return (
+      <Form
+        title="Double authentification"
+        submitLabel="Suivant"
+        pending={false}
+        error={null}
+        onSubmit={() => setStep('verify')}
+        footer={
+          <button type="button" className="link" onClick={() => setStep('scan')}>
+            Retour
+          </button>
+        }
+      >
+        {heading}
+        <p>Si vous perdez votre téléphone, chacun de ces codes vous connecte une fois.</p>
+        <BackupCodes codes={enrolment.backupCodes} />
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={saved}
+            onChange={(event) => setSaved(event.target.checked)}
+            required
+          />
+          Je les ai conservés en lieu sûr
+        </label>
+      </Form>
+    );
+  }
+
   return (
     <Form
       title="Double authentification"
@@ -65,25 +133,14 @@ export function TwoFactorSetup() {
       pending={pending}
       error={error}
       onSubmit={confirm}
+      footer={
+        <button type="button" className="link" onClick={() => setStep('backup')}>
+          Retour
+        </button>
+      }
     >
-      <p>1. Scannez ce QR code avec votre application d'authentification.</p>
-      <QrCode value={enrolment.totpURI} label="QR code à scanner avec l'application" />
-      <p className="hint">
-        Sans appareil photo, saisissez cette clé dans l'application :{' '}
-        <code className="secret-key">{secret.match(/.{1,4}/g)?.join(' ')}</code>
-      </p>
-      <p>
-        2. Conservez ces codes de secours en lieu sûr (gestionnaire de mots de passe, papier).
-        Chacun remplace une fois le code de l'application si vous perdez votre téléphone.
-      </p>
-      <ul className="backup-codes">
-        {enrolment.backupCodes.map((code) => (
-          <li key={code}>
-            <code>{code}</code>
-          </li>
-        ))}
-      </ul>
-      <p>3. Saisissez le code à 6 chiffres affiché par l'application.</p>
+      {heading}
+      <p>Saisissez le code affiché par l'application.</p>
       <CodeField />
     </Form>
   );
@@ -101,6 +158,7 @@ export function CodeField({ label = 'Code à 6 chiffres' }: { label?: string }) 
         pattern="[0-9]{6}"
         maxLength={6}
         required
+        autoFocus
       />
     </label>
   );

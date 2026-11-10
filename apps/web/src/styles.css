@@ -582,6 +582,30 @@ form.card > button[type='submit'] {
   border-radius: var(--radius);
 }
 
+.backup-codes-box {
+  display: grid;
+  gap: 8px;
+}
+
+.backup-codes-box .actions {
+  justify-content: flex-end;
+}
+
+.step-label {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.step-label strong {
+  color: var(--ink);
+}
+
+details.hint summary {
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
 .card h1 {
   font-size: 1.75rem;
 }
