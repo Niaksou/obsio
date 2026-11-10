@@ -6,6 +6,8 @@ export interface Email {
   subject: string;
   text: string;
   html: string;
+  /** Images appelées dans le HTML par leur identifiant (cid), comme le logo. */
+  attachments?: { filename: string; content: Buffer; contentType: string; cid: string }[];
 }
 
 /** Envoi d'e-mails, derrière une interface pour pouvoir changer de fournisseur. */

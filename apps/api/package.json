@@ -29,6 +29,8 @@
     "@aws-sdk/s3-request-presigner": "^3.1156.0",
     "@fastify/cors": "^11.3.1",
     "@fastify/rate-limit": "^11.2.1",
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-semi-condensed": "^5.3.0",
     "@obsio/shared": "workspace:*",
     "@smithy/signature-v4": "^5.7.4",
     "better-auth": "^1.7.12",

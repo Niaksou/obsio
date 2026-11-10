@@ -1,15 +1,55 @@
+import { COLORS } from '../brand.js';
+import { LOGO_CID, logoAttachment } from './logo.js';
 import type { Email } from './sender.js';
 
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
+const FONT = "Barlow,'Segoe UI',Helvetica,Arial,sans-serif";
+const HAIRLINE = '#e3e6e5';
+
+/**
+ * Mise en page commune, selon la charte : carte blanche sur fond tôle, logo joint au message,
+ * une seule action (bouton encre) et son lien en clair pour les messageries qui bloquent les
+ * boutons. HTML en tableaux et styles en ligne, seule forme que Gmail et Outlook rendent
+ * fidèlement. La version texte reste complète.
+ */
 function layout(paragraphs: string[], action: { label: string; url: string }) {
   const text = [...paragraphs, `${action.label} : ${action.url}`].join('\n\n');
-  const html = [
-    ...paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`),
-    `<p><a href="${escapeHtml(action.url)}">${escapeHtml(action.label)}</a></p>`,
-  ].join('\n');
-  return { text, html };
+  const url = escapeHtml(action.url);
+  const body = paragraphs.map((p) => `<p style="margin:0 0 16px;">${escapeHtml(p)}</p>`).join('\n');
+  const html = `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+</head>
+<body style="margin:0;padding:0;background:${COLORS.paper};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${COLORS.paper};">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#ffffff;border:1px solid ${HAIRLINE};border-radius:12px;">
+<tr><td style="padding:24px 32px 20px;border-bottom:1px solid ${HAIRLINE};">
+<img src="cid:${LOGO_CID}" width="98" height="30" alt="Obsio" style="display:block;border:0;outline:none;">
+</td></tr>
+<tr><td style="padding:28px 32px 8px;font-family:${FONT};font-size:16px;line-height:24px;color:${COLORS.ink};">
+${body}
+</td></tr>
+<tr><td style="padding:8px 32px 32px;font-family:${FONT};">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="background:${COLORS.ink};border-radius:8px;">
+<a href="${url}" style="display:inline-block;padding:12px 20px;font-family:${FONT};font-size:15px;font-weight:500;line-height:20px;color:#ffffff;text-decoration:none;border-radius:8px;">${escapeHtml(action.label)}</a>
+</td>
+</tr></table>
+<p style="margin:20px 0 0;font-size:13px;line-height:20px;color:${COLORS.faint};">Si le bouton ne s’ouvre pas, copiez ce lien dans votre navigateur :<br><a href="${url}" style="color:${COLORS.muted};word-break:break-all;">${url}</a></p>
+</td></tr>
+</table>
+<p style="margin:16px 0 0;font-family:${FONT};font-size:12px;line-height:18px;color:${COLORS.faint};">Obsio, suivi des vérifications électriques réglementaires</p>
+</td></tr>
+</table>
+</body>
+</html>`;
+  return { text, html, attachments: [logoAttachment] };
 }
 
 export function verificationEmail(to: string, url: string): Email {

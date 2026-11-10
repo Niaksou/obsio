@@ -1,6 +1,6 @@
 # Plateforme de marque d'Obsio
 
-Identité graphique d'Obsio : plateforme (ce document), logo (étape 2, retenu), charte graphique complète (étape 3, `docs/marque/charte.html`), puis déclinaison sur les e-mails et les documents (étape 4).
+Identité graphique d'Obsio : plateforme (ce document), logo (étape 2, retenu), charte graphique complète (étape 3, `docs/marque/charte.html`), puis déclinaison sur les e-mails et les documents (étape 4, faite).
 
 La charte graphique est la référence pour toute nouvelle page ou tout nouveau support : couleurs et contrastes, échelle typographique, plaque gravée, composants, espaces, rayons, mouvement, icônes, ton, applications. Ses valeurs sont celles de `apps/web/src/styles.css` ; si l'une change, on met à jour les deux.
 
@@ -108,4 +108,8 @@ Ces images sont celles de tout le secteur, ou de tout logiciel récent. Elles re
 
 Le détail des couleurs (tous les neutres, le cuivre en trois tons, les statuts et leurs contrastes), l'échelle typographique (12, 13, 14, 15, 16, 18, 20, 22, 28, 32 et 40 px) et les composants sont dans la charte.
 
-Restent à habiller avec la marque : les e-mails (HTML sans mise en forme pour l'instant) et l'en-tête du dossier de preuves en PDF.
+## E-mails et documents
+
+- **E-mails** (`apps/api/src/email/templates.ts`) : carte blanche sur fond tôle, logo en tête, une seule action en bouton encre, suivie de son lien en clair. Le logo est une image PNG jointe au message et appelée par son identifiant (`cid:logo@obsio`, `apps/api/src/email/logo.ts`). Il n'est donc hébergé nulle part et ne sert pas de pixel de suivi. Gmail n'affiche pas le SVG. La version texte reste complète.
+- **Dossier de preuves en PDF** (`apps/api/src/reserves/dossier.ts`) : logo et filet encre en tête, nom du site en Barlow Semi Condensed, cartouche des faits (organisation, date, origine, périmètre), compteurs par statut avec leur pastille. Les repères d'équipement sont en plaque gravée. Les polices Barlow viennent des paquets `@fontsource` (licence OFL), dépendances de l'API.
+- Couleurs et tracé du logo côté serveur : `apps/api/src/brand.ts`, à garder en accord avec la charte.
