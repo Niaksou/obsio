@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Setting } from '../components/Settings.js';
 import { disablePush, enablePush, isHandheld, pushState, type PushState } from './push.js';
 
 function usePush() {
@@ -51,31 +52,28 @@ function InstallFirst() {
   );
 }
 
-/** Section « Notifications » de la page Mon compte. */
+/** Réglage « Notifications » de la page Mon compte. */
 export function PushSettings() {
   const { state, pending, error, enable, disable } = usePush();
+  const status =
+    state === 'on'
+      ? 'Activées : prévenu quand une réserve vous est confiée.'
+      : state === 'denied'
+        ? 'Bloquées dans les réglages du navigateur : autorisez-les, puis revenez ici.'
+        : state === 'unsupported'
+          ? 'Ce navigateur ne permet pas les notifications.'
+          : 'Prévenu quand une réserve vous est confiée, en plus de l’e-mail.';
   return (
-    <section className="card" data-tour="account-push">
-      <h2>Notifications sur cet appareil</h2>
-      <p className="hint">Prévenu quand une réserve vous est confiée, en plus de l’e-mail.</p>
-      {state === 'unsupported' && (
-        <p className="hint">Ce navigateur ne permet pas les notifications.</p>
-      )}
-      {state === 'install-first' && <InstallFirst />}
-      {state === 'denied' && (
-        <p className="hint">
-          Les notifications sont bloquées pour Obsio : autorisez-les dans les réglages du
-          navigateur, puis revenez ici.
-        </p>
-      )}
-      {state === 'off' && (
-        <button type="button" disabled={pending} onClick={() => void enable()}>
-          {pending ? 'Veuillez patienter…' : 'Activer les notifications'}
-        </button>
-      )}
-      {state === 'on' && (
-        <div className="actions">
-          <span className="badge">Activées</span>
+    <Setting
+      tour="account-push"
+      title={`Sur ${isHandheld() ? 'ce téléphone' : 'cet ordinateur'}`}
+      status={state ? status : 'Chargement…'}
+      action={
+        state === 'off' ? (
+          <button type="button" disabled={pending} onClick={() => void enable()}>
+            {pending ? 'Veuillez patienter…' : 'Activer'}
+          </button>
+        ) : state === 'on' ? (
           <button
             type="button"
             className="secondary"
@@ -84,14 +82,16 @@ export function PushSettings() {
           >
             Désactiver
           </button>
-        </div>
-      )}
+        ) : undefined
+      }
+    >
+      {state === 'install-first' && <InstallFirst />}
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-    </section>
+    </Setting>
   );
 }
 

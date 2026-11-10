@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { authClient, errorMessage, passkeyCancelled, passkeysSupported } from '../auth-client.js';
 import { ConfirmButton } from './ConfirmButton.js';
 import { device } from './device.js';
+import { Setting, SettingItem, SettingItems } from './Settings.js';
 
 const PASSKEYS_KEY = ['passkeys'];
 
@@ -38,7 +39,7 @@ export function useAddPasskey() {
 
 const date = (value: Date | string) => new Date(value).toLocaleDateString('fr-FR');
 
-/** Section « Clés d'accès » de la page Mon compte. */
+/** Réglage « Clés d'accès » de la page Mon compte. */
 export function Passkeys() {
   const queryClient = useQueryClient();
   const { data: passkeys } = usePasskeys();
@@ -52,43 +53,54 @@ export function Passkeys() {
     void queryClient.invalidateQueries({ queryKey: PASSKEYS_KEY });
   }
 
+  const count = passkeys?.length ?? 0;
   return (
-    <section className="card" data-tour="account-passkeys">
-      <h2>Clés d’accès</h2>
-      <p className="hint">
-        Connexion d’un geste (déverrouillage de l’ordinateur ou du téléphone), sans mot de passe ni
-        code à 6 chiffres.
-      </p>
-      {passkeys && passkeys.length > 0 && (
-        <ul className="list">
-          {passkeys.map((p) => (
-            <li key={p.id}>
-              <span>
-                {p.name || 'Clé d’accès'}
-                {p.createdAt && <small> ajoutée le {date(p.createdAt)}</small>}
-              </span>
-              <ConfirmButton
-                label="Retirer"
-                confirmLabel="Retirer cette clé"
-                onConfirm={() => void remove(p.id)}
-              />
-            </li>
+    <Setting
+      tour="account-passkeys"
+      title="Clés d’accès"
+      status={
+        count === 0
+          ? 'Connexion d’un geste, sans mot de passe ni code.'
+          : `${count} clé${count > 1 ? 's' : ''} : connexion d’un geste, sans mot de passe.`
+      }
+      action={
+        passkeysSupported() ? (
+          <button
+            type="button"
+            className={count > 0 ? 'secondary' : undefined}
+            disabled={pending}
+            onClick={() => void add()}
+          >
+            {pending ? 'Veuillez patienter…' : count > 0 ? 'Ajouter' : 'Créer une clé'}
+          </button>
+        ) : undefined
+      }
+    >
+      {!passkeysSupported() && <p className="hint">Ce navigateur ne gère pas les clés d’accès.</p>}
+      {count > 0 && (
+        <SettingItems>
+          {passkeys!.map((p) => (
+            <SettingItem
+              key={p.id}
+              name={p.name || 'Clé d’accès'}
+              detail={p.createdAt ? `Ajoutée le ${date(p.createdAt)}` : undefined}
+              action={
+                <ConfirmButton
+                  label="Retirer"
+                  confirmLabel="Retirer"
+                  onConfirm={() => void remove(p.id)}
+                />
+              }
+            />
           ))}
-        </ul>
-      )}
-      {passkeysSupported() ? (
-        <button type="button" disabled={pending} onClick={() => void add()}>
-          {pending ? 'Veuillez patienter…' : 'Créer une clé d’accès'}
-        </button>
-      ) : (
-        <p className="hint">Ce navigateur ne gère pas les clés d’accès.</p>
+        </SettingItems>
       )}
       {(error ?? removeError) && (
         <p className="error" role="alert">
           {error ?? removeError}
         </p>
       )}
-    </section>
+    </Setting>
   );
 }
 
