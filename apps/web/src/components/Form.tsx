@@ -1,4 +1,5 @@
-import type { FormEvent, ReactNode } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 
 interface FormProps {
   title: string;
@@ -53,17 +54,38 @@ interface FieldProps {
 
 export function Field({ label, name, type = 'text', autoComplete, minLength, hint }: FieldProps) {
   const hintId = hint ? `${name}-hint` : undefined;
+  const [revealed, setRevealed] = useState(false);
+  const input = (
+    <input
+      name={name}
+      type={type === 'password' && revealed ? 'text' : type}
+      autoComplete={autoComplete}
+      minLength={minLength}
+      aria-describedby={hintId}
+      autoCapitalize={type === 'password' ? 'off' : undefined}
+      spellCheck={type === 'password' ? false : undefined}
+      required
+    />
+  );
   return (
     <label>
       {label}
-      <input
-        name={name}
-        type={type}
-        autoComplete={autoComplete}
-        minLength={minLength}
-        aria-describedby={hintId}
-        required
-      />
+      {type === 'password' ? (
+        <span className="password-input">
+          {input}
+          <button
+            type="button"
+            className="reveal"
+            aria-label={revealed ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            aria-pressed={revealed}
+            onClick={() => setRevealed(!revealed)}
+          >
+            {revealed ? <EyeOff aria-hidden size={18} /> : <Eye aria-hidden size={18} />}
+          </button>
+        </span>
+      ) : (
+        input
+      )}
       {hint && (
         <span className="hint" id={hintId}>
           {hint}

@@ -484,6 +484,41 @@ label .hint {
   font-weight: 400;
 }
 
+/* Mot de passe avec bouton pour afficher ce qui a été saisi. */
+.password-input {
+  position: relative;
+  display: grid;
+}
+
+.password-input input {
+  padding-right: 44px;
+}
+
+button.reveal {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-height: 32px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  transform: translateY(-50%);
+}
+
+button.reveal:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--line-soft);
+  border-color: transparent;
+}
+
+button.reveal:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95);
+}
+
 /* Deux champs côte à côte (prénom et nom), l'un sous l'autre sur un écran étroit. */
 .field-row {
   display: grid;
