@@ -74,3 +74,24 @@ jobs:
           --exclude-rule package_managers.pnpm.pnpm-block-exotic-sub-dependencies.pnpm-block-exotic-sub-dependencies
           --exclude-rule package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age
           --exclude-rule package_managers.pnpm.pnpm-trust-policy.pnpm-trust-policy
+
+  sbom:
+    name: Inventaire des composants (SBOM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # CycloneDX, d'après pnpm-lock.yaml : à fournir à un client ou à confronter à une faille
+      # publiée (ASVS 15.1.2). Conservé 90 jours avec chaque passage.
+      - name: Syft
+        run: >
+          docker run --rm -v "$PWD:/src:ro" anchore/syft:v1.33.0
+          scan dir:/src --exclude './fixtures/**' --exclude './**/node_modules/**'
+          -o cyclonedx-json > obsio-sbom.cdx.json
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom
+          path: obsio-sbom.cdx.json
+          retention-days: 90

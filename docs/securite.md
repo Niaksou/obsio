@@ -113,6 +113,7 @@ Workflow `Sécurité` (`.github/workflows/securite.yml`), à chaque push, sur ch
 - **Dépendances** : `pnpm audit`. Échec dès une faille modérée dans les dépendances de production, élevée dans les outils de développement.
 - **Secrets** : gitleaks sur tout l'historique. Un faux positif s'ajoute à `.gitleaksignore` par son empreinte, avec un commentaire.
 - **Analyse statique** : Semgrep, règles OWASP Top 10, TypeScript, Node.js, React et Dockerfile. Un faux positif se marque sur la ligne par `// nosemgrep: <règle>`, précédé de la raison.
+- **Inventaire des composants** : SBOM CycloneDX produit par Syft à partir de `pnpm-lock.yaml`, en pièce jointe de chaque passage (90 jours).
 
 Dependabot (`.github/dependabot.yml`) propose chaque semaine les mises à jour des paquets, des actions GitHub et des images Docker, après 7 jours de recul sur chaque version publiée. Les actions GitHub sont épinglées par empreinte de commit.
 
@@ -122,7 +123,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 149 conformes, 15 partielles, 8 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 150 conformes, 14 partielles, 8 à corriger, 2 écarts proposés.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

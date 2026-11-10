@@ -8,8 +8,8 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 149 |
-| Partiel | 15 |
+| Conforme | 150 |
+| Partiel | 14 |
 | À corriger | 8 |
 | Écart proposé | 2 |
 | N/A | 79 |
@@ -49,7 +49,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
 17. **Fait.** Cookie de session avec le préfixe `__Host-` (3.3.3).
 18. **Fait.** Limitation de débit qui refuse au lieu de laisser passer quand Redis est indisponible, au moins pour l'authentification (16.5.3).
-19. SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
+19. **Fait.** SBOM produit par la CI (15.1.2) ; passage à pnpm 10 (écart déjà noté).
 20. **Fait.** `/api` en HTTP : refus plutôt que redirection (4.1.2).
 
 ## Écarts proposés
@@ -324,7 +324,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
 | V15.1.1 | 1 | À corriger | Délais de correction non documentés (Dependabot et `pnpm audit` en place). |
-| V15.1.2 | 2 | Partiel | `pnpm-lock.yaml` (versions et empreintes), pas de SBOM. |
+| V15.1.2 | 2 | Conforme | `pnpm-lock.yaml` (versions et empreintes) et SBOM CycloneDX produit par la CI à chaque passage (workflow `Sécurité`, Syft). |
 | V15.1.3 | 2 | À corriger | Fonctions coûteuses (extraction, dossier PDF, export) non documentées. |
 | V15.2.1 | 1 | Partiel | Aucune faille connue en production (`pnpm audit`), mais pas de délai défini. |
 | V15.2.2 | 2 | Conforme | Extraction en file BullMQ, limitation par adresse IP, quotas par organisation sur l’analyse et le dossier PDF. |
