@@ -16,10 +16,10 @@
     "eval:extraction": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env eval/run.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1156.0",
-    "@mistralai/mistralai": "^3.2.0",
+    "@aws-sdk/client-s3": "^3.1161.0",
+    "@mistralai/mistralai": "^3.5.0",
     "@obsio/shared": "workspace:*",
-    "bullmq": "^6.4.1",
+    "bullmq": "^6.5.4",
     "ioredis": "^6.0.0",
     "pino": "^10.4.0",
     "zod": "^4.6.7"
