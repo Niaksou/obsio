@@ -353,6 +353,11 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Rejouables à tout moment depuis le bouton « Tutoriels » de l'en-tête (tutoriels de la page courante), et « Revoir les tutoriels d'accueil » relance les tutoriels automatiques
 - Choix techniques : aucun appel à l'API ni donnée en base ; tutoriels vus mémorisés dans le navigateur (`localStorage`, clé `obsio-tutoriels-vus`). Seuls les premiers pas et la vue intervention se lancent seuls, à la première visite. Éléments repérés par l'attribut `data-tour` ; une étape dont l'élément est absent (droits, page vide) est sautée. Une étape « à faire » avance quand l'utilisateur touche l'élément. Bulle en bas de l'écran sur téléphone ; Échap ferme, flèches pour naviguer. Code dans `apps/web/src/tours/`.
 
+**Après le MVP — Navigation**
+
+- [x] Ordinateur : menu latéral, avec en bas une ligne « Mon compte » explicite (initiales, nom).
+- [x] Téléphone : barre d'onglets en bas de l'écran (Mes réserves, Sites, Vérifications, Plus) ; « Plus » ouvre un volet avec Mon compte, Intervenants, Organisation, Tutoriels, le choix de l'organisation et la déconnexion. En haut, le logo seul.
+
 **Après le MVP — Échelle des étages**
 
 - [x] Calibrage par l'admin : deux points cliqués sur une longueur connue du plan (cote, porte, mur), puis la longueur réelle ; l'échelle est stockée en mètres par pixel de l'image (`floor.scale`) et effacée quand le plan est remplacé

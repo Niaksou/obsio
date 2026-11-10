@@ -91,7 +91,8 @@ describe('choix des tutoriels', () => {
     const ids = TOURS.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const tour of TOURS) {
-      expect(tour.steps.length).toBeLessThanOrEqual(8);
+      // Étapes propres à l'ordinateur ou au téléphone comprises : moins sur chaque appareil.
+      expect(tour.steps.length).toBeLessThanOrEqual(9);
       for (const step of tour.steps) {
         expect(step.body.length, `${tour.id} : ${step.title}`).toBeLessThanOrEqual(90);
         expect(step.title.length).toBeLessThanOrEqual(40);
@@ -129,6 +130,15 @@ describe('placeBubble', () => {
       placement: 'center',
       top: 325,
       left: 440,
+    });
+  });
+
+  it('passe en haut de l’écran du téléphone quand l’élément est en bas (barre d’onglets)', () => {
+    const target = { top: 780, bottom: 830, left: 10, width: 90 };
+    expect(placeBubble(target, { width: 390, height: 844 }, bubble)).toEqual({
+      placement: 'sheet-top',
+      top: 12,
+      left: 12,
     });
   });
 

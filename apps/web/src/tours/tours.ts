@@ -32,6 +32,12 @@ export const TOURS: Tour[] = [
         title: 'Intervenants',
         body: 'Les électriciens externes, prévenus par un lien.',
       },
+      {
+        target: 'account-link',
+        title: 'Mon compte',
+        body: 'Clés d’accès, notifications, sessions.',
+      },
+      { target: 'nav-plus', title: 'Plus', body: 'Votre compte, les intervenants, les tutoriels.' },
       { target: 'tutoriels', title: 'Tutoriels', body: 'Rejouez un tutoriel ici, à tout moment.' },
       { target: 'add-site', title: 'Premier site', body: 'Ajoutez l’établissement contrôlé.' },
       { target: 'site-row', title: 'À vous', body: 'Ouvrez un site.', action: 'click' },

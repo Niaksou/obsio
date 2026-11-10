@@ -4,7 +4,17 @@ import type { Tour } from './engine.js';
 import { useTours } from './TourProvider.js';
 
 /** Bouton « Tutoriels » : rejoue les tutoriels de la page affichée. */
-export function HelpButton({ compact = false }: { compact?: boolean }) {
+export function HelpButton({
+  compact = false,
+  inline = false,
+  onStart,
+}: {
+  compact?: boolean;
+  /** Menu déroulé dans le flux (volet « Plus » du téléphone) plutôt qu'en surimpression. */
+  inline?: boolean;
+  /** Appelé au lancement d'un tutoriel (fermer le volet qui le contient). */
+  onStart?: () => void;
+}) {
   const { available, start, replayAll, unseen } = useTours();
   const [open, setOpen] = useState(false);
   const [tours, setTours] = useState<Tour[]>([]);
@@ -35,7 +45,7 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="help" ref={root}>
+    <div className={inline ? 'help help-inline' : 'help'} ref={root}>
       <button
         type="button"
         className="quiet help-button"
@@ -61,6 +71,7 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
                 className="quiet"
                 onClick={() => {
                   setOpen(false);
+                  onStart?.();
                   start(tour);
                 }}
               >
@@ -76,6 +87,7 @@ export function HelpButton({ compact = false }: { compact?: boolean }) {
               onClick={() => {
                 replayAll();
                 setOpen(false);
+                onStart?.();
               }}
             >
               Revoir les tutoriels d’accueil

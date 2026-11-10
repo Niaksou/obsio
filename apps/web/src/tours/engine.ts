@@ -63,11 +63,12 @@ export function autoTourFor(tours: Tour[], path: string, seen: (id: string) => b
   return tours.find((tour) => tour.auto && tour.match(path) && !seen(tour.id)) ?? null;
 }
 
-export type Placement = 'below' | 'above' | 'center' | 'sheet';
+export type Placement = 'below' | 'above' | 'center' | 'sheet' | 'sheet-top';
 
 /**
  * Position de la bulle : sous l'élément, sinon au-dessus, sinon centrée ; en bas de l'écran
- * sur un téléphone (elle ne cache pas l'élément et reste à portée du pouce).
+ * sur un téléphone (à portée du pouce), ou en haut si l'élément est dans la moitié basse
+ * (barre d'onglets).
  */
 export function placeBubble(
   target: { top: number; bottom: number; left: number; width: number } | null,
@@ -76,6 +77,9 @@ export function placeBubble(
   margin = 12,
 ): { placement: Placement; top: number; left: number } {
   if (viewport.width <= 720) {
+    if (target && target.top > viewport.height / 2) {
+      return { placement: 'sheet-top', top: margin, left: margin };
+    }
     return { placement: 'sheet', top: viewport.height - bubble.height - margin, left: margin };
   }
   const centered = {

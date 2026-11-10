@@ -39,10 +39,15 @@ export function findTarget(name: string, reveal = false): HTMLElement | null {
   return null;
 }
 
-const exists = (name: string) => {
-  const elements = document.querySelectorAll(`[data-tour="${CSS.escape(name)}"]`);
-  return elements.length > 0;
-};
+/**
+ * Élément affiché, ou caché seulement dans un bloc replié que le tutoriel ouvrira. Un élément
+ * masqué par la mise en page (menu de l'ordinateur sur un téléphone, volet fermé) ne compte pas.
+ */
+const exists = (name: string) =>
+  [...document.querySelectorAll<HTMLElement>(`[data-tour="${CSS.escape(name)}"]`)].some(
+    (element) =>
+      element.getClientRects().length > 0 || element.closest('details:not([open])') !== null,
+  );
 
 interface TourContextValue {
   start: (tour: Tour) => void;
