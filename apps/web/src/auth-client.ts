@@ -1,10 +1,23 @@
 import { ac, roles } from '@obsio/shared/permissions';
-import { organizationClient, twoFactorClient } from 'better-auth/client/plugins';
+import {
+  inferAdditionalFields,
+  organizationClient,
+  twoFactorClient,
+} from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
   baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
-  plugins: [organizationClient({ ac, roles }), twoFactorClient()],
+  plugins: [
+    organizationClient({ ac, roles }),
+    twoFactorClient(),
+    inferAdditionalFields({
+      user: {
+        firstName: { type: 'string', required: false },
+        lastName: { type: 'string', required: false },
+      },
+    }),
+  ],
 });
 
 /** Message d'erreur affichable à partir d'une réponse d'erreur de Better Auth. */
@@ -20,6 +33,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     "Aucune invitation en attente pour cette adresse : utilisez celle qui a reçu l'invitation.",
   USER_ALREADY_EXISTS: 'Un compte existe déjà avec cette adresse : connectez-vous.',
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: 'Un compte existe déjà avec cette adresse.',
+  NAME_REQUIRED: 'Indiquez votre prénom et votre nom.',
   PASSWORD_MISMATCH: 'Les deux mots de passe ne correspondent pas.',
   PASSWORD_TOO_SHORT: 'Le mot de passe doit faire au moins 12 caractères.',
   INVALID_TOKEN: 'Ce lien est invalide ou a expiré.',

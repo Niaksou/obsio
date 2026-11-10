@@ -21,8 +21,17 @@ export function SignUp() {
       await run(async () => ({ error: { code: 'PASSWORD_MISMATCH' } }));
       return;
     }
+    const firstName = field(data, 'firstName');
+    const lastName = field(data, 'lastName');
     const ok = await run(() =>
-      authClient.signUp.email({ name: field(data, 'name'), email, password, callbackURL }),
+      authClient.signUp.email({
+        name: `${firstName} ${lastName}`,
+        firstName,
+        lastName,
+        email,
+        password,
+        callbackURL,
+      }),
     );
     if (ok) setSentTo(email);
   }
@@ -51,24 +60,18 @@ export function SignUp() {
       onSubmit={submit}
       footer={<Link to={`/connexion${params.size ? `?${params}` : ''}`}>J'ai déjà un compte</Link>}
     >
+      <div className="field-row">
+        <Field label="Prénom" name="firstName" autoComplete="given-name" />
+        <Field label="Nom" name="lastName" autoComplete="family-name" />
+      </div>
+      <Field label="E-mail" name="email" type="email" autoComplete="email" />
       <Field
-        label="Prénom et nom"
-        name="name"
-        autoComplete="name"
-        hint="Affiché à vos collègues, dans le journal des réserves et dans les e-mails envoyés aux intervenants."
-      />
-      <Field
-        label="Adresse e-mail (celle qui a reçu l'invitation)"
-        name="email"
-        type="email"
-        autoComplete="email"
-      />
-      <Field
-        label="Mot de passe (12 caractères minimum)"
+        label="Mot de passe"
         name="password"
         type="password"
         autoComplete="new-password"
         minLength={12}
+        hint="12 caractères minimum"
       />
       <Field
         label="Confirmer le mot de passe"

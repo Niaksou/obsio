@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createAuth } from '../src/auth/auth.js';
-import { invitation } from '../src/db/schema/index.js';
+import { invitation, user } from '../src/db/schema/index.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
 import { buildTestApp, clientHelpers, resetDatabase, TestClient } from './helpers.js';
 
@@ -35,6 +35,33 @@ describe('Inscription sur invitation uniquement', () => {
     expect(response.statusCode).toBe(403);
     expect(response.json()).toMatchObject({ code: 'SIGNUP_REQUIRES_INVITATION' });
     expect(ctx.emailSender.sent).toEqual([]);
+  });
+
+  it('compose le nom affiché à partir du prénom et du nom', async () => {
+    await provisionOrganisation(ctx, { name: 'Usine', adminEmail: 'alice@example.org' });
+    const response = await new TestClient(ctx).post('/api/auth/sign-up/email', {
+      name: 'ignoré',
+      firstName: ' Alice ',
+      lastName: 'Martin',
+      email: 'alice@example.org',
+      password: 'cheval-agrafe-batterie-42',
+    });
+    expect(response.statusCode).toBe(200);
+    const [saved] = await ctx.db.select().from(user).where(eq(user.email, 'alice@example.org'));
+    expect(saved).toMatchObject({ name: 'Alice Martin', firstName: 'Alice', lastName: 'Martin' });
+  });
+
+  it('exige le nom quand le prénom est fourni', async () => {
+    await provisionOrganisation(ctx, { name: 'Usine', adminEmail: 'alice@example.org' });
+    const response = await new TestClient(ctx).post('/api/auth/sign-up/email', {
+      name: 'Alice',
+      firstName: 'Alice',
+      lastName: '  ',
+      email: 'alice@example.org',
+      password: 'cheval-agrafe-batterie-42',
+    });
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ code: 'NAME_REQUIRED' });
   });
 
   it('refuse une inscription si la seule invitation a expiré', async () => {

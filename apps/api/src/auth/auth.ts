@@ -11,6 +11,7 @@ import type { EmailSender } from '../email/sender.js';
 import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
+import { composeNameInBody } from './names.js';
 import { forbiddenWord } from './password-policy.js';
 import {
   backupCodeOptions,
@@ -83,6 +84,7 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       before: createAuthMiddleware(async (ctx) => {
         await enforceTwoFactor(ctx);
         hashBackupCodeInBody(ctx);
+        composeNameInBody(ctx);
         if (PASSWORD_PATHS.includes(ctx.path)) {
           const body = (ctx.body ?? {}) as Record<string, unknown>;
           const password = body.password ?? body.newPassword;
@@ -113,6 +115,12 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
     session: {
       expiresIn: 2 * 3600,
       updateAge: 5 * 60,
+    },
+    user: {
+      additionalFields: {
+        firstName: { type: 'string', required: false, input: true },
+        lastName: { type: 'string', required: false, input: true },
+      },
     },
     emailAndPassword: {
       enabled: true,

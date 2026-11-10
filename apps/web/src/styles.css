@@ -484,6 +484,13 @@ label .hint {
   font-weight: 400;
 }
 
+/* Deux champs côte à côte (prénom et nom), l'un sous l'autre sur un écran étroit. */
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 12px;
+}
+
 .loading,
 .empty {
   color: var(--muted);

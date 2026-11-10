@@ -15,7 +15,11 @@ const updatedAt = () =>
 
 export const user = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // `name` (« Prénom Nom ») est recalculé à l'inscription à partir des deux champs ci-dessous,
+  // vides pour les comptes antérieurs et pour l'opérateur.
   name: text('name').notNull(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),

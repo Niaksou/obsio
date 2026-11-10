@@ -237,6 +237,7 @@ Mise en œuvre (J0) :
 - Les invitations de l'éditeur sont envoyées au nom d'un compte technique « opérateur » (`OPERATOR_EMAIL`), sans mot de passe ni appartenance. Comme Better Auth refuse d'afficher une invitation dont l'expéditeur n'est pas membre, la page d'invitation lit son détail par `GET /api/invitations/:id`.
 - L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
 - Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
+- L'inscription demande le prénom et le nom (colonnes `first_name` et `last_name`) ; le nom affiché `name` en est composé (« Prénom Nom »).
 - Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion.
 - La suppression d'une organisation est désactivée dans l'application : seul l'éditeur peut la faire, à la demande du client (voir « RGPD »).
 - Fichiers en stockage privé, servis uniquement par URLs signées à courte durée.

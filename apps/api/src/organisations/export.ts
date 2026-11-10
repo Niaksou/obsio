@@ -152,6 +152,8 @@ export async function exportOrganisation(
     .select({
       user_id: user.id,
       name: user.name,
+      first_name: user.firstName,
+      last_name: user.lastName,
       email: user.email,
       role: member.role,
       created_at: member.createdAt,
