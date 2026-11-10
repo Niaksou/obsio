@@ -120,7 +120,7 @@ Déposer les secrets sur le serveur (à refaire après chaque modification, puis
 deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
 ```
 
-Les fichiers sont déchiffrés sur le poste, transmis par SSH et écrits par un conteneur Docker dans `/etc/obsio/secrets` (dossier de root en 0700).
+Les fichiers sont déchiffrés sur le poste, transmis par SSH en mémoire vive (`/dev/shm`), puis installés par sudo (mot de passe du serveur demandé) dans `/etc/obsio/secrets`, dossier de root en 0700 ; l'archive est aussitôt effacée.
 
 ## 5. Démarrer
 

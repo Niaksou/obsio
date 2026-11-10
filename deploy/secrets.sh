@@ -143,15 +143,17 @@ decrypt() {
   protect "$dir"
 }
 
-# Déchiffre sur le poste, puis dépose les fichiers sur le serveur par Docker (sans sudo) :
-# dossier 0700 de root, fichiers lisibles par les conteneurs qui les montent.
+# Déchiffre sur le poste, puis dépose les fichiers sur le serveur : archive en mémoire vive
+# (/dev/shm, lisible par l'utilisateur SSH seul), installée par sudo (mot de passe demandé)
+# dans un dossier 0700 de root, puis effacée. Fichiers lisibles par les conteneurs qui les montent.
 send() {
   file=$1 host=$2 remote=${3:-$REMOTE_DIR_DEFAULT}
   tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT
   decrypt "$file" "$tmp"
-  tar -C "$tmp" -cf - . | ssh "$host" \
-    "docker run --rm -i -v '$remote:/secrets' alpine:3.22 sh -c 'find /secrets -mindepth 1 -delete && tar -xf - -C /secrets && chown -R root:root /secrets && chmod 0444 /secrets/* && chmod 0700 /secrets'"
+  archive=/dev/shm/obsio-secrets.tar
+  tar -C "$tmp" -cf - . | ssh "$host" "umask 077 && cat >$archive"
+  ssh -t "$host" "sudo sh -c 'mkdir -p $remote && find $remote -mindepth 1 -delete && tar -xf $archive -C $remote && chown -R root:root $remote && chmod 0444 $remote/* && chmod 0700 $remote'; status=\$?; rm -f $archive; exit \$status"
   echo "Secrets déposés dans $host:$remote ; relancer les services pour les prendre en compte."
 }
 
