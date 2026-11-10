@@ -8,9 +8,9 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 150 |
-| Partiel | 14 |
-| À corriger | 8 |
+| Conforme | 167 |
+| Partiel | 5 |
+| À corriger | 0 |
 | Écart proposé | 2 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
@@ -43,7 +43,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 **Priorité 3 : consolidation**
 
-13. Documentation de sécurité dans `docs/securite.md` : règles de validation et limites, fichiers acceptés, matrice des autorisations, classification des données, flux réseau, inventaire cryptographique et gestion des clés, délais de correction des dépendances, fonctions coûteuses, inventaire des journaux (2.1.1, 2.1.2, 5.1.1, 6.1.1, 8.1.1, 8.1.2, 11.1.1, 11.1.2, 11.2.2, 13.1.1, 14.1.1, 14.1.2, 14.2.4, 15.1.1, 15.1.3, 16.1.1, 16.2.3).
+13. **Fait.** Documentation de sécurité dans `docs/securite.md` : règles de validation et limites, fichiers acceptés, matrice des autorisations, classification des données, flux réseau, inventaire cryptographique et gestion des clés, délais de correction des dépendances, fonctions coûteuses, inventaire des journaux (2.1.1, 2.1.2, 5.1.1, 6.1.1, 8.1.1, 8.1.2, 11.1.1, 11.1.2, 11.2.2, 13.1.1, 14.1.1, 14.1.2, 14.2.4, 15.1.1, 15.1.3, 16.1.1, 16.2.3).
 14. **Fait.** Journaux envoyés hors du serveur et non modifiables (16.4.2, 16.4.3).
 15. **Fait.** Antivirus sur les fichiers déposés (ClamAV dans le worker), ou écart accepté vu les types restreints et le stockage séparé (5.4.3).
 16. **Fait.** SMTP avec TLS obligatoire (`requireTLS`) (12.3.1).
@@ -97,8 +97,8 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V2.1.1 | 1 | Partiel | Les règles sont les schémas Zod de `@obsio/shared`, partagés par le front et l’API ; aucun document ne les présente. |
-| V2.1.2 | 2 | Partiel | Règles combinées (position sur le plan, périodicité, rattachements) dans le code et la base, non documentées. |
+| V2.1.1 | 1 | Conforme | Schémas Zod de `@obsio/shared`, présentés dans `docs/securite-documentation.md` (règles de validation). |
+| V2.1.2 | 2 | Conforme | Règles combinées (rattachements, position, périodicité, assignations) documentées dans `docs/securite-documentation.md`. |
 | V2.1.3 | 2 | Conforme | Limites d’usage documentées dans `docs/securite.md` : débit par adresse IP, quotas par organisation, tailles de fichier. |
 | V2.2.1 | 1 | Conforme | Énumérations, formats et bornes Zod. |
 | V2.2.2 | 1 | Conforme | Validation côté API et contraintes en base (`check`, clés étrangères composites). |
@@ -152,7 +152,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V5.1.1 | 2 | Partiel | Types et tailles définis dans `@obsio/shared` (rapport 50 Mo, plan 50 Mo, image de plan 30 Mo, photos), non documentés. |
+| V5.1.1 | 2 | Conforme | Types, tailles et durées des URL signées par fichier dans `docs/securite-documentation.md`. |
 | V5.2.1 | 1 | Conforme | Taille imposée par la signature d’envoi (`content-length-range`). |
 | V5.2.2 | 1 | Conforme | Type déclaré confirmé par la signature du contenu (PDF, PNG, JPEG, WebP) avant tout traitement : rapports, plans, photos de preuve (`apps/api/src/file-signature.ts`, `test/file-signature.test.ts`). |
 | V5.2.3 | 2 | N/A | Aucune archive acceptée. |
@@ -166,7 +166,7 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V6.1.1 | 1 | Partiel | Limitation décrite dans `auth/auth.ts` et la spec, sans section dédiée. |
+| V6.1.1 | 1 | Conforme | Limitation des tentatives et verrouillage documentés dans `docs/securite-documentation.md` et `docs/securite.md`. |
 | V6.1.2 | 2 | Conforme | Liste des mots interdits documentée dans `docs/securite.md` (section « Mots de passe »). |
 | V6.1.3 | 2 | Conforme | Un seul parcours, e-mail et mot de passe sur invitation, décrit dans la spec. |
 | V6.2.1 | 1 | Conforme | 12 caractères minimum (15 recommandés par l’ASVS). |
@@ -229,8 +229,8 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V8.1.1 | 1 | Partiel | Rôles décrits dans la spec et `@obsio/shared/permissions`, sans matrice par route. |
-| V8.1.2 | 2 | Partiel | Pas de règle documentée au niveau du champ. |
+| V8.1.1 | 1 | Conforme | Matrice des autorisations par rôle et ressource dans `docs/securite-documentation.md`. |
+| V8.1.2 | 2 | Conforme | Règles au niveau du champ (réserves, statut, organisation) dans `docs/securite-documentation.md`. |
 | V8.2.1 | 1 | Conforme | Garde sur chaque route (`requireUser`, `requireOrganisation`, `requireAdmin`), jeton pour le lien intervenant. |
 | V8.2.2 | 1 | Conforme | RLS, identifiants relus dans la transaction, clés étrangères composites ; `test/rls.test.ts`. |
 | V8.2.3 | 2 | Conforme | Schémas de réponse Zod (champs choisis), corps limités aux champs autorisés. |
@@ -258,10 +258,10 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V11.1.1 | 2 | À corriger | Pas de politique de gestion des clés (`BETTER_AUTH_SECRET`, clés du stockage, mots de passe des rôles : création, rotation, révocation). |
-| V11.1.2 | 2 | À corriger | Pas d’inventaire cryptographique. |
+| V11.1.1 | 2 | Conforme | Création, rotation et révocation de chaque clé et secret dans `docs/securite-documentation.md`. |
+| V11.1.2 | 2 | Conforme | Inventaire cryptographique dans `docs/securite-documentation.md`. |
 | V11.2.1 | 2 | Conforme | `node:crypto`, scrypt de Better Auth, TLS de Caddy. |
-| V11.2.2 | 2 | Partiel | Algorithmes portés par les bibliothèques, sans procédure de changement. |
+| V11.2.2 | 2 | Conforme | Algorithmes portés par Node.js, Better Auth et le SDK AWS ; procédure de changement dans `docs/securite-documentation.md`. |
 | V11.2.3 | 2 | Conforme | SHA-256, HMAC-SHA-256, jetons de 256 bits. |
 | V11.3.1 | 1 | N/A | Pas de chiffrement applicatif. |
 | V11.3.2 | 1 | N/A | Pas de chiffrement applicatif. |
@@ -291,7 +291,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V13.1.1 | 2 | Partiel | Services externes cités dans la spec (Mistral, SMTP, stockage), sans document des flux. |
+| V13.1.1 | 2 | Conforme | Flux réseau (origine, destination, protocole, authentification) dans `docs/securite-documentation.md`. |
 | V13.2.1 | 2 | Conforme | PostgreSQL, stockage et Redis (mot de passe exigé, `deploy/compose.yml`) authentifiés. |
 | V13.2.2 | 2 | Conforme | Rôle propriétaire de la base et compte principal du stockage réservés au service `setup` ; l’API et le worker ont le rôle `app_user` (sans contournement de la RLS) et un compte de stockage limité aux objets du bucket (`apps/api/src/storage-admin.ts`, `test/storage-admin.test.ts`). |
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
@@ -309,12 +309,12 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V14.1.1 | 2 | À corriger | Pas de classification des données (rapports, plans, photos, données personnelles des membres et intervenants). |
-| V14.1.2 | 2 | À corriger | Dépend de 14.1.1. |
+| V14.1.1 | 2 | Conforme | Classification des données en quatre catégories dans `docs/securite-documentation.md`. |
+| V14.1.2 | 2 | Conforme | Protections par catégorie dans `docs/securite-documentation.md`. |
 | V14.2.1 | 1 | Conforme | Jetons dans l’URL (lien intervenant, réinitialisation, vérification d’e-mail) inévitables pour un lien envoyé par e-mail, mais masqués dans les journaux (`apps/api/src/logging.ts`) ; signatures des liens du stockage à courte durée. |
 | V14.2.2 | 2 | Conforme | Aucun cache serveur des réponses de l’API (Caddy ne met en cache que les fichiers statiques). |
 | V14.2.3 | 2 | Conforme | Aucun traceur ; Mistral est un sous-traitant déclaré (PDF transmis dans la requête). |
-| V14.2.4 | 2 | À corriger | Dépend de 14.1.1. |
+| V14.2.4 | 2 | Conforme | Tiers destinataires et durées de conservation dans `docs/securite-documentation.md`. |
 | V14.3.1 | 1 | Conforme | Cookie de session supprimé et cache de React Query vidé à la déconnexion ; la file hors ligne de l’intervenant ne contient que ses envois en attente. |
 | V14.3.2 | 2 | Conforme | `Cache-Control: no-store` sur toutes les réponses de l’API (hook `onSend`, `test/errors.test.ts`). |
 | V14.3.3 | 2 | Conforme | IndexedDB ne contient que la file d’envoi hors ligne de l’intervenant, vidée après envoi. |
@@ -323,9 +323,9 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V15.1.1 | 1 | À corriger | Délais de correction non documentés (Dependabot et `pnpm audit` en place). |
+| V15.1.1 | 1 | Conforme | Délais de correction par gravité dans `docs/securite-documentation.md`. |
 | V15.1.2 | 2 | Conforme | `pnpm-lock.yaml` (versions et empreintes) et SBOM CycloneDX produit par la CI à chaque passage (workflow `Sécurité`, Syft). |
-| V15.1.3 | 2 | À corriger | Fonctions coûteuses (extraction, dossier PDF, export) non documentées. |
+| V15.1.3 | 2 | Conforme | Fonctions coûteuses et leurs protections dans `docs/securite-documentation.md`. |
 | V15.2.1 | 1 | Partiel | Aucune faille connue en production (`pnpm audit`), mais pas de délai défini. |
 | V15.2.2 | 2 | Conforme | Extraction en file BullMQ, limitation par adresse IP, quotas par organisation sur l’analyse et le dossier PDF. |
 | V15.2.3 | 2 | Conforme | Images sans tests ; la démonstration n’est qu’une commande, rien n’est exposé. |
@@ -341,10 +341,10 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 
 | Exigence | Niv. | Statut | Constat |
 | --- | --- | --- | --- |
-| V16.1.1 | 2 | À corriger | Pas d’inventaire des journaux. |
+| V16.1.1 | 2 | Conforme | Inventaire des journaux dans `docs/securite-documentation.md`. |
 | V16.2.1 | 2 | Conforme | Événements de sécurité avec heure, adresse IP, méthode, URL sans jetons, utilisateur et organisation ; journal métier `reserve_event` (qui, quoi, quand). |
 | V16.2.2 | 2 | Conforme | Horodatage UTC (millisecondes epoch), horloge système synchronisée. |
-| V16.2.3 | 2 | Partiel | Journaux Docker sur le serveur, non documentés. |
+| V16.2.3 | 2 | Conforme | Journaux du serveur, rotation et copie Better Stack documentés dans `docs/securite-documentation.md`. |
 | V16.2.4 | 2 | Conforme | JSON (pino). |
 | V16.2.5 | 2 | Partiel | URL journalisées sans leurs jetons (`test/logging.test.ts`) ; règles par niveau de protection à définir avec la classification des données (14.1.1). |
 | V16.3.1 | 2 | Conforme | Connexion, inscription, déconnexion, réinitialisation et changement de mot de passe, réussite comme échec (`apps/api/src/security-log.ts`, `test/security-log.test.ts`). |
