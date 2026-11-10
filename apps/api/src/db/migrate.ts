@@ -16,8 +16,7 @@ export async function runMigrations(ownerConnectionString: string): Promise<void
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const url = process.env.DATABASE_OWNER_URL;
-  if (!url) throw new Error('DATABASE_OWNER_URL doit être défini');
-  await runMigrations(url);
+  const { ownerDatabaseUrl } = await import('../config.js');
+  await runMigrations(ownerDatabaseUrl());
   console.log('Migrations appliquées');
 }

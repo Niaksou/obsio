@@ -72,16 +72,55 @@ Ce pare-feu ne suit pas les connexions : sans les règles 5 à 7, le serveur ne 
 
 ## 4. Configurer
 
+Les adresses et réglages sont dans `deploy/server.env`, sans aucun secret :
+
 ```sh
 cd obsio
 cp deploy/server.env.example deploy/server.env
-chmod 600 deploy/server.env
-openssl rand -hex 32          # une fois par mot de passe et pour BETTER_AUTH_SECRET
-openssl rand -hex 16          # pour S3_ACCESS_KEY et S3_SECRET_KEY
 nano deploy/server.env
 ```
 
-Remplacer chaque `changer-moi`, ajuster les adresses si le domaine diffère, et renseigner `MISTRAL_API_KEY` pour l'extraction des rapports. Ce fichier contient les secrets : il reste sur le serveur, hors du dépôt.
+Remplacer chaque `changer-moi` et ajuster les adresses si le domaine diffère.
+
+### Secrets (sur son poste, pas sur le serveur)
+
+Les secrets (mots de passe de la base, de Redis et du stockage, clé de session, clés Brevo, Mistral et Better Stack) sont un fichier par secret, montés par Docker dans `/run/secrets` des seuls services qui en ont besoin : ils n'apparaissent ni dans les variables des conteneurs, ni dans `docker inspect`. L'exemplaire de référence est un fichier chiffré par [SOPS](https://getsops.io) avec une clé [age](https://age-encryption.org) que seul l'éditeur détient ; le serveur ne reçoit que les fichiers déchiffrés, dans `/etc/obsio/secrets`, lisible par root seulement.
+
+Une seule fois, sur son poste :
+
+```sh
+brew install sops age
+mkdir -p ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt    # clé privée : la sauvegarder dans un gestionnaire de mots de passe
+```
+
+La ligne `public key: age1…` affichée est la clé publique. Dans `~/.zshrc` :
+
+```sh
+export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
+export SOPS_AGE_RECIPIENTS=age1…    # la clé publique
+```
+
+Sans la clé privée, les secrets chiffrés sont perdus : il faudrait les régénérer (et réinitialiser la base).
+
+Créer les secrets, compléter les clés des services externes, puis chiffrer et effacer les fichiers en clair :
+
+```sh
+deploy/secrets.sh generer ~/obsio-secrets
+nano ~/obsio-secrets/smtp_password ~/obsio-secrets/mistral_api_key ~/obsio-secrets/betterstack_token
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets
+```
+
+Le fichier `obsio-secrets.sops.yaml` peut être sauvegardé n'importe où (les valeurs sont chiffrées), jamais dans le dépôt. Pour modifier un secret : `sops edit ~/obsio-secrets.sops.yaml`.
+
+Déposer les secrets sur le serveur (à refaire après chaque modification, puis relancer les services) :
+
+```sh
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+```
+
+Les fichiers sont déchiffrés sur le poste, transmis par SSH et écrits par un conteneur Docker dans `/etc/obsio/secrets` (dossier de root en 0700).
 
 ## 5. Démarrer
 
@@ -120,9 +159,20 @@ obsio exec api node dist/cli/seed-demo.js responsable@exemple.fr
 
 ## Au quotidien
 
-Après une mise à jour qui ajoute une variable à `deploy/server.env.example` (par exemple `REDIS_PASSWORD`), l'ajouter à `deploy/server.env` avant de relancer : sans elle, `docker compose` refuse de démarrer et nomme la variable manquante.
+Après une mise à jour qui ajoute une variable à `deploy/server.env.example`, l'ajouter à `deploy/server.env` avant de relancer : sans elle, `docker compose` refuse de démarrer et nomme la variable manquante. Un nouveau secret s'ajoute avec `sops edit`, puis `deploy/secrets.sh envoyer`.
 
-Passage au compte de stockage restreint (novembre 2026) : dans `deploy/server.env`, renommer `S3_ACCESS_KEY` et `S3_SECRET_KEY` en `S3_ADMIN_ACCESS_KEY` et `S3_ADMIN_SECRET_KEY` (le compte principal de RustFS ne change pas), puis ajouter un nouveau `S3_ACCESS_KEY` (par exemple `obsio-app`) et un nouveau `S3_SECRET_KEY` (`openssl rand -hex 32`) : `setup` crée ce compte au démarrage.
+Passage aux secrets Docker (novembre 2026), pour un serveur dont les secrets sont encore dans `deploy/server.env` : récupérer le fichier sur son poste, en reprendre les valeurs (la base et le stockage existent déjà avec elles), les chiffrer et les envoyer, puis retirer les secrets du fichier du serveur :
+
+```sh
+scp debian@IP_DU_VPS:obsio/deploy/server.env /tmp/ancien.env
+deploy/secrets.sh importer /tmp/ancien.env ~/obsio-secrets
+deploy/secrets.sh generer ~/obsio-secrets          # ne complète que les secrets absents
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets /tmp/ancien.env
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+```
+
+Sur le serveur, mettre `deploy/server.env` à jour d'après `deploy/server.env.example` (ajouter `SECRETS_DIR=/etc/obsio/secrets`, supprimer les lignes des mots de passe, clés et jetons), puis `obsio up -d --build --wait`.
 
 | Besoin | Commande |
 |---|---|
@@ -138,7 +188,7 @@ Les services redémarrent seuls après un redémarrage du serveur. Les migration
 Les journaux de tous les conteneurs partent vers Better Stack, en Allemagne : ils restent consultables si le serveur tombe, et quelqu'un qui en prendrait le contrôle ne pourrait pas effacer ses traces.
 
 1. Créer un compte sur https://betterstack.com, puis **Telemetry > Sources > Connect source** : plateforme **Vector**, centre de données **Europe (Germany)**.
-2. Copier l'adresse d'ingestion (`s….eu-nbg-2.betterstackdata.com`) et le jeton de la source dans `deploy/server.env` (`BETTERSTACK_HOST`, `BETTERSTACK_TOKEN`), avec `COMPOSE_PROFILES=journaux` (`local,journaux` si Mailpit est utilisé).
+2. Copier l'adresse d'ingestion (`s….eu-nbg-2.betterstackdata.com`) dans `deploy/server.env` (`BETTERSTACK_HOST`), avec `COMPOSE_PROFILES=journaux` (`local,journaux` si Mailpit est utilisé), et le jeton de la source dans le secret `betterstack_token` (`sops edit`, puis `deploy/secrets.sh envoyer`).
 3. `obsio up -d --wait`, puis vérifier dans Better Stack (**Live tail**) que les lignes arrivent.
 4. Créer une alerte sur les événements de sécurité : requête `securite:true`, par exemple plus de 20 `acces-refuse` ou un `fichier-infecte` en 5 minutes.
 

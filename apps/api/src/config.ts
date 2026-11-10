@@ -1,4 +1,6 @@
+import { readFileSync } from 'node:fs';
 import {
+  resolveFileVariables,
   databaseEnvSchema,
   nodeEnvSchema,
   parseEnv,
@@ -46,5 +48,15 @@ const apiEnvSchema = z
 export type ApiConfig = z.infer<typeof apiEnvSchema>;
 
 export function loadConfig(source: Record<string, string | undefined> = process.env): ApiConfig {
-  return parseEnv(apiEnvSchema, source);
+  return parseEnv(apiEnvSchema, source, (path) => readFileSync(path, 'utf8'));
+}
+
+/**
+ * Connexion du rôle propriétaire de la base (migrations, suppression d'une organisation), lue
+ * dans DATABASE_OWNER_URL ou dans le fichier de DATABASE_OWNER_URL_FILE.
+ */
+export function ownerDatabaseUrl(source: Record<string, string | undefined> = process.env): string {
+  const url = resolveFileVariables(source, (path) => readFileSync(path, 'utf8')).DATABASE_OWNER_URL;
+  if (!url) throw new Error('DATABASE_OWNER_URL doit être défini');
+  return url;
 }

@@ -4,6 +4,10 @@
 #   app_user  : utilisé par l'application, soumis à la Row Level Security
 set -eu
 
+# Mots de passe passés en clair (développement) ou par fichier (secrets Docker, déploiement).
+[ -n "${APP_OWNER_PASSWORD_FILE:-}" ] && APP_OWNER_PASSWORD="$(cat "$APP_OWNER_PASSWORD_FILE")"
+[ -n "${APP_USER_PASSWORD_FILE:-}" ] && APP_USER_PASSWORD="$(cat "$APP_USER_PASSWORD_FILE")"
+
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<SQL
 CREATE ROLE app_owner LOGIN PASSWORD '$APP_OWNER_PASSWORD';
 CREATE ROLE app_user LOGIN PASSWORD '$APP_USER_PASSWORD' NOSUPERUSER NOBYPASSRLS;

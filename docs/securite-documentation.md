@@ -53,7 +53,7 @@ Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute 
 | --- | --- | --- |
 | **Confidentiel client** | Rapports de vérification, réserves, plans, photos de preuve, commentaires, journal des réserves | Cloisonnement par organisation (RLS forcée), accès authentifié avec double authentification, stockage privé et URL signées courtes, sauvegardes de la base sur le serveur, pas de cache navigateur (`no-store`), cache du front vidé à la déconnexion, export et suppression sur demande |
 | **Données personnelles** | Membres : nom, adresse e-mail, adresse IP et navigateur des sessions. Intervenants : nom, entreprise, adresse e-mail, téléphone | Mêmes protections ; jamais dans les URL ; dans les journaux, seulement l'adresse IP et l'adresse e-mail saisie à la connexion |
-| **Secret** | Mots de passe, secrets TOTP et codes de secours, jetons de session, de lien intervenant, d'invitation et de réinitialisation, clés et mots de passe du serveur | Mots de passe hachés (scrypt), secrets TOTP chiffrés, codes de secours hachés, jetons de lien hachés (SHA-256), jamais journalisés ni renvoyés ; secrets du serveur dans `deploy/server.env`, lisible par root seul |
+| **Secret** | Mots de passe, secrets TOTP et codes de secours, jetons de session, de lien intervenant, d'invitation et de réinitialisation, clés et mots de passe du serveur | Mots de passe hachés (scrypt), secrets TOTP chiffrés, codes de secours hachés, jetons de lien hachés (SHA-256), jamais journalisés ni renvoyés ; secrets du serveur chiffrés par SOPS/age (clé détenue par l'éditeur seul), déposés en fichiers dans un dossier de root et montés par Docker dans les seuls services qui en ont besoin |
 | **Interne** | Résultats bruts d'extraction, versions des modèles et du prompt | Stockés à côté du rapport, mêmes protections que les données client |
 
 Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extraction, sous ses conditions d'API (pas d'entraînement sur les données des clients payants, à confirmer dans l'accord de traitement) ; les e-mails (adresse, nom, liens) à Brevo (UE) ; les journaux à Better Stack (UE). Durées de conservation : données client jusqu'à la suppression de l'organisation ; sauvegardes 7 jours ; journaux du serveur 5 fichiers de 10 Mo par conteneur ; journaux Better Stack selon l'offre (3 jours en gratuit).
@@ -92,13 +92,16 @@ Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur
 
 Aucun algorithme n'est écrit à la main : ils viennent de Node.js, de Better Auth et du SDK AWS. Changer d'algorithme passe par une mise à jour de ces bibliothèques, en relisant leurs notes de version ; les mots de passe sont rehachés à la connexion quand Better Auth change de paramètres.
 
+Les secrets du serveur sont des fichiers créés par `deploy/secrets.sh` ; l'exemplaire de référence est chiffré par SOPS avec la clé age de l'éditeur. Modifier un secret : `sops edit`, puis `deploy/secrets.sh envoyer` et redémarrer les services concernés.
+
 | Clé ou secret | Création | Rotation | Révocation, compromission |
 | --- | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | `openssl rand -base64 32` à l'installation | À la compromission seulement : toutes les sessions sont perdues, et les secrets TOTP deviennent illisibles, donc chaque utilisateur réactive sa double authentification (`pnpm user:reset-2fa`) | Remplacer dans `server.env`, redémarrer |
-| Mots de passe PostgreSQL (`app_user`, `app_owner`, `postgres`) | `openssl rand -hex 32` | Annuelle et au départ d'une personne ayant eu accès au serveur : `ALTER ROLE … PASSWORD` puis `server.env` | Idem |
-| Clés du stockage (principale, application) | `openssl rand -hex 32` | Annuelle : nouvelle clé d'application créée par setup, puis l'ancienne supprimée | Idem |
-| `REDIS_PASSWORD` | `openssl rand -hex 32` | Annuelle | Remplacer, redémarrer |
-| Clé Mistral, identifiants Brevo, jeton Better Stack | Console du fournisseur | Annuelle | Révoquer chez le fournisseur |
+| Clé age de l'éditeur | `age-keygen`, sur son poste, sauvegardée dans un gestionnaire de mots de passe | Au changement de poste ou à la compromission : `sops updatekeys` avec la nouvelle clé publique, puis rotation de tous les secrets | Idem |
+| `better_auth_secret` | `deploy/secrets.sh generer` (32 octets aléatoires) | À la compromission seulement : toutes les sessions sont perdues, et les secrets TOTP deviennent illisibles, donc chaque utilisateur réactive sa double authentification (`pnpm user:reset-2fa`) | Remplacer, envoyer, redémarrer |
+| Mots de passe PostgreSQL (`app_user`, `app_owner`, `postgres`) | `deploy/secrets.sh generer` (32 octets) | Annuelle et au départ d'une personne ayant eu accès au serveur : `ALTER ROLE … PASSWORD`, puis le secret (`deploy/secrets.sh deriver` recalcule les adresses) | Idem |
+| Clés du stockage (principale, application) | `deploy/secrets.sh generer` (16 octets, limite de RustFS) | Annuelle : nouvelle clé d'application créée par setup, puis l'ancienne supprimée | Idem |
+| Mot de passe Redis | `deploy/secrets.sh generer` (32 octets) | Annuelle | Remplacer, envoyer, redémarrer |
+| Clé Mistral, mot de passe SMTP Brevo, jeton Better Stack | Console du fournisseur | Annuelle | Révoquer chez le fournisseur |
 | Clé SSH du serveur | Sur le poste de l'éditeur, avec phrase de passe | Au changement de poste | Retirer de `authorized_keys` |
 
 ## Dépendances (V15)

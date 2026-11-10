@@ -1,5 +1,5 @@
 import { parseArgs } from 'node:util';
-import { loadConfig } from '../config.js';
+import { loadConfig, ownerDatabaseUrl } from '../config.js';
 import { createDatabase } from '../db/client.js';
 import { createExtractionQueue } from '../imports/queue.js';
 import { findOrganisation, isUuid } from '../organisations/data.js';
@@ -27,8 +27,7 @@ if (!target) {
   process.exit(1);
 }
 // Rôle propriétaire : l'application n'a pas le droit de supprimer réserves, preuves et journal.
-const ownerUrl = process.env.DATABASE_OWNER_URL;
-if (!ownerUrl) throw new Error('DATABASE_OWNER_URL doit être défini');
+const ownerUrl = ownerDatabaseUrl();
 
 const config = loadConfig();
 const { pool, db } = createDatabase(ownerUrl);

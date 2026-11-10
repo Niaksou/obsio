@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { nodeEnvSchema, parseEnv, redisEnvSchema, s3EnvSchema } from '@obsio/shared';
 import { z } from 'zod';
 
@@ -18,7 +19,7 @@ const workerEnvSchema = z.object({
 export type WorkerConfig = z.infer<typeof workerEnvSchema>;
 
 export function loadConfig(source: Record<string, string | undefined> = process.env): WorkerConfig {
-  const config = parseEnv(workerEnvSchema, source);
+  const config = parseEnv(workerEnvSchema, source, (path) => readFileSync(path, 'utf8'));
   if (config.EXTRACTION_PROVIDER === 'fixtures' && config.NODE_ENV === 'production') {
     throw new Error('EXTRACTION_PROVIDER=fixtures est réservé au développement');
   }

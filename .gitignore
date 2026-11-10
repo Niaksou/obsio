@@ -20,3 +20,7 @@ fixtures/reports/
 .idea/
 deploy/preprod.env
 deploy/server.env
+
+# Secrets du déploiement (deploy/secrets.sh) : en clair ou chiffrés, jamais dans le dépôt
+deploy/secrets/
+*.sops.yaml

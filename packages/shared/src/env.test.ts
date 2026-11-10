@@ -30,3 +30,44 @@ describe('parseEnv', () => {
     expect(() => parseEnv(databaseEnvSchema, {})).toThrow(/DATABASE_URL/);
   });
 });
+
+describe('variables lues dans un fichier', () => {
+  const files: Record<string, string> = {
+    '/run/secrets/database_url': 'postgres://app_user:secret@postgres:5432/obsio\n',
+  };
+  const readFile = (path: string) => {
+    if (!(path in files)) throw new Error(`absent : ${path}`);
+    return files[path]!;
+  };
+
+  it('remplace NOM_FILE par le contenu du fichier, sans le saut de ligne final', () => {
+    const env = parseEnv(
+      databaseEnvSchema,
+      { DATABASE_URL_FILE: '/run/secrets/database_url' },
+      readFile,
+    );
+    expect(env.DATABASE_URL).toBe('postgres://app_user:secret@postgres:5432/obsio');
+  });
+
+  it('refuse une variable définie deux fois, et un fichier absent', () => {
+    expect(() =>
+      parseEnv(
+        databaseEnvSchema,
+        { DATABASE_URL: 'postgres://a@b/c', DATABASE_URL_FILE: '/run/secrets/database_url' },
+        readFile,
+      ),
+    ).toThrow(EnvError);
+    expect(() =>
+      parseEnv(databaseEnvSchema, { DATABASE_URL_FILE: '/run/secrets/inconnu' }, readFile),
+    ).toThrow('absent');
+  });
+
+  it('ignore les variables *_FILE qui ne sont pas des secrets connus', () => {
+    const env = parseEnv(
+      databaseEnvSchema,
+      { DATABASE_URL: 'postgres://a@b/c', EDITEUR_RPC_FILE: '/fichier/inexistant' },
+      readFile,
+    );
+    expect(env.DATABASE_URL).toBe('postgres://a@b/c');
+  });
+});

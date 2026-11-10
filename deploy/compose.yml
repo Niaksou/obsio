@@ -8,20 +8,26 @@
 # remplacés par les services managés : seules les images api, worker et web sont déployées.
 name: obsio-preprod
 
-x-app-env: &app-env
+# Secrets : un fichier par secret dans SECRETS_DIR (deploy/secrets.sh), monté dans
+# /run/secrets/<nom> des seuls services qui en ont besoin et lu par NOM_FILE (ASVS 13.3.1).
+# Aucun secret dans l'environnement déclaré des conteneurs ni dans le fichier de variables.
+x-common-env: &common-env
   NODE_ENV: production
-  DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@postgres:5432/obsio
-  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+  REDIS_URL_FILE: /run/secrets/redis_url
   S3_ENDPOINT: ${S3_ENDPOINT}
   S3_REGION: ${S3_REGION}
   S3_BUCKET: ${S3_BUCKET}
-  S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-  S3_SECRET_KEY: ${S3_SECRET_KEY}
+  S3_ACCESS_KEY_FILE: /run/secrets/s3_access_key
+  S3_SECRET_KEY_FILE: /run/secrets/s3_secret_key
   S3_FORCE_PATH_STYLE: 'true'
+
+x-api-env: &api-env
+  <<: *common-env
+  DATABASE_URL_FILE: /run/secrets/database_url
   SMTP_HOST: ${SMTP_HOST}
   SMTP_PORT: ${SMTP_PORT}
   SMTP_USER: ${SMTP_USER:-}
-  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_PASSWORD_FILE: /run/secrets/smtp_password
   MAIL_FROM: ${MAIL_FROM}
   API_PORT: 3000
   TRUST_PROXY: 'true'
@@ -29,8 +35,7 @@ x-app-env: &app-env
   WEB_URL: ${PUBLIC_URL}
   OPERATOR_EMAIL: ${OPERATOR_EMAIL}
   OPERATOR_NAME: ${OPERATOR_NAME}
-  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-  MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+  BETTER_AUTH_SECRET_FILE: /run/secrets/better_auth_secret
   CLAMAV_HOST: clamav
 
 # Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
@@ -38,10 +43,10 @@ x-app-env: &app-env
 # Même chose pour le compte principal du stockage : l'API et le worker ont un compte limité au
 # bucket (S3_ACCESS_KEY), créé par setup.
 x-owner-env: &owner-env
-  <<: *app-env
-  DATABASE_OWNER_URL: postgres://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/obsio
-  S3_ADMIN_ACCESS_KEY: ${S3_ADMIN_ACCESS_KEY:?S3_ADMIN_ACCESS_KEY manquant}
-  S3_ADMIN_SECRET_KEY: ${S3_ADMIN_SECRET_KEY:?S3_ADMIN_SECRET_KEY manquant}
+  <<: *api-env
+  DATABASE_OWNER_URL_FILE: /run/secrets/database_owner_url
+  S3_ADMIN_ACCESS_KEY_FILE: /run/secrets/s3_admin_access_key
+  S3_ADMIN_SECRET_KEY_FILE: /run/secrets/s3_admin_secret_key
 
 # Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
 # mémoire et nombre de processus bornés.
@@ -56,9 +61,10 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD}
-      APP_USER_PASSWORD: ${APP_USER_PASSWORD}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      APP_OWNER_PASSWORD_FILE: /run/secrets/app_owner_password
+      APP_USER_PASSWORD_FILE: /run/secrets/app_user_password
+    secrets: [postgres_password, app_owner_password, app_user_password]
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ../docker/postgres:/docker-entrypoint-initdb.d:ro
@@ -74,14 +80,12 @@ services:
     command:
       - sh
       - -c
-      - exec redis-server --maxmemory-policy noeviction --appendonly yes --requirepass "$$REDIS_PASSWORD"
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD manquant}
-      REDISCLI_AUTH: ${REDIS_PASSWORD}
+      - exec redis-server --maxmemory-policy noeviction --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)"
+    secrets: [redis_password]
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD-SHELL', 'REDISCLI_AUTH="$$(cat /run/secrets/redis_password)" redis-cli ping']
       interval: 2s
       timeout: 3s
       retries: 30
@@ -92,10 +96,11 @@ services:
   storage:
     image: rustfs/rustfs:1.0.3
     environment:
-      RUSTFS_ACCESS_KEY: ${S3_ADMIN_ACCESS_KEY}
-      RUSTFS_SECRET_KEY: ${S3_ADMIN_SECRET_KEY}
+      RUSTFS_ACCESS_KEY_FILE: /run/secrets/s3_admin_access_key
+      RUSTFS_SECRET_KEY_FILE: /run/secrets/s3_admin_secret_key
       # Même port dedans et dehors, pour que l'adresse signée soit identique partout.
       RUSTFS_ADDRESS: ':${STORAGE_PORT:-9100}'
+    secrets: [s3_admin_access_key, s3_admin_secret_key]
     ports:
       - '${STORAGE_PORT:-9100}:${STORAGE_PORT:-9100}'
     networks:
@@ -130,6 +135,16 @@ services:
     build: { context: .., target: api, args: { VITE_API_URL: '${PUBLIC_URL}' } }
     image: obsio-api:preprod
     environment: *owner-env
+    secrets:
+      - database_url
+      - database_owner_url
+      - redis_url
+      - s3_access_key
+      - s3_secret_key
+      - s3_admin_access_key
+      - s3_admin_secret_key
+      - smtp_password
+      - better_auth_secret
     command: ['sh', '-c', 'node dist/db/migrate.js && node dist/cli/setup-storage.js']
     depends_on:
       postgres: { condition: service_healthy }
@@ -139,7 +154,9 @@ services:
   api:
     <<: *locked
     image: obsio-api:preprod
-    environment: *app-env
+    environment: *api-env
+    secrets:
+      [database_url, redis_url, s3_access_key, s3_secret_key, smtp_password, better_auth_secret]
     mem_limit: 512m
     depends_on:
       setup: { condition: service_completed_successfully }
@@ -154,7 +171,10 @@ services:
   worker:
     <<: *locked
     build: { context: .., target: worker, args: { VITE_API_URL: '${PUBLIC_URL}' } }
-    environment: *app-env
+    environment:
+      <<: *common-env
+      MISTRAL_API_KEY_FILE: /run/secrets/mistral_api_key
+    secrets: [redis_url, s3_access_key, s3_secret_key, mistral_api_key]
     mem_limit: 1g
     depends_on:
       redis: { condition: service_healthy }
@@ -179,3 +199,34 @@ volumes:
   redis-data:
   storage-data:
   clamav-data:
+
+# Fichiers créés par deploy/secrets.sh (dossier lisible par root seulement sur le serveur).
+secrets:
+  postgres_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/postgres_password
+  app_owner_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/app_owner_password
+  app_user_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/app_user_password
+  database_url:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/database_url
+  database_owner_url:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/database_owner_url
+  redis_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/redis_password
+  redis_url:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/redis_url
+  s3_admin_access_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_admin_access_key
+  s3_admin_secret_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_admin_secret_key
+  s3_access_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_access_key
+  s3_secret_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_secret_key
+  smtp_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/smtp_password
+  better_auth_secret:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/better_auth_secret
+  mistral_api_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/mistral_api_key

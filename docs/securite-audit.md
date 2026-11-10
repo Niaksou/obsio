@@ -8,10 +8,10 @@ Statuts : **Conforme** ; **Partiel** (en partie respecté, ou respecté sans la 
 
 | Statut | Exigences |
 | --- | --- |
-| Conforme | 170 |
+| Conforme | 171 |
 | Partiel | 2 |
 | À corriger | 0 |
-| Écart proposé | 2 |
+| Écart proposé | 1 |
 | N/A | 79 |
 | **Total (niveaux 1 et 2)** | **253** |
 
@@ -57,7 +57,6 @@ Chaque ligne deviendra un commit ; les exigences concernées sont entre parenth�
 À accepter ou non ; s'ils le sont, ils rejoignent la table des écarts de `docs/securite.md`.
 
 - **Communications internes en clair** (12.3.3) : PostgreSQL, Redis et le stockage communiquent sur le réseau Docker interne d'un seul serveur, sans port exposé. Le chiffrement deviendra nécessaire si les services sont répartis sur plusieurs machines.
-- **Pas de coffre-fort de secrets** (13.3.1) : les secrets sont dans `deploy/server.env`, lisible par root seulement. Un coffre-fort (Vault, gestionnaire de l'hébergeur) est disproportionné pour un seul serveur ; à revoir avec la mise en production.
 
 ## Détail par exigence
 
@@ -297,7 +296,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
 | V13.2.4 | 2 | Partiel | Un seul service externe appelé (Mistral), sans liste blanche réseau. |
 | V13.2.5 | 2 | Partiel | Pare-feu OVH sur l’entrant ; sortant non restreint par destination. |
-| V13.3.1 | 2 | Écart proposé | Secrets dans un fichier d’environnement sur le serveur (droits restreints), pas de coffre-fort. |
+| V13.3.1 | 2 | Conforme | Secrets Docker : un fichier par secret, monté dans /run/secrets des seuls services concernés et lu par NOM_FILE, absent des variables et de docker inspect ; exemplaire de référence chiffré par SOPS/age, clé détenue par l’éditeur seul (deploy/secrets.sh). |
 | V13.3.2 | 2 | Conforme | Chaque service ne reçoit que les secrets dont il a besoin (voir 13.2.2). |
 | V13.4.1 | 1 | Conforme | `.git` exclu des images (`.dockerignore`). |
 | V13.4.2 | 2 | Conforme | `NODE_ENV=production`, pas de mode de débogage. |

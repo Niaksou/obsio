@@ -5,6 +5,12 @@
 
 data_dir: /var/lib/vector
 
+# Jeton lu dans le secret Docker monté dans /run/secrets (deploy/secrets.sh).
+secret:
+  fichiers:
+    type: directory
+    path: /run/secrets
+
 sources:
   conteneurs:
     type: file
@@ -45,7 +51,7 @@ sinks:
     compression: gzip
     auth:
       strategy: bearer
-      token: '${BETTERSTACK_TOKEN}'
+      token: 'SECRET[fichiers.betterstack_token]'
     # Better Stack injoignable : les lignes attendent sur disque (jusqu'à 1 Go) plutôt que
     # d'être perdues.
     buffer:

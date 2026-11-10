@@ -37,7 +37,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 
 **Données et secrets (V11 Cryptographie, V13 Configuration, V14 Protection des données)**
 
-- Aucun secret dans le dépôt ; nouvelle variable ajoutée à `.env.example` et aux modèles de `deploy/`.
+- Aucun secret dans le dépôt ; nouvelle variable ajoutée à `.env.example` et aux modèles de `deploy/`. En déploiement, un nouveau secret est un secret Docker (`deploy/secrets.sh`, lu par `NOM_FILE`), jamais une variable du fichier d'environnement.
 - Pas de donnée personnelle ni de secret dans les journaux, les URL ou les messages d'erreur.
 - Nouvelle table portant `organisation_id` : RLS forcée (voir `CLAUDE.md`) et entrée dans `ORGANISATION_TABLES` pour l'export et la suppression.
 - Pas de suppression physique des réserves, preuves et événements d'audit (seule exception : suppression d'une organisation entière).
@@ -123,7 +123,7 @@ Avant d'ajouter un faux positif ou d'écarter une règle, vérifier qu'il ne s'a
 
 ## Audit ASVS niveau 2
 
-Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 170 conformes, 2 partielles, 0 à corriger, 2 écarts proposés.
+Audit complet du 9 novembre 2026 dans [`securite-audit.md`](securite-audit.md) : statut et constat pour chacune des 253 exigences des niveaux 1 et 2, corrections classées par priorité. Sur 174 exigences applicables, à ce jour : 171 conformes, 2 partielles, 0 à corriger, 1 écart proposé.
 
 Tenir ce document à jour : une correction change le statut de l'exigence et retire la ligne de la liste des corrections.
 

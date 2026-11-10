@@ -78,7 +78,7 @@ services:
     environment:
       PGHOST: postgres
       PGUSER: postgres
-      PGPASSWORD: ${POSTGRES_PASSWORD}
+    secrets: [postgres_password]
     volumes:
       - ${BACKUP_DIR:-/var/backups/obsio}:/backups
     depends_on:
@@ -87,6 +87,7 @@ services:
       - sh
       - -c
       - |
+        export PGPASSWORD="$$(cat /run/secrets/postgres_password)"
         while true; do
           file=/backups/obsio-$$(date +%F).dump
           pg_dump -Fc obsio > "$$file.tmp" && mv "$$file.tmp" "$$file" && echo "Sauvegarde : $$file"
@@ -107,7 +108,7 @@ services:
     mem_limit: 256m
     environment:
       BETTERSTACK_HOST: ${BETTERSTACK_HOST:-}
-      BETTERSTACK_TOKEN: ${BETTERSTACK_TOKEN:-}
+    secrets: [betterstack_token]
     volumes:
       - ./server/vector.yaml:/etc/vector/vector.yaml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -118,3 +119,7 @@ volumes:
   caddy-config:
   mailpit-data:
   vector-data:
+
+secrets:
+  betterstack_token:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/betterstack_token
