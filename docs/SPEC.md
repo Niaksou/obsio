@@ -119,6 +119,7 @@ Le front ne parle qu'à l'API ; l'import d'un rapport est mis en file et traité
 | Extraction | Mistral OCR + modèle Mistral en sortie structurée | Hébergé dans l'UE, bon sur les tableaux |
 | Auth | Better Auth (plugins organisation et double authentification TOTP, obligatoire) ; jetons signés pour les intervenants | Organisations, rôles, invitations et TOTP fournis ; pas de compte pour l'électricien |
 | E-mail | Brevo (France), en SMTP | Notifications et envoi des liens ; offre gratuite suffisante au départ |
+| Notifications sur le téléphone | Web Push (standard du navigateur, clés VAPID, bibliothèque `web-push`), file BullMQ dans l'API | Sans application à publier ; sur iPhone, Obsio doit être ajouté à l'écran d'accueil |
 | Hébergement | VPS OVH avec Docker Compose (services gérés pour la production) | Coût minimal, société française, argument RGPD |
 
 ## Pipeline d'extraction (Mistral)
@@ -254,6 +255,7 @@ Mise en œuvre (J0) :
 
 - Le produit est sous-traitant des données de ses clients : contrat de sous-traitance (DPA) dans les conditions générales.
 - Sous-traitants ultérieurs listés : hébergeur, Mistral, service e-mail. Tous hébergés dans l'UE.
+- Notifications sur le téléphone : elles transitent par le service de notification du navigateur de l'appareil (Apple, Google, Mozilla, Microsoft, hors UE pour certains), choisi par l'utilisateur en activant les notifications. Le contenu est chiffré de bout en bout pour l'appareil et réduit au nom de l'organisation, au site et au nombre de réserves ; à mentionner dans le DPA.
 - Pas d'entraînement de modèles sur les données clients.
 - Export et suppression des données d'une organisation à sa demande, par l'éditeur :
   - `pnpm org:export <identifiant ou slug>` produit une archive ZIP lisible sans Obsio : chaque table en CSV (point-virgule, UTF-8, pour Excel) et en JSON, les membres sans mot de passe, les fichiers déposés (rapports, plans, photos) et un dossier de preuves par site. `--out -` écrit l'archive sur la sortie standard (conteneur en lecture seule).
@@ -339,6 +341,7 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 
 - [x] L'admin confie une ou plusieurs réserves à un ou plusieurs membres de l'organisation (sélection multiple de la liste des réserves, ou fiche d'une réserve), avec échéance et message facultatifs ; e-mail aux collaborateurs nouvellement chargés (sauf à soi-même)
 - [x] « Mes réserves » : page et entrée de menu, bandeau sur la liste des sites, filtre dans la liste des réserves d'un site
+- [x] Notification sur le téléphone (Web Push) en plus de l'e-mail : « Usine de Lyon : 2 réserves à corriger » (une par site, sans le texte des réserves), le toucher ouvre la réserve ou « Mes réserves » ; activation par appareil sur « Mon compte » et proposée sur « Mes réserves ». Seul cet événement notifie pour l'instant (correction à vérifier, correction refusée et retards possibles ensuite)
 - Décisions prises, à relire :
   - Plusieurs collaborateurs par réserve ; la première preuve « corrigée » de l'un d'eux la fait passer à `corrigee`. Cette assignation s'ajoute aux liens intervenant, sans les remplacer.
   - Comme pour un lien, l'échéance donnée devient celle des réserves ; une réserve corrigée ou levée ne peut pas être confiée.

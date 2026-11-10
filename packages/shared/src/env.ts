@@ -47,6 +47,7 @@ export const FILE_VARIABLES = [
   'SMTP_PASSWORD',
   'BETTER_AUTH_SECRET',
   'MISTRAL_API_KEY',
+  'VAPID_PRIVATE_KEY',
 ] as const;
 
 /**

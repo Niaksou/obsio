@@ -84,7 +84,7 @@ Remplacer chaque `changer-moi` et ajuster les adresses si le domaine diffère.
 
 ### Secrets (sur son poste, pas sur le serveur)
 
-Les secrets (mots de passe de la base, de Redis et du stockage, clé de session, clés Brevo, Mistral et Better Stack) sont un fichier par secret, montés par Docker dans `/run/secrets` des seuls services qui en ont besoin : ils n'apparaissent ni dans les variables des conteneurs, ni dans `docker inspect`. L'exemplaire de référence est un fichier chiffré par [SOPS](https://getsops.io) avec une clé [age](https://age-encryption.org) que seul l'éditeur détient ; le serveur ne reçoit que les fichiers déchiffrés, dans `/etc/obsio/secrets`, lisible par root seulement.
+Les secrets (mots de passe de la base, de Redis et du stockage, clé de session, clé des notifications, clés Brevo, Mistral et Better Stack) sont un fichier par secret, montés par Docker dans `/run/secrets` des seuls services qui en ont besoin : ils n'apparaissent ni dans les variables des conteneurs, ni dans `docker inspect`. L'exemplaire de référence est un fichier chiffré par [SOPS](https://getsops.io) avec une clé [age](https://age-encryption.org) que seul l'éditeur détient ; le serveur ne reçoit que les fichiers déchiffrés, dans `/etc/obsio/secrets`, lisible par root seulement.
 
 Une seule fois, sur son poste :
 
@@ -183,6 +183,19 @@ deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
 rm -r ~/obsio-secrets
 deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
 ```
+
+Notifications sur le téléphone (novembre 2026) : la clé VAPID (`vapid_private_key`) fait partie des secrets. Pour un fichier chiffré créé avant, l'ajouter puis renvoyer ; sans elle, l'API démarre sans notifications (l'e-mail reste) :
+
+```sh
+deploy/secrets.sh dechiffrer ~/obsio-secrets.sops.yaml ~/obsio-secrets
+deploy/secrets.sh generer ~/obsio-secrets          # ajoute la clé VAPID
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+obsio up -d --build --wait
+```
+
+Ne pas changer cette clé sans raison : les appareils abonnés ne recevraient plus rien et devraient réactiver les notifications.
 
 Les certificats internes sont valables deux ans (date affichée à leur création). Avant l'échéance, les refaire tous, avec une nouvelle autorité, puis relancer tous les services :
 

@@ -294,7 +294,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V13.2.1 | 2 | Conforme | PostgreSQL, stockage et Redis (mot de passe exigé, `deploy/compose.yml`) authentifiés. |
 | V13.2.2 | 2 | Conforme | Rôle propriétaire de la base et compte principal du stockage réservés au service `setup` ; l’API et le worker ont le rôle `app_user` (sans contournement de la RLS) et un compte de stockage limité aux objets du bucket (`apps/api/src/storage-admin.ts`, `test/storage-admin.test.ts`). |
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
-| V13.2.4 | 2 | Partiel | Un seul service externe appelé (Mistral), sans liste blanche réseau. |
+| V13.2.4 | 2 | Partiel | Services externes appelés : Mistral, et les services de notification des navigateurs (liste blanche de domaines dans le code pour les adresses d'abonnement, `apps/api/src/push/push.ts`) ; pas de liste blanche réseau. |
 | V13.2.5 | 2 | Partiel | Pare-feu OVH sur l’entrant ; sortant non restreint par destination. |
 | V13.3.1 | 2 | Conforme | Secrets Docker : un fichier par secret, monté dans /run/secrets des seuls services concernés et lu par NOM_FILE, absent des variables et de docker inspect ; exemplaire de référence chiffré par SOPS/age, clé détenue par l’éditeur seul (deploy/secrets.sh). |
 | V13.3.2 | 2 | Conforme | Chaque service ne reçoit que les secrets dont il a besoin (voir 13.2.2). |

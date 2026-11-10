@@ -37,6 +37,7 @@ import {
   reserve,
   site,
 } from '../db/schema/index.js';
+import { plural } from '../reserves/format.js';
 import type { EmailSender } from '../email/sender.js';
 import { assignmentEmail, collaboratorAssignmentEmail } from '../email/templates.js';
 import { notifyCorrection, recordEvent } from '../reserves/events.js';
@@ -48,6 +49,7 @@ import {
   stillAssigned,
 } from '../reserves/collaborators.js';
 import { listReserves, reserveDetail } from '../reserves/queries.js';
+import type { PushQueue } from '../push/push.js';
 import type { Storage } from '../storage.js';
 
 // Suivi des réserves (J4, J5) : liste, détail, journal, modification, intervenants,
@@ -73,8 +75,9 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   storage: Storage;
   scanner: FileScanner;
   emailSender: EmailSender;
+  push: PushQueue;
   config: ApiConfig;
-}> = async (app, { db, guards, storage, scanner, emailSender, config }) => {
+}> = async (app, { db, guards, storage, scanner, emailSender, push, config }) => {
   const { requireOrganisation: member, requireAdmin: admin } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
@@ -535,7 +538,13 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
         const org = await tx.query.organisation.findFirst({
           where: eq(organisation.id, organisationId),
         });
-        return { ...assigned, organisationName: org?.name ?? '' };
+        const sites = await tx
+          .select({ reserveId: reserve.id, siteName: site.name })
+          .from(reserve)
+          .innerJoin(site, eq(site.id, reserve.siteId))
+          .where(inArray(reserve.id, reserveIds));
+        const siteOf = new Map(sites.map((row) => [row.reserveId, row.siteName]));
+        return { ...assigned, siteOf, organisationName: org?.name ?? '' };
       });
       if (typeof result === 'string') return fail(reply, 400, result);
 
@@ -556,6 +565,22 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
                 : `${config.WEB_URL}/mes-reserves`,
           }),
         );
+        // Notification sur ses appareils : une par site, sans le texte des réserves (écran
+        // verrouillé).
+        const bySite = new Map<string, string[]>();
+        for (const id of ids) {
+          const siteName = result.siteOf.get(id) ?? '';
+          bySite.set(siteName, [...(bySite.get(siteName) ?? []), id]);
+        }
+        for (const [siteName, siteIds] of bySite) {
+          await push.enqueue({
+            userId: person.id,
+            title: result.organisationName,
+            body: `${siteName} : ${plural(siteIds.length, 'réserve')} à corriger`,
+            url: siteIds.length === 1 ? `/reserves/${siteIds[0]}` : '/mes-reserves',
+            tag: `reserves-confiees-${siteName}`,
+          });
+        }
       }
       return reply.code(204).send(null);
     },

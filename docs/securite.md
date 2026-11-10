@@ -77,6 +77,14 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Seule la clé publique est stockée (table `passkey`, sans `organisation_id`, comme les autres tables de Better Auth). Liste et retrait sur la page « Mon compte » ; ajout, retrait et connexion journalisés.
 - 10 essais de connexion par passkey par 5 minutes et par adresse IP. WebAuthn exige HTTPS (ou `localhost`) : pas de passkey en `pnpm dev:lan` depuis un téléphone.
 
+## Notifications sur le téléphone (Web Push)
+
+- Envoyées par l'API au service de notification du navigateur de chaque appareil abonné, en plus de l'e-mail, quand une réserve est confiée à un collaborateur (`apps/api/src/push/push.ts`).
+- Contenu chiffré pour l'appareil (RFC 8291) et jeton VAPID signé (RFC 8292) : le service (Apple, Google, Mozilla, Microsoft) ne voit que le destinataire et l'heure. Texte réduit au nom de l'organisation, au site et au nombre de réserves, sans le texte des réserves (lisible sur un écran verrouillé). Le toucher n'ouvre qu'un chemin de l'application.
+- Adresse d'abonnement acceptée seulement en HTTPS vers ces services connus (liste dans le code) : l'API n'envoie jamais de requête vers une adresse choisie par l'utilisateur (pas de SSRF, ASVS 1.3.6).
+- Abonnement propre à un compte et à un appareil (table `push_subscription`, sans `organisation_id`), 10 au plus par compte ; retiré à la désactivation, à la déconnexion, quand le service le dit expiré, et avec le compte. Clé privée VAPID en secret Docker (`vapid_private_key`).
+- Autorisation demandée seulement après un clic. Sur iPhone, Apple ne permet les notifications qu'à l'application ajoutée à l'écran d'accueil.
+
 ## Sessions
 
 - Reconnexion après **2 heures sans activité** ; la session est prolongée au plus toutes les 5 minutes d'usage (`apps/api/src/auth/auth.ts`).

@@ -8,6 +8,7 @@ import { ingestImport } from './imports/ingest.js';
 import { createExtractionQueue } from './imports/queue.js';
 import { createFailFastRedis, createRedis } from './redis.js';
 import { scheduleDailyNotifications } from './notifications.js';
+import { createPushQueue } from './push/push.js';
 import { createStorage } from './storage.js';
 
 const config = loadConfig();
@@ -27,6 +28,14 @@ const tls =
   config.TLS_CERT_FILE && config.TLS_KEY_FILE
     ? { cert: readFileSync(config.TLS_CERT_FILE), key: readFileSync(config.TLS_KEY_FILE) }
     : undefined;
+// Journal de démarrage : l'application n'existe pas encore, on écrit sur la sortie d'erreur.
+const push = createPushQueue(
+  redis,
+  { db, config },
+  {
+    error: (obj, msg) => console.error(msg, obj),
+  },
+);
 const app = await buildApp({
   config,
   pool,
@@ -36,8 +45,10 @@ const app = await buildApp({
   storage,
   scanner,
   queue,
+  push,
   tls,
 });
+if (!push.enabled) app.log.warn('VAPID_PRIVATE_KEY absente : pas de notification sur le téléphone');
 // Range le brouillon dès la fin de l'extraction (la consultation de l'import le fait aussi).
 queue.watch(({ organisationId, importId }) => {
   ingestImport({ db, storage, queue }, organisationId, importId).catch((error: unknown) =>
@@ -50,7 +61,7 @@ const notifications = await scheduleDailyNotifications(redis, { db, emailSender,
 async function shutdown(signal: string) {
   app.log.info(`${signal} reçu, arrêt en cours`);
   await app.close();
-  await Promise.all([queue.close(), notifications.close()]);
+  await Promise.all([queue.close(), notifications.close(), push.close()]);
   await Promise.all([pool.end(), redis.quit(), limitsRedis.quit()]);
   storage.close();
   process.exit(0);

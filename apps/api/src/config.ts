@@ -38,6 +38,12 @@ const apiEnvSchema = z
     // Certificat et clé de l'API : HTTPS entre le proxy et l'API (ASVS 12.3.3).
     TLS_CERT_FILE: z.string().min(1).optional(),
     TLS_KEY_FILE: z.string().min(1).optional(),
+    // Notifications sur le téléphone (Web Push) : clé privée VAPID (P-256, 32 octets en
+    // base64url), la clé publique en est dérivée. Absente : pas de notification, l'e-mail reste.
+    VAPID_PRIVATE_KEY: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{43}$/, 'clé P-256 de 32 octets en base64url')
+      .optional(),
     // Derrière un proxy (Caddy, répartiteur de l'hébergeur) : l'adresse du client est lue dans
     // X-Forwarded-For, sinon la limitation de débit compterait tout le monde comme le proxy.
     TRUST_PROXY: z

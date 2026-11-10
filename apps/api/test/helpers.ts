@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createECDH, createHmac } from 'node:crypto';
 import pg from 'pg';
 import { expect } from 'vitest';
 import type { FileScanner } from '../src/antivirus.js';
@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm';
 import { organisation, reportImport, reserve, user } from '../src/db/schema/index.js';
 import { createMemorySender } from '../src/email/sender.js';
 import type { ExtractionQueue } from '../src/imports/queue.js';
+import type { PushJob, PushQueue } from '../src/push/push.js';
 import { createFailFastRedis } from '../src/redis.js';
 import { createStorage } from '../src/storage.js';
 import { provisionOrganisation } from '../src/organisations/provision.js';
@@ -79,6 +80,22 @@ function createFakeQueue() {
   return queue;
 }
 
+/** File des notifications de test : les tâches sont gardées en mémoire. */
+export function createMemoryPushQueue() {
+  const privateKey = createECDH('prime256v1');
+  privateKey.generateKeys();
+  const jobs: PushJob[] = [];
+  return {
+    enabled: true,
+    publicKey: privateKey.getPublicKey().toString('base64url'),
+    jobs,
+    async enqueue(job: PushJob) {
+      jobs.push(job);
+    },
+    async close() {},
+  } satisfies PushQueue & { jobs: PushJob[] };
+}
+
 /**
  * Fichier de test EICAR, reconnu par tous les antivirus : assemblé ici pour que le dépôt ne le
  * contienne pas tel quel.
@@ -105,8 +122,19 @@ export async function buildTestApp() {
   const storage = createStorage(config);
   await storage.ensureBucket(config.WEB_URL);
   const queue = createFakeQueue();
+  const push = createMemoryPushQueue();
   const scanner = testScanner;
-  const app = await buildApp({ config, pool, db, redis, emailSender, storage, scanner, queue });
+  const app = await buildApp({
+    config,
+    pool,
+    db,
+    redis,
+    emailSender,
+    storage,
+    scanner,
+    queue,
+    push,
+  });
   return {
     app,
     scanner,
@@ -117,6 +145,7 @@ export async function buildTestApp() {
     emailSender,
     storage,
     queue,
+    push,
     async close() {
       await app.close();
       await Promise.all([pool.end(), redis.quit()]);

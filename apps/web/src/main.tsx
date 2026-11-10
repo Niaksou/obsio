@@ -33,9 +33,11 @@ onProofSent(({ target }) => {
 });
 startProofQueue();
 
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  // L'application reste ouvrable sans réseau sur le chantier (voir public/sw.js).
-  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+if ('serviceWorker' in navigator) {
+  // L'application reste ouvrable sans réseau sur le chantier, et reçoit les notifications (voir
+  // public/sw.js). En développement : notifications seulement, sans cache.
+  const script = import.meta.env.PROD ? '/sw.js' : '/sw.js?mode=push';
+  window.addEventListener('load', () => void navigator.serviceWorker.register(script));
 }
 
 const root = document.getElementById('root');

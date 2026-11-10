@@ -85,6 +85,13 @@
       "when": 1794321738726,
       "tag": "0011_reserve_member",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794323020636,
+      "tag": "0012_push_subscription",
+      "breakpoints": true
     }
   ]
 }

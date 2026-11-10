@@ -68,6 +68,23 @@ export const passkey = pgTable(
   (table) => [index().on(table.userId)],
 );
 
+// Notifications sur le téléphone (Web Push) : un abonnement par appareil, propre à un compte.
+// Clés de chiffrement du navigateur (p256dh, auth) : seul l'appareil lit les notifications.
+export const pushSubscription = pgTable(
+  'push_subscription',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index().on(table.userId)],
+);
+
 export const session = pgTable(
   'session',
   {

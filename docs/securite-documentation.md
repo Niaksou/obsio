@@ -53,11 +53,11 @@ Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute 
 | Catégorie | Données | Protection |
 | --- | --- | --- |
 | **Confidentiel client** | Rapports de vérification, réserves, plans, photos de preuve, commentaires, journal des réserves | Cloisonnement par organisation (RLS forcée), accès authentifié avec double authentification, stockage privé et URL signées courtes, sauvegardes de la base sur le serveur, pas de cache navigateur (`no-store`), cache du front vidé à la déconnexion, export et suppression sur demande |
-| **Données personnelles** | Membres : nom, adresse e-mail, adresse IP et navigateur des sessions. Intervenants : nom, entreprise, adresse e-mail, téléphone | Mêmes protections ; jamais dans les URL ; dans les journaux, seulement l'adresse IP et l'adresse e-mail saisie à la connexion |
+| **Données personnelles** | Membres : nom, adresse e-mail, adresse IP et navigateur des sessions, abonnements aux notifications de leurs appareils. Intervenants : nom, entreprise, adresse e-mail, téléphone | Mêmes protections ; jamais dans les URL ; dans les journaux, seulement l'adresse IP et l'adresse e-mail saisie à la connexion |
 | **Secret** | Mots de passe, secrets TOTP et codes de secours, jetons de session, de lien intervenant, d'invitation et de réinitialisation, clés et mots de passe du serveur | Mots de passe hachés (scrypt), secrets TOTP chiffrés, codes de secours hachés, jetons de lien hachés (SHA-256), jamais journalisés ni renvoyés ; secrets du serveur chiffrés par SOPS/age (clé détenue par l'éditeur seul), déposés en fichiers dans un dossier de root et montés par Docker dans les seuls services qui en ont besoin |
 | **Interne** | Résultats bruts d'extraction, versions des modèles et du prompt | Stockés à côté du rapport, mêmes protections que les données client |
 
-Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extraction, sous ses conditions d'API (pas d'entraînement sur les données des clients payants, à confirmer dans l'accord de traitement) ; les e-mails (adresse, nom, liens) à Brevo (UE) ; les journaux à Better Stack (UE). Durées de conservation : données client jusqu'à la suppression de l'organisation ; sauvegardes 7 jours ; journaux du serveur 5 fichiers de 10 Mo par conteneur ; journaux Better Stack selon l'offre (3 jours en gratuit).
+Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extraction, sous ses conditions d'API (pas d'entraînement sur les données des clients payants, à confirmer dans l'accord de traitement) ; les e-mails (adresse, nom, liens) à Brevo (UE) ; les journaux à Better Stack (UE) ; les notifications sur le téléphone au service de notification du navigateur de chaque appareil abonné (Apple, Google, Mozilla, Microsoft, hors UE pour certains), chiffrées de bout en bout pour l'appareil (RFC 8291) : ces services ne voient que l'appareil destinataire et l'heure, et le texte se limite au nom de l'organisation, au site et au nombre de réserves. Durées de conservation : données client jusqu'à la suppression de l'organisation ; sauvegardes 7 jours ; journaux du serveur 5 fichiers de 10 Mo par conteneur ; journaux Better Stack selon l'offre (3 jours en gratuit).
 
 ## Flux réseau (V13)
 
@@ -75,6 +75,7 @@ Données envoyées à des tiers : le rapport PDF à Mistral (France) pour l'extr
 | API | Brevo | SMTP, TLS 1.2 au moins obligatoire | Identifiant SMTP |
 | API | Have I Been Pwned | HTTPS | — (5 premiers caractères de l'empreinte seulement) |
 | Worker | Mistral | HTTPS | Clé d'API |
+| API | Services de notification des navigateurs (`fcm.googleapis.com`, `*.push.apple.com`, `updates.push.services.mozilla.com`, `*.notify.windows.com`) | HTTPS, contenu chiffré pour l'appareil (RFC 8291) | Jeton VAPID signé (RFC 8292) ; adresse d'abonnement refusée hors de ces domaines |
 | Vector | Better Stack | HTTPS | Jeton d'ajout seul |
 
 Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur. Entre les services, tout passe en TLS avec un certificat par service (nom du service sur le réseau Docker), signé par une autorité interne créée par `deploy/secrets.sh` ; les clients vérifient le certificat et son nom, sans repli en clair. ClamAV, qui ne connaît pas TLS, n'écoute que dans son conteneur. En préproduction sur une machine (`deploy/compose.yml` seul), le navigateur joint le front et le stockage en HTTP sur le poste : seul le serveur ajoute le proxy HTTPS devant eux.
@@ -91,6 +92,7 @@ Seuls les ports 80, 443 (Caddy) et 22 (SSH par clé) sont ouverts sur le serveur
 | Codes de secours | 120 bits aléatoires, stockés en SHA-256 | table `two_factor` |
 | Codes TOTP | HMAC-SHA-1, 6 chiffres, 30 secondes (RFC 6238) | Better Auth |
 | Passkeys | Clé publique WebAuthn (ES256 ou RS256) de l'appareil ; signature d'un défi aléatoire à usage unique | table `passkey` (clé publique seulement) |
+| Notifications (Web Push) | Contenu chiffré pour l'appareil (ECDH P-256 et AES-128-GCM, RFC 8291) ; jeton VAPID signé ES256 (RFC 8292) | `apps/api/src/push/push.ts` (bibliothèque `web-push`), table `push_subscription` |
 | Liens intervenant | 32 octets aléatoires, stockés en SHA-256 | `apps/api/src/routes/reserves.ts` |
 | URL signées du stockage | AWS SigV4 (HMAC-SHA-256) | `apps/api/src/storage.ts` |
 | Nombres aléatoires | Générateur cryptographique de Node.js (`crypto.randomBytes`, `crypto.randomUUID`) | — |
@@ -106,6 +108,7 @@ Les secrets du serveur sont des fichiers créés par `deploy/secrets.sh` ; l'exe
 | Mots de passe PostgreSQL (`app_user`, `app_owner`, `postgres`) | `deploy/secrets.sh generer` (32 octets) | Annuelle et au départ d'une personne ayant eu accès au serveur : `ALTER ROLE … PASSWORD`, puis le secret (`deploy/secrets.sh deriver` recalcule les adresses) | Idem |
 | Clés du stockage (principale, application) | `deploy/secrets.sh generer` (16 octets, limite de RustFS) | Annuelle : nouvelle clé d'application créée par setup, puis l'ancienne supprimée | Idem |
 | Mot de passe Redis | `deploy/secrets.sh generer` (32 octets) | Annuelle | Remplacer, envoyer, redémarrer |
+| `vapid_private_key` (notifications) | `deploy/secrets.sh generer` (clé P-256) | À la compromission seulement : les abonnements existants cessent de fonctionner, chaque appareil réactive les notifications | Remplacer, envoyer, redémarrer, vider la table `push_subscription` |
 | Certificats internes (`tls_*`) | `deploy/secrets.sh generer` : autorité interne dont la clé est détruite après signature | Avant expiration (deux ans) : `deploy/secrets.sh certificats` refait l'autorité et tous les certificats, puis envoyer et relancer tous les services | Idem |
 | Clé Mistral, mot de passe SMTP Brevo, jeton Better Stack | Console du fournisseur | Annuelle | Révoquer chez le fournisseur |
 | Clé SSH du serveur | Sur le poste de l'éditeur, avec phrase de passe | Au changement de poste | Retirer de `authorized_keys` |

@@ -16,7 +16,7 @@
 set -eu
 
 # Secrets tirés au hasard, puis secrets fournis par des services externes (laissés vides).
-GENERATED="postgres_password app_owner_password app_user_password redis_password s3_admin_access_key s3_admin_secret_key s3_access_key s3_secret_key better_auth_secret"
+GENERATED="postgres_password app_owner_password app_user_password redis_password s3_admin_access_key s3_admin_secret_key s3_access_key s3_secret_key better_auth_secret vapid_private_key"
 EXTERNAL="smtp_password mistral_api_key betterstack_token"
 DERIVED="database_url database_owner_url redis_url"
 # Chiffrement entre les services (ASVS 12.3.3) : un certificat par service, signé par une
@@ -83,6 +83,10 @@ generate() {
       s3_admin_access_key) printf 'obsio-admin' >"$dir/$name" ;;
       s3_access_key) printf 'obsio-app' >"$dir/$name" ;;
       better_auth_secret) openssl rand -base64 32 | tr -d '\n' >"$dir/$name" ;;
+      # Notifications (Web Push) : clé privée P-256 en base64url (32 octets, au rang 8 du DER).
+      vapid_private_key)
+        openssl ecparam -name prime256v1 -genkey -noout | openssl ec -outform DER 2>/dev/null |
+          tail -c +8 | head -c 32 | base64 | tr '+/' '-_' | tr -d '=\n' >"$dir/$name" ;;
       # RustFS limite la longueur des clés : 128 bits.
       s3_*) random_hex 16 | tr -d '\n' >"$dir/$name" ;;
       *) random_hex 32 | tr -d '\n' >"$dir/$name" ;;
@@ -133,7 +137,11 @@ decrypt() {
   mkdir -p "$dir"
   chmod 700 "$dir"
   for name in $STORED; do
-    value=$(sops decrypt --input-type yaml --output-type yaml --extract "[\"$name\"]" "$file")
+    # Secret ajouté après la création du fichier : vide, « generer » le complète.
+    if ! value=$(sops decrypt --input-type yaml --output-type yaml --extract "[\"$name\"]" "$file" 2>/dev/null); then
+      echo "Absent du fichier chiffré : $name (deploy/secrets.sh generer le complète)" >&2
+      value=
+    fi
     case $name in
       tls_*) printf '%s\n' "$value" >"$dir/$name" ;;
       *) printf '%s' "$value" >"$dir/$name" ;;

@@ -2,6 +2,7 @@ import { Factory, CalendarCheck, ClipboardCheck, HardHat, LogOut, Users } from '
 import type { ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
+import { disablePush } from '../push/push.js';
 import { Logo } from './Logo.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
@@ -78,6 +79,8 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   );
 
   async function signOut() {
+    // L'appareil ne reçoit plus les notifications de ce compte (un autre peut s'y connecter).
+    await disablePush().catch(() => undefined);
     await authClient.signOut();
     navigate('/connexion', { replace: true });
   }

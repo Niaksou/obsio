@@ -6,8 +6,9 @@ import { device } from '../components/device.js';
 import { Passkeys } from '../components/Passkeys.js';
 import { field, Field, Form } from '../components/Form.js';
 import { useSubmit } from '../components/useSubmit.js';
+import { PushSettings } from '../push/PushSettings.js';
 
-// Mon compte : passkeys, mot de passe, sessions ouvertes et codes de secours de la double
+// Mon compte : passkeys, notifications, mot de passe, sessions ouvertes et codes de secours de la double
 // authentification.
 
 export function AccountPage() {
@@ -23,6 +24,7 @@ export function AccountPage() {
         </p>
       </section>
       <Passkeys />
+      <PushSettings />
       <ChangePassword />
       <Sessions currentToken={session.session.token} />
       <RegenerateBackupCodes />

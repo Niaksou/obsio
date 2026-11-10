@@ -29,7 +29,9 @@ import { interventionRoutes } from './routes/intervention.js';
 import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
 import { premisesRoutes } from './routes/premises.js';
+import { pushRoutes } from './routes/push.js';
 import { reserveRoutes } from './routes/reserves.js';
+import type { PushQueue } from './push/push.js';
 import type { Storage } from './storage.js';
 
 declare module 'fastify' {
@@ -49,6 +51,8 @@ export interface AppDependencies {
   /** Antivirus des fichiers déposés (`noScanner` sans ClamAV, hors production). */
   scanner: FileScanner;
   queue: ExtractionQueue;
+  /** Notifications sur le téléphone (Web Push). */
+  push: PushQueue;
   /** Tests : journal écrit dans ce flux, quel que soit NODE_ENV. */
   logStream?: Writable;
   /** Certificat et clé : l'API répond en HTTPS (déploiement, ASVS 12.3.3), sinon en HTTP. */
@@ -64,6 +68,7 @@ export async function buildApp({
   storage,
   scanner,
   queue,
+  push,
   logStream,
   tls,
 }: AppDependencies) {
@@ -113,7 +118,8 @@ export async function buildApp({
   await app.register(invitationRoutes, { db, guards });
   await app.register(premisesRoutes, { db, guards, storage, scanner });
   await app.register(importRoutes, { db, guards, storage, scanner, queue, quotas });
-  await app.register(reserveRoutes, { db, guards, storage, scanner, emailSender, config });
+  await app.register(reserveRoutes, { db, guards, storage, scanner, emailSender, push, config });
+  await app.register(pushRoutes, { db, guards, push });
   await app.register(interventionRoutes, { db, storage, scanner, emailSender, config });
   await app.register(dashboardRoutes, { db, guards, storage, quotas });
   await app.register(inspectionRoutes, { db, guards });

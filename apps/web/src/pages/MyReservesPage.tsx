@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api.js';
+import { PushSuggestion } from '../push/PushSettings.js';
 import { keys } from '../queries.js';
 import { plural } from '../reserves/status.js';
 import { ReserveRow } from './ReservesPage.js';
@@ -17,6 +18,7 @@ export function MyReservesPage() {
         <h1>Mes réserves</h1>
         {reserves.data && <p className="row-meta">{plural(toFix.length, 'réserve')} à corriger</p>}
       </div>
+      <PushSuggestion />
       {reserves.isPending && <p className="loading">Chargement…</p>}
       {reserves.error && <p className="error">{reserves.error.message}</p>}
       {reserves.data && rows.length === 0 && (

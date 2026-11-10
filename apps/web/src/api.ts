@@ -28,6 +28,7 @@ import {
   type PlanConfirm,
   type PlanUploadRequest,
   type PresignedPost,
+  type PushSubscriptionInput,
   type ProofDossierQuery,
   type ProofInput,
   type ReserveFilters,
@@ -178,6 +179,13 @@ export const api = {
   removeCollaborator: (reserveId: string, userId: string) =>
     request(z.null(), 'POST', `/api/reserves/${reserveId}/collaborators/${userId}/remove`),
   myReserves: () => request(z.array(myReserveSchema), 'GET', '/api/me/reserves'),
+
+  pushPublicKey: () =>
+    request(z.object({ publicKey: z.string().nullable() }), 'GET', '/api/push/public-key'),
+  addPushSubscription: (input: PushSubscriptionInput) =>
+    request(z.null(), 'POST', '/api/push/subscriptions', input),
+  removePushSubscription: (endpoint: string) =>
+    request(z.null(), 'POST', '/api/push/subscriptions/remove', { endpoint }),
 
   intervention: (token: string) => request(interventionSchema, 'GET', `/api/intervention/${token}`),
   interventionPhotoUpload: (
