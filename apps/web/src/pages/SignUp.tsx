@@ -11,16 +11,18 @@ export function SignUp() {
   const { pending, error, run } = useSubmit();
   const [sentTo, setSentTo] = useState<string | null>(null);
 
+  // Le lien de vérification connecte l'utilisateur puis le ramène sur l'invitation.
+  const callbackURL = window.location.origin + redirect;
+
   async function submit(data: FormData) {
     const email = field(data, 'email');
+    const password = String(data.get('password') ?? '');
+    if (password !== String(data.get('passwordConfirm') ?? '')) {
+      await run(async () => ({ error: { code: 'PASSWORD_MISMATCH' } }));
+      return;
+    }
     const ok = await run(() =>
-      authClient.signUp.email({
-        name: field(data, 'name'),
-        email,
-        password: field(data, 'password'),
-        // Le lien de vérification connecte l'utilisateur puis le ramène ici.
-        callbackURL: window.location.origin + redirect,
-      }),
+      authClient.signUp.email({ name: field(data, 'name'), email, password, callbackURL }),
     );
     if (ok) setSentTo(email);
   }
@@ -38,17 +40,7 @@ export function SignUp() {
     );
   }
 
-  if (sentTo) {
-    return (
-      <div className="card">
-        <h1>Vérifiez votre boîte mail</h1>
-        <p>
-          Un lien de confirmation a été envoyé à <strong>{sentTo}</strong>. Cliquez dessus pour
-          activer votre compte.
-        </p>
-      </div>
-    );
-  }
+  if (sentTo) return <CheckInbox email={sentTo} callbackURL={callbackURL} />;
 
   return (
     <Form
@@ -59,7 +51,12 @@ export function SignUp() {
       onSubmit={submit}
       footer={<Link to={`/connexion${params.size ? `?${params}` : ''}`}>J'ai déjà un compte</Link>}
     >
-      <Field label="Nom" name="name" autoComplete="name" />
+      <Field
+        label="Prénom et nom"
+        name="name"
+        autoComplete="name"
+        hint="Affiché à vos collègues, dans le journal des réserves et dans les e-mails envoyés aux intervenants."
+      />
       <Field
         label="Adresse e-mail (celle qui a reçu l'invitation)"
         name="email"
@@ -73,6 +70,48 @@ export function SignUp() {
         autoComplete="new-password"
         minLength={12}
       />
+      <Field
+        label="Confirmer le mot de passe"
+        name="passwordConfirm"
+        type="password"
+        autoComplete="new-password"
+        minLength={12}
+      />
     </Form>
+  );
+}
+
+/** Après l'inscription : rappel de l'adresse, et nouvel envoi du lien s'il n'est pas arrivé. */
+function CheckInbox({ email, callbackURL }: { email: string; callbackURL: string }) {
+  const { pending, error, run } = useSubmit();
+  const [resent, setResent] = useState(false);
+
+  async function resend() {
+    setResent(false);
+    const ok = await run(() => authClient.sendVerificationEmail({ email, callbackURL }));
+    setResent(ok);
+  }
+
+  return (
+    <div className="card">
+      <h1>Vérifiez votre boîte mail</h1>
+      <p>
+        Un lien de confirmation a été envoyé à <strong>{email}</strong>. Cliquez dessus pour activer
+        votre compte.
+      </p>
+      <p className="hint">
+        Rien reçu après quelques minutes ? Regardez dans les courriers indésirables, puis demandez
+        un nouveau lien.
+      </p>
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+      {resent && <p role="status">Nouveau lien envoyé.</p>}
+      <button type="button" className="secondary" disabled={pending} onClick={() => void resend()}>
+        {pending ? 'Envoi…' : 'Renvoyer le lien'}
+      </button>
+    </div>
   );
 }

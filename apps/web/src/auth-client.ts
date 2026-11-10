@@ -20,6 +20,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     "Aucune invitation en attente pour cette adresse : utilisez celle qui a reçu l'invitation.",
   USER_ALREADY_EXISTS: 'Un compte existe déjà avec cette adresse : connectez-vous.',
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: 'Un compte existe déjà avec cette adresse.',
+  PASSWORD_MISMATCH: 'Les deux mots de passe ne correspondent pas.',
   PASSWORD_TOO_SHORT: 'Le mot de passe doit faire au moins 12 caractères.',
   INVALID_TOKEN: 'Ce lien est invalide ou a expiré.',
   USER_IS_ALREADY_A_MEMBER_OF_THIS_ORGANIZATION: 'Cette personne est déjà membre.',

@@ -47,13 +47,28 @@ interface FieldProps {
   type?: string;
   autoComplete?: string;
   minLength?: number;
+  /** Précision sous le champ, lue par les lecteurs d'écran avec le libellé. */
+  hint?: string;
 }
 
-export function Field({ label, name, type = 'text', autoComplete, minLength }: FieldProps) {
+export function Field({ label, name, type = 'text', autoComplete, minLength, hint }: FieldProps) {
+  const hintId = hint ? `${name}-hint` : undefined;
   return (
     <label>
       {label}
-      <input name={name} type={type} autoComplete={autoComplete} minLength={minLength} required />
+      <input
+        name={name}
+        type={type}
+        autoComplete={autoComplete}
+        minLength={minLength}
+        aria-describedby={hintId}
+        required
+      />
+      {hint && (
+        <span className="hint" id={hintId}>
+          {hint}
+        </span>
+      )}
     </label>
   );
 }

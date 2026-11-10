@@ -480,6 +480,10 @@ button.link:active:not(:disabled) {
   color: var(--muted);
 }
 
+label .hint {
+  font-weight: 400;
+}
+
 .loading,
 .empty {
   color: var(--muted);
