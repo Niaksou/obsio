@@ -13,6 +13,9 @@ export type PushState =
   | 'off'
   | 'on';
 
+/** Téléphone ou tablette (écran tactile comme pointeur principal), pour le libellé. */
+export const isHandheld = () => window.matchMedia('(pointer: coarse)').matches;
+
 const isIos = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

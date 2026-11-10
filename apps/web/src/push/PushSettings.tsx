@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { disablePush, enablePush, pushState, type PushState } from './push.js';
+import { disablePush, enablePush, isHandheld, pushState, type PushState } from './push.js';
 
 function usePush() {
   const [state, setState] = useState<PushState | null>(null);
@@ -110,7 +110,7 @@ export function PushSuggestion() {
 
   return (
     <section className="card suggestion" data-tour="push-suggestion">
-      <h2>Être prévenu sur ce téléphone</h2>
+      <h2>Être prévenu sur {isHandheld() ? 'ce téléphone' : 'cet ordinateur'}</h2>
       {state === 'install-first' ? (
         <InstallFirst />
       ) : (

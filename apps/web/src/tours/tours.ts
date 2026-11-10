@@ -155,7 +155,7 @@ export const TOURS: Tour[] = [
       {
         target: 'push-suggestion',
         title: 'Notifications',
-        body: 'Soyez prévenu sur ce téléphone.',
+        body: 'Soyez prévenu sur cet appareil.',
       },
     ],
   },
@@ -169,7 +169,7 @@ export const TOURS: Tour[] = [
         title: 'Clés d’accès',
         body: 'Connexion d’un geste, sans mot de passe.',
       },
-      { target: 'account-push', title: 'Notifications', body: 'À activer sur chaque téléphone.' },
+      { target: 'account-push', title: 'Notifications', body: 'À activer sur chaque appareil.' },
       {
         target: 'account-sessions',
         title: 'Sessions',
