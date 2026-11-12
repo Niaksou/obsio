@@ -21,6 +21,9 @@ import {
   siteEquipmentSchema,
   siteSchema,
   type PlanPosition,
+  zoneInputSchema,
+  zoneSchema,
+  zoneUpdateSchema,
 } from '@obsio/shared';
 import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -28,7 +31,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Guards } from '../auth/guards.js';
 import { withOrganisation, type Database, type Transaction } from '../db/client.js';
-import { building, equipment, floor, site } from '../db/schema/index.js';
+import { building, equipment, floor, site, zone } from '../db/schema/index.js';
 import type { Storage } from '../storage.js';
 import { verifiedContentType } from '../file-signature.js';
 
@@ -43,6 +46,7 @@ type SiteRow = typeof site.$inferSelect;
 type BuildingRow = typeof building.$inferSelect;
 type FloorRow = typeof floor.$inferSelect;
 type EquipmentRow = typeof equipment.$inferSelect;
+type ZoneRow = typeof zone.$inferSelect;
 
 const toSite = (row: SiteRow) => ({ id: row.id, name: row.name, address: row.address });
 const toBuilding = (row: BuildingRow) => ({ id: row.id, siteId: row.siteId, name: row.name });
@@ -63,6 +67,12 @@ const toEquipment = (row: EquipmentRow) => ({
   name: row.name,
   aliases: row.aliases,
   position: row.x !== null && row.y !== null ? { x: row.x, y: row.y } : null,
+});
+const toZone = (row: ZoneRow) => ({
+  id: row.id,
+  floorId: row.floorId,
+  name: row.name,
+  bounds: { x: row.x, y: row.y, width: row.width, height: row.height },
 });
 const positionColumns = (position: PlanPosition | null) => ({
   x: position?.x ?? null,
@@ -554,6 +564,79 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     },
   );
 
+  // --- Zones d'un étage
+
+  app.get(
+    '/api/floors/:id/zones',
+    {
+      preHandler: member,
+      schema: { params: idParams, response: { 200: z.array(zoneSchema), ...notFound } },
+    },
+    async (request, reply) => {
+      const rows = await scoped(request, async (tx) => {
+        if (!(await activeFloor(tx, request.params.id))) return null;
+        return tx
+          .select()
+          .from(zone)
+          .where(and(eq(zone.floorId, request.params.id), isNull(zone.archivedAt)))
+          .orderBy(asc(zone.name));
+      });
+      return rows ? rows.map(toZone) : missing(reply, 'Étage');
+    },
+  );
+
+  app.post(
+    '/api/floors/:id/zones',
+    {
+      preHandler: admin,
+      schema: {
+        params: idParams,
+        body: zoneInputSchema,
+        response: { 201: zoneSchema, ...notFound },
+      },
+    },
+    async (request, reply) => {
+      const { name, bounds } = request.body;
+      const row = await scoped(request, async (tx) => {
+        if (!(await activeFloor(tx, request.params.id))) return null;
+        const [created] = await tx
+          .insert(zone)
+          .values({
+            organisationId: request.organisation!.id,
+            floorId: request.params.id,
+            name,
+            ...bounds,
+          })
+          .returning();
+        return created!;
+      });
+      return row ? reply.code(201).send(toZone(row)) : missing(reply, 'Étage');
+    },
+  );
+
+  app.patch(
+    '/api/zones/:id',
+    {
+      preHandler: admin,
+      schema: {
+        params: idParams,
+        body: zoneUpdateSchema,
+        response: { 200: zoneSchema, ...notFound },
+      },
+    },
+    async (request, reply) => {
+      const { name, bounds } = request.body;
+      const [row] = await scoped(request, (tx) =>
+        tx
+          .update(zone)
+          .set({ ...(name !== undefined ? { name } : {}), ...(bounds ?? {}) })
+          .where(and(eq(zone.id, request.params.id), isNull(zone.archivedAt)))
+          .returning(),
+      );
+      return row ? toZone(row) : missing(reply, 'Zone');
+    },
+  );
+
   // --- Archivage (jamais de suppression physique)
 
   const archivable = [
@@ -561,6 +644,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     { path: 'buildings', table: building, label: 'Bâtiment' },
     { path: 'floors', table: floor, label: 'Étage' },
     { path: 'equipment', table: equipment, label: 'Équipement' },
+    { path: 'zones', table: zone, label: 'Zone' },
   ] as const;
 
   for (const { path, table, label } of archivable) {

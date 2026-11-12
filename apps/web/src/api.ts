@@ -17,6 +17,7 @@ import {
   reserveListItemSchema,
   siteDashboardSchema,
   siteEquipmentSchema,
+  zoneSchema,
   siteSchema,
   type AssignmentInput,
   type BuildingInput,
@@ -25,6 +26,7 @@ import {
   type DraftUpdate,
   type EquipmentInput,
   type EquipmentUpdate,
+  type ZoneInput,
   type FloorInput,
   type PlanConfirm,
   type PlanUploadRequest,
@@ -125,6 +127,11 @@ export const api = {
   updateEquipment: (id: string, input: EquipmentUpdate) =>
     request(equipmentSchema, 'PATCH', `/api/equipment/${id}`, input),
 
+  zones: (floorId: string) => request(z.array(zoneSchema), 'GET', `/api/floors/${floorId}/zones`),
+  createZone: (floorId: string, input: ZoneInput) =>
+    request(zoneSchema, 'POST', `/api/floors/${floorId}/zones`, input),
+  updateZone: (id: string, input: Partial<ZoneInput>) =>
+    request(zoneSchema, 'PATCH', `/api/zones/${id}`, input),
   siteEquipment: (siteId: string) =>
     request(z.array(siteEquipmentSchema), 'GET', `/api/sites/${siteId}/equipment`),
 
@@ -198,7 +205,7 @@ export const api = {
   interventionProof: (token: string, reserveId: string, input: ProofInput) =>
     request(z.null(), 'POST', `/api/intervention/${token}/reserves/${reserveId}/proofs`, input),
 
-  archive: (kind: 'sites' | 'buildings' | 'floors' | 'equipment', id: string) =>
+  archive: (kind: 'sites' | 'buildings' | 'floors' | 'equipment' | 'zones', id: string) =>
     request(z.null(), 'POST', `/api/${kind}/${id}/archive`),
 };
 

@@ -1,5 +1,11 @@
-import { EQUIPMENT_TYPE_LABELS, type Equipment, type EquipmentType } from '@obsio/shared';
+import {
+  EQUIPMENT_TYPE_LABELS,
+  type Equipment,
+  type EquipmentType,
+  type Zone,
+} from '@obsio/shared';
 import type { ReserveBadge } from './PlanViewer.js';
+import { zoneOf } from './zones.js';
 
 // Recherche et filtres du plan : quels équipements restent en évidence. Les autres restent
 // visibles sur le plan, pâlis, pour garder le repère des lieux.
@@ -13,13 +19,18 @@ export const PLAN_FILTERS: Record<PlanFilter, string> = {
   non_places: 'À placer',
 };
 
+/** Zone choisie : son identifiant, « hors zone », ou null pour toutes. */
+export type ZoneChoice = string | typeof OUTSIDE_ZONES | null;
+export const OUTSIDE_ZONES = 'hors-zone';
+
 export interface PlanQuery {
   search: string;
   filter: PlanFilter;
   type: EquipmentType | null;
+  zone: ZoneChoice;
 }
 
-export const EMPTY_QUERY: PlanQuery = { search: '', filter: 'tous', type: null };
+export const EMPTY_QUERY: PlanQuery = { search: '', filter: 'tous', type: null, zone: null };
 
 /** « Éclairage  BAES » → « eclairage baes » : sans accents, casse ni espaces doublés. */
 export function normalize(value: string) {
@@ -77,13 +88,20 @@ export function matchesFilter(item: Equipment, filter: PlanFilter, badge?: Reser
 }
 
 export const isActive = (query: PlanQuery) =>
-  query.search.trim() !== '' || query.filter !== 'tous' || query.type !== null;
+  query.search.trim() !== '' || query.filter !== 'tous' || query.type !== null || !!query.zone;
+
+export function matchesZone(item: Equipment, choice: ZoneChoice, zones: Zone[]) {
+  if (!choice) return true;
+  const zone = zoneOf(item.position, zones);
+  return choice === OUTSIDE_ZONES ? zone === null : zone?.id === choice;
+}
 
 /** Équipements retenus, ou null si aucun critère n'est posé (tout est en évidence). */
 export function matchingIds(
   items: Equipment[],
   query: PlanQuery,
   badges: Map<string, ReserveBadge>,
+  zones: Zone[] = [],
 ): Set<string> | null {
   if (!isActive(query)) return null;
   return new Set(
@@ -92,7 +110,8 @@ export function matchingIds(
         (item) =>
           matchesSearch(item, query.search) &&
           matchesFilter(item, query.filter, badges.get(item.id)) &&
-          (query.type === null || item.type === query.type),
+          (query.type === null || item.type === query.type) &&
+          matchesZone(item, query.zone, zones),
       )
       .map((item) => item.id),
   );

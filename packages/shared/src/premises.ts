@@ -142,3 +142,29 @@ export const planScaleSchema = z.object({
   scale: z.number().positive().max(10).nullable(),
 });
 export type PlanScale = z.infer<typeof planScaleSchema>;
+
+/** Rectangle sur le plan, en proportion de la largeur et de la hauteur de l'image. */
+export const planBoundsSchema = z
+  .object({
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    width: z.number().min(0.005).max(1),
+    height: z.number().min(0.005).max(1),
+  })
+  .refine((b) => b.x + b.width <= 1.0001 && b.y + b.height <= 1.0001, {
+    message: 'La zone dépasse du plan',
+  });
+export type PlanBounds = z.infer<typeof planBoundsSchema>;
+
+/** Zone d'un étage : un rectangle nommé ; ses équipements sont ceux dont le repère y tombe. */
+export const zoneSchema = z.object({
+  id: z.uuid(),
+  floorId: z.uuid(),
+  name: z.string(),
+  bounds: planBoundsSchema,
+});
+export type Zone = z.infer<typeof zoneSchema>;
+
+export const zoneInputSchema = z.object({ name, bounds: planBoundsSchema });
+export type ZoneInput = z.infer<typeof zoneInputSchema>;
+export const zoneUpdateSchema = zoneInputSchema.partial();

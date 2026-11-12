@@ -127,7 +127,7 @@ export const TOURS: Tour[] = [
       {
         target: 'plan-filters',
         title: 'Trouver',
-        body: 'Cherchez un repère ou filtrez : les autres pâlissent.',
+        body: 'Cherchez, filtrez par état, zone ou type : les autres pâlissent.',
       },
       { target: 'plan-tools', title: 'Outils', body: 'Mesurer, placer un équipement.' },
       { target: 'title-block', title: 'Cartouche', body: 'Site, bâtiment, étage et échelle.' },

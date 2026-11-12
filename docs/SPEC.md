@@ -171,6 +171,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | `Batiment` | nom | appartient à un site ; contient étages |
 | `Etage` | nom, niveau, fichier du plan, échelle | appartient à un bâtiment |
 | `Equipement` | type (TGBT, TD, coffret, armoire, éclairage de sécurité, prise de courant, luminaire, transformateur, onduleur, borne de recharge, machine, autre), repère ou nom de machine propre à l'entreprise (« TD2 », « Presse 3 »), position x/y sur le plan (en proportion de l'image, de 0 à 1), alias textuels | placé sur un étage ; porte des réserves |
+| `Zone` | nom, rectangle sur le plan (x, y, largeur, hauteur en proportion de l'image) | appartient à un étage ; un équipement est dans la plus petite zone qui contient son repère (aucun lien stocké) |
 | `RapportVerification` | organisme, date de visite, type de document (`periodique`, `initiale`, `q18`, `q19`), numéro, fichier PDF ; pour un Q18, état des 8 constatations standard et conclusion ; pour un Q19, nombre d'anomalies par priorité | concerne un site ; produit des réserves (un PDF importé peut contenir plusieurs documents) |
 | `ImportRapport` | statut (`en_analyse`, `a_valider`, `valide`, `erreur`), versions modèles et prompt, sortie brute | un par rapport importé |
 | `ReserveBrouillon` | champs extraits, confiance, équipement proposé | appartient à un import ; devient une réserve |
@@ -371,7 +372,8 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Recherche d'un équipement (repère, autres noms, type ; sans accents ni casse ; les repères qui commencent par la recherche d'abord) ; Entrée ouvre le premier résultat et recentre le plan sur lui
 - [x] Filtres : tous, avec réserves, en retard, à placer, et par type présent sur l'étage ; sur le plan, les repères écartés restent visibles mais pâlis, pour garder le repère des lieux
 - [x] Légende des pastilles (statuts présents sur l'étage, retard), zoom au bouton (plus, moins, tout afficher), recentrage sur l'équipement choisi dans la liste
-- [x] Actions rares de l'admin (échelle, remplacer le plan, PDF d'origine, archiver l'étage) dans un menu « Plus » ; sur téléphone, plan bord à bord et sans cartouche (le titre nomme l'étage)
+- [x] Zones d'un étage (atelier, quai, local TGBT) : l'admin trace un rectangle en cliquant deux coins opposés, puis le nomme ; renommer, retirer (archivage). Sur le plan, contour en tirets et nom ; toucher le nom choisit la zone et la cadre. Liste des équipements groupée par zone (hors zone en dernier), filtre par zone. Routes `GET/POST /api/floors/:id/zones`, `PATCH /api/zones/:id`, `POST /api/zones/:id/archive` ; table `zone` cloisonnée par RLS
+- [x] Actions rares de l'admin (tracer une zone, échelle, remplacer le plan, PDF d'origine, archiver l'étage) dans un menu « Plus » ; sur téléphone, plan bord à bord et sans cartouche (le titre nomme l'étage)
 
 ## Risques et questions ouvertes
 

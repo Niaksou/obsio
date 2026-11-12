@@ -4,6 +4,8 @@ import type {
   FloorDetail,
   PlanPosition,
   ReserveListItem,
+  Zone,
+  ZoneInput,
 } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -25,6 +27,8 @@ import { PlanUpload } from '../plan/PlanUpload.js';
 import type { Point } from '../plan/geometry.js';
 import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
 import { formatLength, metersPerPixel, pixelDistance } from '../plan/scale.js';
+import { ZoneActions, ZoneNameForm } from '../plan/ZoneForms.js';
+import { boundsFromPoints, isUsable } from '../plan/zones.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { StatusLabel } from '../reserves/status.js';
@@ -33,8 +37,8 @@ import { StatusLabel } from '../reserves/status.js';
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
 
 type Placing = { kind: 'new' } | { kind: 'existing'; id: string } | null;
-/** Outils à deux points : calibrer l'échelle (admin) ou mesurer une distance. */
-type Tool = 'calibrer' | 'mesurer' | null;
+/** Outils à deux points : calibrer l'échelle, tracer une zone (admin) ou mesurer une distance. */
+type Tool = 'calibrer' | 'zone' | 'mesurer' | null;
 
 export function FloorPage() {
   const floorId = useParams().floorId!;
@@ -60,6 +64,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
     queryKey: keys.reserves(floor.site.id, reserveFilters),
     queryFn: () => api.reserves(floor.site.id, reserveFilters),
   });
+  const zonesKey = keys.zones(floor.id);
+  const zonesQuery = useQuery({ queryKey: zonesKey, queryFn: () => api.zones(floor.id) });
+  const zones = useMemo(() => zonesQuery.data ?? [], [zonesQuery.data]);
   const badges = useMemo(() => reserveBadges(reserves.data ?? []), [reserves.data]);
   const [query, setQuery] = useState<PlanQuery>(EMPTY_QUERY);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -75,7 +82,11 @@ function Floor({ floor }: { floor: FloorDetail }) {
 
   const items = useMemo(() => equipment.data ?? [], [equipment.data]);
   const selected = items.find((item) => item.id === selectedId) ?? null;
-  const matching = useMemo(() => matchingIds(items, query, badges), [items, query, badges]);
+  const matching = useMemo(
+    () => matchingIds(items, query, badges, zones),
+    [items, query, badges, zones],
+  );
+  const activeZone = zones.find((zone) => zone.id === query.zone) ?? null;
 
   function replaceItem(updated: Equipment) {
     queryClient.setQueryData<Equipment[]>(equipmentKey, (current) =>
@@ -121,6 +132,40 @@ function Floor({ floor }: { floor: FloorDetail }) {
       setSelectedId(null);
     },
   });
+
+  const createZone = useMutation({
+    mutationFn: (input: ZoneInput) => api.createZone(floor.id, input),
+    onSuccess: (created) => {
+      queryClient.setQueryData<Zone[]>(zonesKey, (current) => [...(current ?? []), created]);
+      switchTool(null);
+      setQuery({ ...EMPTY_QUERY, zone: created.id });
+    },
+  });
+
+  const renameZone = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => api.updateZone(id, { name }),
+    onSuccess: (updated) =>
+      queryClient.setQueryData<Zone[]>(zonesKey, (current) =>
+        current?.map((zone) => (zone.id === updated.id ? updated : zone)),
+      ),
+  });
+
+  const archiveZone = useMutation({
+    mutationFn: (id: string) => api.archive('zones', id),
+    onSuccess: (_result, id) => {
+      queryClient.setQueryData<Zone[]>(zonesKey, (current) =>
+        current?.filter((zone) => zone.id !== id),
+      );
+      setQuery((current) => ({ ...current, zone: null }));
+    },
+  });
+
+  /** Choix d'une zone (liste, filtre ou nom sur le plan) : le plan la cadre. */
+  function chooseZone(zone: PlanQuery['zone']) {
+    setQuery((current) => ({ ...current, zone }));
+    const bounds = zones.find((candidate) => candidate.id === zone)?.bounds;
+    if (bounds) viewer.current?.show(bounds);
+  }
 
   const archiveFloor = useMutation({
     mutationFn: () => api.archive('floors', floor.id),
@@ -174,6 +219,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
     setTool(next);
     setPoints([]);
     saveScale.reset();
+    createZone.reset();
     if (next) {
       setPlacing(null);
       setSelectedId(null);
@@ -204,6 +250,10 @@ function Floor({ floor }: { floor: FloorDetail }) {
       ? formatLength(pixelDistance(points[0]!, points[1]!) * scale)
       : null;
 
+  const zoneBounds =
+    tool === 'zone' && points.length === 2 && floor.plan
+      ? boundsFromPoints(points[0]!, points[1]!, floor.plan)
+      : null;
   const mutationError = create.error ?? update.error ?? archive.error;
   const showUpload = isAdmin && (!floor.plan || replacingPlan);
 
@@ -247,6 +297,16 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   Mesurer
                 </button>
               )}
+              {tool === 'zone' && (
+                <button
+                  type="button"
+                  className="secondary active"
+                  aria-pressed
+                  onClick={() => switchTool(null)}
+                >
+                  Tracer une zone
+                </button>
+              )}
               {tool === 'calibrer' && (
                 <button
                   type="button"
@@ -261,6 +321,16 @@ function Floor({ floor }: { floor: FloorDetail }) {
           )}
           {(isAdmin || floor.plan?.sourceUrl) && (
             <MenuButton label="Plus">
+              {isAdmin && floor.plan && !showUpload && (
+                <button
+                  type="button"
+                  className="quiet"
+                  data-close-menu
+                  onClick={() => switchTool('zone')}
+                >
+                  Tracer une zone
+                </button>
+              )}
               {isAdmin && floor.plan && !showUpload && tool !== 'calibrer' && (
                 <button
                   type="button"
@@ -339,7 +409,11 @@ function Floor({ floor }: { floor: FloorDetail }) {
             editable={isAdmin}
             placing={!!placing}
             measuring={tool !== null}
-            segment={{ points, label: measured }}
+            segment={tool === 'zone' ? undefined : { points, label: measured }}
+            zoneDraft={tool === 'zone' ? points : undefined}
+            zones={zones}
+            activeZoneId={activeZone?.id ?? null}
+            onZoneSelect={chooseZone}
             onMeasurePoint={addPoint}
             // Pendant un tracé, la cote s'affiche sur le segment : la barre gênerait.
             metersPerPixel={tool ? null : scale}
@@ -363,6 +437,28 @@ function Floor({ floor }: { floor: FloorDetail }) {
               : 'Cliquez les deux extrémités de la distance à mesurer.'}
             <span className="keyboard-hint"> Échap pour terminer.</span>
           </p>
+        )}
+        {tool === 'zone' && points.length < 2 && (
+          <p className="placing-hint" role="status">
+            {points.length === 0
+              ? 'Cliquez un coin de la zone, puis le coin opposé.'
+              : 'Cliquez le coin opposé.'}
+            <span className="keyboard-hint"> Échap pour annuler.</span>
+          </p>
+        )}
+        {tool === 'zone' && zoneBounds && (
+          <ZoneNameForm
+            pending={createZone.isPending}
+            error={
+              isUsable(zoneBounds)
+                ? createZone.error
+                : new Error('Zone trop petite : tracez un rectangle plus grand.')
+            }
+            onSubmit={(name) =>
+              isUsable(zoneBounds) && createZone.mutate({ name, bounds: zoneBounds })
+            }
+            onRestart={() => setPoints([])}
+          />
         )}
         {tool === 'calibrer' && points.length < 2 && (
           <p className="placing-hint" role="status">
@@ -406,13 +502,30 @@ function Floor({ floor }: { floor: FloorDetail }) {
           onStartPlacing={(id) => setPlacing({ kind: 'existing', id })}
           badges={badges}
           matching={matching}
+          zones={zones}
+          activeZone={activeZone}
+          onZoneSelect={chooseZone}
+          zoneActions={
+            isAdmin && activeZone ? (
+              <ZoneActions
+                key={activeZone.id}
+                zone={activeZone}
+                pending={renameZone.isPending || archiveZone.isPending}
+                error={renameZone.error ?? archiveZone.error}
+                onRename={(name) => renameZone.mutate({ id: activeZone.id, name })}
+                onArchive={() => archiveZone.mutate(activeZone.id)}
+              />
+            ) : undefined
+          }
           search={query.search}
           onClearQuery={() => setQuery(EMPTY_QUERY)}
           filters={
             <PlanFilters
               query={query}
               types={presentTypes(items)}
+              zones={zones}
               onChange={setQuery}
+              onZoneChange={chooseZone}
               onSubmitSearch={goToFirstMatch}
             />
           }

@@ -137,6 +137,58 @@ describe('Sites, bâtiments, étages et équipements', () => {
   });
 });
 
+describe("Zones d'un étage", () => {
+  const atelier = { x: 0.1, y: 0.2, width: 0.5, height: 0.4 };
+
+  it("l'admin trace, renomme et archive une zone ; un membre la consulte", async () => {
+    const { floorId } = await createFloor();
+    const created = await admin.post(`/api/floors/${floorId}/zones`, {
+      name: ' Atelier ',
+      bounds: atelier,
+    });
+    expect(created.statusCode).toBe(201);
+    const zone = created.json();
+    expect(zone).toMatchObject({ floorId, name: 'Atelier', bounds: atelier });
+
+    expect((await membre.get(`/api/floors/${floorId}/zones`)).json()).toEqual([zone]);
+    expect(
+      (await membre.post(`/api/floors/${floorId}/zones`, { name: 'Quai', bounds: atelier }))
+        .statusCode,
+    ).toBe(403);
+
+    const renamed = await admin.patch(`/api/zones/${zone.id}`, { name: 'Atelier usinage' });
+    expect(renamed.json()).toMatchObject({ name: 'Atelier usinage', bounds: atelier });
+
+    expect((await admin.post(`/api/zones/${zone.id}/archive`)).statusCode).toBe(204);
+    expect((await membre.get(`/api/floors/${floorId}/zones`)).json()).toEqual([]);
+  });
+
+  it('refuse une zone qui dépasse du plan ou sans nom', async () => {
+    const { floorId } = await createFloor();
+    const post = (body: object) => admin.post(`/api/floors/${floorId}/zones`, body);
+    expect((await post({ name: 'Quai', bounds: { ...atelier, x: 0.8 } })).statusCode).toBe(400);
+    expect((await post({ name: 'Quai', bounds: { ...atelier, width: 0 } })).statusCode).toBe(400);
+    expect((await post({ name: '  ', bounds: atelier })).statusCode).toBe(400);
+  });
+
+  it("une autre organisation ne voit ni ne modifie les zones de l'organisation", async () => {
+    const { floorId } = await createFloor();
+    const zone = (
+      await admin.post(`/api/floors/${floorId}/zones`, { name: 'Atelier', bounds: atelier })
+    ).json();
+    const { admin: other } = await openClient('Usine Martin', 'Carol', 'carol@martin.fr');
+
+    expect((await other.get(`/api/floors/${floorId}/zones`)).statusCode).toBe(404);
+    expect(
+      (await other.post(`/api/floors/${floorId}/zones`, { name: 'Intrus', bounds: atelier }))
+        .statusCode,
+    ).toBe(404);
+    expect((await other.patch(`/api/zones/${zone.id}`, { name: 'Piraté' })).statusCode).toBe(404);
+    expect((await other.post(`/api/zones/${zone.id}/archive`)).statusCode).toBe(404);
+    expect((await admin.get(`/api/floors/${floorId}/zones`)).json()[0].name).toBe('Atelier');
+  });
+});
+
 describe("Plan d'un étage", () => {
   const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
 

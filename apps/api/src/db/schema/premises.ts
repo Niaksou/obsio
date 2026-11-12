@@ -111,3 +111,38 @@ export const equipment = pgTable(
     organisationIsolation('equipment'),
   ],
 );
+
+/**
+ * Zone d'un étage (atelier, quai, local électrique) : rectangle nommé sur le plan, en proportion
+ * de l'image comme les équipements. Un équipement appartient à la zone qui contient son repère :
+ * pas de lien stocké, rien à resynchroniser quand on déplace un repère.
+ */
+export const zone = pgTable(
+  'zone',
+  {
+    id: id(),
+    organisationId: organisationId(),
+    floorId: uuid('floor_id').notNull(),
+    name: text('name').notNull(),
+    x: real('x').notNull(),
+    y: real('y').notNull(),
+    width: real('width').notNull(),
+    height: real('height').notNull(),
+    archivedAt: archivedAt(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.organisationId),
+    index().on(table.floorId),
+    unique().on(table.id, table.organisationId),
+    foreignKey({
+      columns: [table.floorId, table.organisationId],
+      foreignColumns: [floor.id, floor.organisationId],
+    }),
+    check(
+      'zone_bounds',
+      sql`${table.x} >= 0 and ${table.y} >= 0 and ${table.width} > 0 and ${table.height} > 0 and ${table.x} + ${table.width} <= 1.0001 and ${table.y} + ${table.height} <= 1.0001`,
+    ),
+    organisationIsolation('zone'),
+  ],
+);

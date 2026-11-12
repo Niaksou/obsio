@@ -1,18 +1,24 @@
-import { EQUIPMENT_TYPE_LABELS, type EquipmentType } from '@obsio/shared';
+import { EQUIPMENT_TYPE_LABELS, type EquipmentType, type Zone } from '@obsio/shared';
 import { Search, X } from 'lucide-react';
-import { PLAN_FILTERS, type PlanFilter, type PlanQuery } from './filters.js';
+import { OUTSIDE_ZONES, PLAN_FILTERS, type PlanFilter, type PlanQuery } from './filters.js';
 
 /** Recherche, filtre par état des réserves et par type, en tête de la liste des équipements. */
 export function PlanFilters({
   query,
   types,
+  zones,
   onChange,
+  onZoneChange,
   onSubmitSearch,
 }: {
   query: PlanQuery;
   /** Types présents sur l'étage : le choix n'apparaît qu'à partir de deux. */
   types: EquipmentType[];
+  /** Zones de l'étage : le choix n'apparaît que s'il y en a. */
+  zones: Zone[];
   onChange: (query: PlanQuery) => void;
+  /** Choix d'une zone : le plan la cadre. */
+  onZoneChange: (zone: PlanQuery['zone']) => void;
   /** Entrée dans la recherche : aller au premier résultat. */
   onSubmitSearch: () => void;
 }) {
@@ -59,6 +65,25 @@ export function PlanFilters({
           </button>
         ))}
       </div>
+      {zones.length > 0 && (
+        <label className="inline-select">
+          <span>Zone</span>
+          <select
+            value={query.zone ?? ''}
+            onChange={(event) => onZoneChange(event.target.value || null)}
+          >
+            <option value="">Toutes</option>
+            {[...zones]
+              .sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true }))
+              .map((zone) => (
+                <option key={zone.id} value={zone.id}>
+                  {zone.name}
+                </option>
+              ))}
+            <option value={OUTSIDE_ZONES}>Hors zone</option>
+          </select>
+        </label>
+      )}
       {types.length > 1 && (
         <label className="inline-select">
           <span>Type</span>

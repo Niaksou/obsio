@@ -1,4 +1,4 @@
-import type { Equipment, PlanPosition } from '@obsio/shared';
+import type { Equipment, PlanBounds, PlanPosition, Zone } from '@obsio/shared';
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { Maximize, Minus, Plus } from 'lucide-react';
@@ -10,6 +10,7 @@ import {
   Label,
   Layer,
   Line,
+  Rect,
   Stage,
   Tag,
   Text,
@@ -68,7 +69,15 @@ export interface PlanViewerHandle {
   fit: () => void;
   /** Centre la vue sur une position, en zoomant assez pour lire les repères voisins. */
   focus: (position: PlanPosition) => void;
+  /** Cadre la vue sur un rectangle du plan (une zone). */
+  show: (bounds: PlanBounds) => void;
 }
+
+/** Marge autour d'une zone cadrée, en pixels d'écran. */
+const SHOW_MARGIN = 48;
+const ZONE_INK = 'rgba(14, 42, 40, 0.5)';
+const ZONE_FILL = 'rgba(14, 42, 40, 0.035)';
+const ZONE_ACTIVE_FILL = 'rgba(181, 84, 31, 0.07)';
 
 /** Zoom minimal, par rapport à la vue d'ensemble, quand on centre sur un équipement. */
 const FOCUS_ZOOM = 2.5;
@@ -83,6 +92,13 @@ interface PlanViewerProps {
   badges?: Map<string, ReserveBadge>;
   /** Équipements retenus par la recherche ou les filtres ; null : tous en évidence. */
   matching?: Set<string> | null;
+  /** Zones de l'étage, dessinées sous les repères ; la zone choisie est soulignée. */
+  zones?: Zone[];
+  activeZoneId?: string | null;
+  /** Toucher le nom d'une zone la choisit. */
+  onZoneSelect?: (id: string) => void;
+  /** Zone en cours de tracé : un ou deux coins, en pixels de l'image. */
+  zoneDraft?: Point[];
   selectedId: string | null;
   /** Position du nouvel équipement en cours de saisie, affichée en attendant l'enregistrement. */
   draft: PlanPosition | null;
@@ -166,6 +182,10 @@ export function PlanViewer({
   equipment,
   badges,
   matching = null,
+  zones = [],
+  activeZoneId = null,
+  onZoneSelect,
+  zoneDraft,
   selectedId,
   draft,
   editable,
@@ -218,6 +238,32 @@ export function PlanViewer({
             x: size.width / 2 - point.x * scale,
             y: size.height / 2 - point.y * scale,
           };
+        });
+      },
+      show: (bounds) => {
+        if (!size) return;
+        moved.current = true;
+        const width = bounds.width * plan.width;
+        const height = bounds.height * plan.height;
+        const base = fitView(plan, size).scale;
+        const scale = Math.min(
+          base * MAX_ZOOM,
+          Math.max(
+            base,
+            Math.min(
+              (size.width - 2 * SHOW_MARGIN) / width,
+              (size.height - 2 * SHOW_MARGIN) / height,
+            ),
+          ),
+        );
+        const center = {
+          x: (bounds.x + bounds.width / 2) * plan.width,
+          y: (bounds.y + bounds.height / 2) * plan.height,
+        };
+        setView({
+          scale,
+          x: size.width / 2 - center.x * scale,
+          y: size.height / 2 - center.y * scale,
         });
       },
     });
@@ -335,6 +381,22 @@ export function PlanViewer({
           <Layer>
             <KonvaImage image={image} width={plan.width} height={plan.height} name="plan" />
           </Layer>
+          {fontReady && zones.length > 0 && (
+            <Layer>
+              {zones.map((zone) => (
+                <ZoneShape
+                  key={zone.id}
+                  zone={zone}
+                  plan={plan}
+                  scale={1 / view.scale}
+                  active={zone.id === activeZoneId}
+                  onSelect={
+                    onZoneSelect && !placing && !measuring ? () => onZoneSelect(zone.id) : undefined
+                  }
+                />
+              ))}
+            </Layer>
+          )}
           {fontReady && (
             <Layer>
               {placed.map((item) => (
@@ -354,6 +416,11 @@ export function PlanViewer({
               {draft && (
                 <Plate text="Nouveau" at={toImage(draft, plan)} scale={1 / view.scale} selected />
               )}
+            </Layer>
+          )}
+          {zoneDraft && zoneDraft.length > 0 && (
+            <Layer listening={false}>
+              <ZoneDraft points={zoneDraft} scale={1 / view.scale} />
             </Layer>
           )}
           {segment && segment.points.length > 0 && (
@@ -490,6 +557,100 @@ function Plate({
         </Group>
       )}
     </Group>
+  );
+}
+
+/**
+ * Zone : contour en tirets, à peine teinté, et son nom en haut à gauche, à taille constante à
+ * l'écran. Le nom se touche pour choisir la zone ; le rectangle laisse passer les clics.
+ */
+function ZoneShape({
+  zone,
+  plan,
+  scale,
+  active,
+  onSelect,
+}: {
+  zone: Zone;
+  plan: Size;
+  scale: number;
+  active: boolean;
+  onSelect?: () => void;
+}) {
+  const x = zone.bounds.x * plan.width;
+  const y = zone.bounds.y * plan.height;
+  return (
+    <>
+      <Rect
+        x={x}
+        y={y}
+        width={zone.bounds.width * plan.width}
+        height={zone.bounds.height * plan.height}
+        fill={active ? ZONE_ACTIVE_FILL : ZONE_FILL}
+        stroke={active ? COPPER : ZONE_INK}
+        strokeWidth={(active ? 2 : 1.25) * scale}
+        dash={active ? undefined : [6 * scale, 4 * scale]}
+        listening={false}
+      />
+      <Label
+        x={x + 4 * scale}
+        y={y + 4 * scale}
+        scaleX={scale}
+        scaleY={scale}
+        listening={!!onSelect}
+        onClick={onSelect}
+        onTap={onSelect}
+        onMouseEnter={(event) => {
+          const container = event.target.getStage()?.container();
+          if (container) container.style.cursor = 'pointer';
+        }}
+        onMouseLeave={(event) => {
+          const container = event.target.getStage()?.container();
+          if (container) container.style.cursor = '';
+        }}
+      >
+        <Tag fill={active ? COPPER : 'rgba(255, 255, 255, 0.92)'} cornerRadius={2} />
+        <Text
+          text={zone.name}
+          fontFamily={PLATE_FONT}
+          fontStyle="600"
+          fontSize={12}
+          padding={4}
+          fill={active ? PAPER : INK}
+        />
+      </Label>
+    </>
+  );
+}
+
+/** Zone en cours de tracé : coins marqués, rectangle cuivre une fois le second coin posé. */
+function ZoneDraft({ points, scale }: { points: Point[]; scale: number }) {
+  const [a, b] = points;
+  return (
+    <>
+      {a && b && (
+        <Rect
+          x={Math.min(a.x, b.x)}
+          y={Math.min(a.y, b.y)}
+          width={Math.abs(a.x - b.x)}
+          height={Math.abs(a.y - b.y)}
+          fill={ZONE_ACTIVE_FILL}
+          stroke={COPPER}
+          strokeWidth={2 * scale}
+        />
+      )}
+      {points.map((p, i) => (
+        <Circle
+          key={i}
+          x={p.x}
+          y={p.y}
+          radius={5 * scale}
+          fill={COPPER}
+          stroke={INK}
+          strokeWidth={1.5 * scale}
+        />
+      ))}
+    </>
   );
 }
 

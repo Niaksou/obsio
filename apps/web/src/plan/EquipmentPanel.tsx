@@ -5,11 +5,13 @@ import {
   type EquipmentInput,
   type EquipmentType,
   type PlanPosition,
+  type Zone,
 } from '@obsio/shared';
 import { useState, type ReactNode } from 'react';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
-import { sortForSearch } from './filters.js';
+import { OUTSIDE_ZONES, sortForSearch, type ZoneChoice } from './filters.js';
+import { groupByZone } from './zones.js';
 import type { ReserveBadge } from './PlanViewer.js';
 
 /** « presse, presse hydraulique » → ['presse', 'presse hydraulique'] */
@@ -52,6 +54,13 @@ interface EquipmentPanelProps {
   filters?: ReactNode;
   /** Recherche en cours : les résultats les plus proches en tête. */
   search?: string;
+  /** Zones de l'étage : la liste est regroupée par zone. */
+  zones?: Zone[];
+  /** Zone choisie, son en-tête remplace les groupes. */
+  activeZone?: Zone | null;
+  onZoneSelect?: (zone: ZoneChoice) => void;
+  /** Renommer, retirer la zone choisie (admin). */
+  zoneActions?: ReactNode;
   onClearQuery?: () => void;
   /** Réserves de l'équipement sélectionné. */
   renderReserves?: (equipmentId: string) => ReactNode;
@@ -132,7 +141,7 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
     );
   }
 
-  const { matching = null } = props;
+  const { matching = null, zones = [] } = props;
   const sorted = sortForSearch(equipment, props.search ?? '');
   const shown = matching ? sorted.filter((item) => matching.has(item.id)) : sorted;
   return (
@@ -163,19 +172,59 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
           )}
         </p>
       )}
-      {shown.length > 0 && (
-        <ul className="equipment-list">
-          {shown.map((item) => (
-            <li key={item.id}>
-              <EquipmentRow
-                item={item}
-                badge={props.badges?.get(item.id)}
-                onSelect={() => props.onSelect(item.id)}
-              />
-            </li>
-          ))}
-        </ul>
+      {props.activeZone && (
+        <div className="zone-head">
+          <div className="zone-head-title">
+            <span className="zone-tag">{props.activeZone.name}</span>
+            <button type="button" className="link" onClick={() => props.onZoneSelect?.(null)}>
+              Toutes les zones
+            </button>
+          </div>
+          {props.zoneActions}
+        </div>
       )}
+      {shown.length > 0 &&
+        (zones.length > 0 && !props.activeZone ? (
+          groupByZone(shown, zones)
+            .filter((group) => group.items.length > 0 || (!matching && group.zone))
+            .map((group) => (
+              <section key={group.zone?.id ?? OUTSIDE_ZONES} className="zone-group">
+                <button
+                  type="button"
+                  className="zone-group-head"
+                  onClick={() => props.onZoneSelect?.(group.zone?.id ?? OUTSIDE_ZONES)}
+                >
+                  <span>{group.zone?.name ?? 'Hors zone'}</span>
+                  <span className="count">{group.items.length}</span>
+                </button>
+                {group.items.length > 0 && (
+                  <ul className="equipment-list">
+                    {group.items.map((item) => (
+                      <li key={item.id}>
+                        <EquipmentRow
+                          item={item}
+                          badge={props.badges?.get(item.id)}
+                          onSelect={() => props.onSelect(item.id)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))
+        ) : (
+          <ul className="equipment-list">
+            {shown.map((item) => (
+              <li key={item.id}>
+                <EquipmentRow
+                  item={item}
+                  badge={props.badges?.get(item.id)}
+                  onSelect={() => props.onSelect(item.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        ))}
       {error && <p className="error">{error.message}</p>}
     </aside>
   );

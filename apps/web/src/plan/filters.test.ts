@@ -57,6 +57,17 @@ describe('recherche du plan', () => {
     expect(ids({ type: 'td', search: '2' })).toEqual(['TD2']);
   });
 
+  it('filtre par zone, ou hors zone', () => {
+    const zones = [
+      { id: 'z', floorId: 'f', name: 'Atelier', bounds: { x: 0, y: 0, width: 0.6, height: 1 } },
+    ];
+    const at = (zone: string) => [
+      ...(matchingIds(items, { ...EMPTY_QUERY, zone }, badges, zones) ?? []),
+    ];
+    expect(at('z')).toEqual(['TD1', 'TD2', 'BAES quai B']);
+    expect(at('hors-zone')).toEqual(['Presse 3']);
+  });
+
   it('classe d’abord les repères qui commencent par la recherche', () => {
     const list = [item('Compresseur'), item('Presse 10'), item('Presse 3')];
     expect(sortForSearch(list, 'presse').map((i) => i.name)).toEqual([

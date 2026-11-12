@@ -17,6 +17,7 @@ import {
   reserve,
   site,
   user,
+  zone,
 } from '../db/schema/index.js';
 import { activateImport } from '../imports/activate.js';
 import { createDrafts } from '../imports/ingest.js';
@@ -148,6 +149,12 @@ export async function seedDemo(
               })
               .returning({ id: equipment.id });
             equipmentIds.set(e.name, row!.id);
+          }
+          for (const z of f.zones ?? []) {
+            const [x, y, width, height] = z.bounds;
+            await tx
+              .insert(zone)
+              .values({ organisationId: orgId, floorId, name: z.name, x, y, width, height });
           }
         });
       }

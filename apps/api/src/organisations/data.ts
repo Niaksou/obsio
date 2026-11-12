@@ -18,6 +18,7 @@ import {
   reserveEvent,
   reserveSource,
   site,
+  zone,
 } from '../db/schema/index.js';
 
 /**
@@ -30,6 +31,7 @@ export const ORGANISATION_TABLES = [
   { table: building },
   { table: floor },
   { table: equipment },
+  { table: zone },
   { table: inspectionPlan },
   { table: contractor },
   // L'empreinte du jeton d'un lien intervenant ne sert à rien hors de l'application.
