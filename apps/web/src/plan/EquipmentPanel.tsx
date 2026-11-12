@@ -9,6 +9,8 @@ import {
 import { useState, type ReactNode } from 'react';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
+import { sortForSearch } from './filters.js';
+import type { ReserveBadge } from './PlanViewer.js';
 
 /** « presse, presse hydraulique » → ['presse', 'presse hydraulique'] */
 export function parseAliases(value: string): string[] {
@@ -42,8 +44,15 @@ interface EquipmentPanelProps {
   onArchive: (id: string) => void;
   /** Passe en mode « placer » pour donner une position à cet équipement. */
   onStartPlacing: (id: string) => void;
-  /** Nombre de réserves en cours par équipement. */
-  reserveCounts?: Map<string, number>;
+  /** Réserves en cours par équipement : nombre, statut le plus urgent, retard. */
+  badges?: Map<string, ReserveBadge>;
+  /** Équipements retenus par la recherche ou les filtres ; null : aucun critère. */
+  matching?: Set<string> | null;
+  /** Recherche et filtres, affichés au-dessus de la liste. */
+  filters?: ReactNode;
+  /** Recherche en cours : les résultats les plus proches en tête. */
+  search?: string;
+  onClearQuery?: () => void;
   /** Réserves de l'équipement sélectionné. */
   renderReserves?: (equipmentId: string) => ReactNode;
 }
@@ -123,12 +132,19 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
     );
   }
 
-  const sorted = [...equipment].sort((a, b) =>
-    a.name.localeCompare(b.name, 'fr', { numeric: true }),
-  );
+  const { matching = null } = props;
+  const sorted = sortForSearch(equipment, props.search ?? '');
+  const shown = matching ? sorted.filter((item) => matching.has(item.id)) : sorted;
   return (
     <aside className="panel" aria-label="Équipements de l'étage">
-      <h2>Équipements</h2>
+      <div className="panel-head">
+        <h2>Équipements</h2>
+        {sorted.length > 0 && (
+          <span className="count" aria-live="polite">
+            {matching ? `${shown.length} sur ${sorted.length}` : sorted.length}
+          </span>
+        )}
+      </div>
       {sorted.length === 0 && (
         <p className="empty">
           {isAdmin
@@ -136,27 +152,61 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
             : 'Aucun équipement sur cet étage.'}
         </p>
       )}
-      {sorted.length > 0 && (
+      {sorted.length > 0 && props.filters}
+      {sorted.length > 0 && shown.length === 0 && (
+        <p className="empty">
+          Aucun équipement ne correspond.{' '}
+          {props.onClearQuery && (
+            <button type="button" className="link" onClick={props.onClearQuery}>
+              Tout afficher
+            </button>
+          )}
+        </p>
+      )}
+      {shown.length > 0 && (
         <ul className="equipment-list">
-          {sorted.map((item) => (
+          {shown.map((item) => (
             <li key={item.id}>
-              <button type="button" onClick={() => props.onSelect(item.id)}>
-                <span className="plate">{item.name}</span>
-                <span className="row-meta">{EQUIPMENT_TYPE_LABELS[item.type]}</span>
-                {!item.position && <span className="status status-missing">Non placé</span>}
-                {!!props.reserveCounts?.get(item.id) && (
-                  <span className="status">
-                    {props.reserveCounts.get(item.id)} réserve
-                    {props.reserveCounts.get(item.id)! > 1 ? 's' : ''}
-                  </span>
-                )}
-              </button>
+              <EquipmentRow
+                item={item}
+                badge={props.badges?.get(item.id)}
+                onSelect={() => props.onSelect(item.id)}
+              />
             </li>
           ))}
         </ul>
       )}
       {error && <p className="error">{error.message}</p>}
     </aside>
+  );
+}
+
+/** Ligne de la liste : plaque, type, puis réserves en cours ou « Non placé ». */
+export function EquipmentRow({
+  item,
+  badge,
+  onSelect,
+}: {
+  item: Equipment;
+  badge?: ReserveBadge;
+  onSelect: () => void;
+}) {
+  return (
+    <button type="button" className="equipment-row" onClick={onSelect}>
+      <span className="plate">{item.name}</span>
+      <span className="row-meta">{EQUIPMENT_TYPE_LABELS[item.type]}</span>
+      <span className="equipment-row-end">
+        {!item.position && <span className="status-missing">À placer</span>}
+        {badge && (
+          <span
+            className={`reserve-count reserve-count-${badge.status}${badge.overdue ? ' late' : ''}`}
+            title={badge.overdue ? 'Dont en retard' : undefined}
+          >
+            {badge.count} réserve{badge.count > 1 ? 's' : ''}
+          </span>
+        )}
+      </span>
+    </button>
   );
 }
 

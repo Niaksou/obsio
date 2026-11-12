@@ -1,6 +1,7 @@
 import type { Equipment, PlanPosition } from '@obsio/shared';
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
+import { Maximize, Minus, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   Circle,
@@ -65,7 +66,14 @@ function plateWidth(text: string) {
 
 export interface PlanViewerHandle {
   fit: () => void;
+  /** Centre la vue sur une position, en zoomant assez pour lire les repères voisins. */
+  focus: (position: PlanPosition) => void;
 }
+
+/** Zoom minimal, par rapport à la vue d'ensemble, quand on centre sur un équipement. */
+const FOCUS_ZOOM = 2.5;
+/** Repère écarté par la recherche ou les filtres : visible mais en retrait. */
+const DIMMED_OPACITY = 0.28;
 
 interface PlanViewerProps {
   imageUrl: string;
@@ -73,6 +81,8 @@ interface PlanViewerProps {
   equipment: Equipment[];
   /** Réserves en cours par équipement. */
   badges?: Map<string, ReserveBadge>;
+  /** Équipements retenus par la recherche ou les filtres ; null : tous en évidence. */
+  matching?: Set<string> | null;
   selectedId: string | null;
   /** Position du nouvel équipement en cours de saisie, affichée en attendant l'enregistrement. */
   draft: PlanPosition | null;
@@ -155,6 +165,7 @@ export function PlanViewer({
   plan,
   equipment,
   badges,
+  matching = null,
   selectedId,
   draft,
   editable,
@@ -182,19 +193,37 @@ export function PlanViewer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, plan.width, plan.height]);
 
-  useEffect(() => {
-    handleRef?.({
-      fit: () => {
-        if (!size) return;
-        moved.current = false;
-        setView(fitView(plan, size));
-      },
-    });
-  }, [handleRef, size, plan]);
-
   const limits = size
     ? { min: fitView(plan, size).scale / 2, max: fitView(plan, size).scale * MAX_ZOOM }
     : { min: 0.01, max: 1 };
+
+  function fit() {
+    if (!size) return;
+    moved.current = false;
+    setView(fitView(plan, size));
+  }
+
+  useEffect(() => {
+    handleRef?.({
+      fit,
+      focus: (position) => {
+        if (!size) return;
+        moved.current = true;
+        setView((current) => {
+          const base = fitView(plan, size).scale;
+          const scale = Math.max(current?.scale ?? base, base * FOCUS_ZOOM);
+          const point = toImage(position, plan);
+          return {
+            scale,
+            x: size.width / 2 - point.x * scale,
+            y: size.height / 2 - point.y * scale,
+          };
+        });
+      },
+    });
+    // fit ne dépend que de size et plan.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleRef, size, plan]);
 
   function zoom(anchor: Point, factor: number) {
     moved.current = true;
@@ -257,14 +286,21 @@ export function PlanViewer({
     if (position) onPlace(position);
   }
 
-  const placed = equipment.filter((item) => item.position);
+  // Les repères en évidence passent devant les autres.
+  const placed = equipment
+    .filter((item) => item.position)
+    .sort((a, b) => Number(isShown(a.id)) - Number(isShown(b.id)));
+
+  function isShown(id: string) {
+    return !matching || matching.has(id) || id === selectedId;
+  }
 
   return (
     <div
       ref={containerRef}
       className={placing || measuring ? 'plan-canvas placing' : 'plan-canvas'}
       aria-label="Plan de l'étage"
-      role="img"
+      role="region"
     >
       {failed && !image && (
         <p className="plan-message error">Le plan n’a pas pu être chargé. Rechargez la page.</p>
@@ -309,6 +345,7 @@ export function PlanViewer({
                   at={toImage(item.position!, plan)}
                   scale={1 / view.scale}
                   selected={item.id === selectedId}
+                  dimmed={!isShown(item.id)}
                   draggable={editable && !placing}
                   onSelect={() => onSelect(item.id)}
                   onDragEnd={(point) => onMove(item.id, fromImage(point, plan))}
@@ -327,6 +364,31 @@ export function PlanViewer({
         </Stage>
       )}
       {view && metersPerPixel && <ScaleBar screenPixelsPerMeter={view.scale / metersPerPixel} />}
+      {view && image && (
+        <div className="plan-zoom" role="group" aria-label="Zoom">
+          <button
+            type="button"
+            aria-label="Zoomer"
+            title="Zoomer"
+            onClick={() => size && zoom({ x: size.width / 2, y: size.height / 2 }, WHEEL_STEP ** 3)}
+          >
+            <Plus size={16} strokeWidth={1.75} aria-hidden />
+          </button>
+          <button
+            type="button"
+            aria-label="Dézoomer"
+            title="Dézoomer"
+            onClick={() =>
+              size && zoom({ x: size.width / 2, y: size.height / 2 }, 1 / WHEEL_STEP ** 3)
+            }
+          >
+            <Minus size={16} strokeWidth={1.75} aria-hidden />
+          </button>
+          <button type="button" aria-label="Tout afficher" title="Tout afficher" onClick={fit}>
+            <Maximize size={16} strokeWidth={1.75} aria-hidden />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -341,6 +403,7 @@ function Plate({
   at,
   scale,
   selected,
+  dimmed = false,
   draggable = false,
   onSelect,
   onDragEnd,
@@ -350,6 +413,7 @@ function Plate({
   at: Point;
   scale: number;
   selected: boolean;
+  dimmed?: boolean;
   draggable?: boolean;
   onSelect?: () => void;
   onDragEnd?: (point: Point) => void;
@@ -361,6 +425,7 @@ function Plate({
       y={at.y}
       scaleX={scale}
       scaleY={scale}
+      opacity={dimmed ? DIMMED_OPACITY : 1}
       draggable={draggable}
       onClick={onSelect}
       onTap={onSelect}

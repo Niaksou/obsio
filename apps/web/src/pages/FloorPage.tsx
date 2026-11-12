@@ -10,7 +10,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
+import { MenuButton } from '../components/MenuButton.js';
 import { EquipmentPanel } from '../plan/EquipmentPanel.js';
+import {
+  EMPTY_QUERY,
+  matchingIds,
+  presentTypes,
+  sortForSearch,
+  type PlanQuery,
+} from '../plan/filters.js';
+import { PlanFilters } from '../plan/PlanFilters.js';
+import { PlanLegend } from '../plan/PlanLegend.js';
 import { PlanUpload } from '../plan/PlanUpload.js';
 import type { Point } from '../plan/geometry.js';
 import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
@@ -51,10 +61,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
     queryFn: () => api.reserves(floor.site.id, reserveFilters),
   });
   const badges = useMemo(() => reserveBadges(reserves.data ?? []), [reserves.data]);
-  const reserveCounts = useMemo(
-    () => new Map([...badges].map(([id, badge]) => [id, badge.count])),
-    [badges],
-  );
+  const [query, setQuery] = useState<PlanQuery>(EMPTY_QUERY);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<Placing>(null);
   const [draft, setDraft] = useState<PlanPosition | null>(null);
@@ -66,8 +73,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
     viewer.current = handle;
   }, []);
 
-  const items = equipment.data ?? [];
+  const items = useMemo(() => equipment.data ?? [], [equipment.data]);
   const selected = items.find((item) => item.id === selectedId) ?? null;
+  const matching = useMemo(() => matchingIds(items, query, badges), [items, query, badges]);
 
   function replaceItem(updated: Equipment) {
     queryClient.setQueryData<Equipment[]>(equipmentKey, (current) =>
@@ -138,6 +146,21 @@ function Floor({ floor }: { floor: FloorDetail }) {
     setSelectedId(id);
   }
 
+  /** Choix dans la liste : le plan se recentre sur le repère. */
+  function selectAndFocus(id: string | null) {
+    select(id);
+    const position = items.find((item) => item.id === id)?.position;
+    if (position && !draft && !tool) viewer.current?.focus(position);
+  }
+
+  function goToFirstMatch() {
+    const first = sortForSearch(
+      items.filter((item) => !matching || matching.has(item.id)),
+      query.search,
+    )[0];
+    if (first) selectAndFocus(first.id);
+  }
+
   const saveScale = useMutation({
     mutationFn: (scale: number | null) => api.setPlanScale(floor.id, scale),
     onSuccess: async () => {
@@ -197,24 +220,21 @@ function Floor({ floor }: { floor: FloorDetail }) {
         <h1>{floor.name}</h1>
         <div className="tools" data-tour="plan-tools">
           {floor.plan && !showUpload && (
-            <button type="button" className="quiet" onClick={() => viewer.current?.fit()}>
-              Tout afficher
-            </button>
-          )}
-          {floor.plan && !showUpload && (
             <>
               {isAdmin && (
                 <button
                   type="button"
                   className={placing ? 'secondary active' : 'secondary'}
                   aria-pressed={placing?.kind === 'new'}
+                  aria-label="Placer un équipement"
                   disabled={!!draft}
                   onClick={() => {
                     switchTool(null);
                     setPlacing(placing ? null : { kind: 'new' });
                   }}
                 >
-                  Placer un équipement
+                  <span className="long-label">Placer un équipement</span>
+                  <span className="short-label">Placer</span>
                 </button>
               )}
               {scale && (
@@ -227,40 +247,60 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   Mesurer
                 </button>
               )}
-              {isAdmin && (
+              {tool === 'calibrer' && (
                 <button
                   type="button"
-                  className={tool === 'calibrer' ? 'secondary active' : 'quiet'}
-                  aria-pressed={tool === 'calibrer'}
-                  onClick={() => switchTool(tool === 'calibrer' ? null : 'calibrer')}
+                  className="secondary active"
+                  aria-pressed
+                  onClick={() => switchTool(null)}
                 >
                   {scale ? 'Recalibrer l’échelle' : 'Calibrer l’échelle'}
                 </button>
               )}
-              {isAdmin && (
-                <button type="button" className="quiet" onClick={() => setReplacingPlan(true)}>
+            </>
+          )}
+          {(isAdmin || floor.plan?.sourceUrl) && (
+            <MenuButton label="Plus">
+              {isAdmin && floor.plan && !showUpload && tool !== 'calibrer' && (
+                <button
+                  type="button"
+                  className="quiet"
+                  data-close-menu
+                  onClick={() => switchTool('calibrer')}
+                >
+                  {scale ? 'Recalibrer l’échelle' : 'Calibrer l’échelle'}
+                </button>
+              )}
+              {isAdmin && floor.plan && !showUpload && (
+                <button
+                  type="button"
+                  className="quiet"
+                  data-close-menu
+                  onClick={() => setReplacingPlan(true)}
+                >
                   Remplacer le plan
                 </button>
               )}
-              {floor.plan.sourceUrl && (
+              {floor.plan?.sourceUrl && (
                 <a
                   className="quiet-link"
                   href={floor.plan.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
+                  data-close-menu
                 >
                   PDF d’origine
                 </a>
               )}
-            </>
-          )}
-          {isAdmin && (
-            <ConfirmButton
-              label="Archiver l’étage"
-              confirmLabel="Archiver l’étage et ses équipements"
-              disabled={archiveFloor.isPending}
-              onConfirm={() => archiveFloor.mutate()}
-            />
+              {isAdmin && (
+                <ConfirmButton
+                  label="Archiver l’étage"
+                  confirmLabel="Archiver l’étage et ses équipements"
+                  disabled={archiveFloor.isPending}
+                  onConfirm={() => archiveFloor.mutate()}
+                />
+              )}
+            </MenuButton>
           )}
         </div>
       </div>
@@ -303,6 +343,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
             onMeasurePoint={addPoint}
             // Pendant un tracé, la cote s'affiche sur le segment : la barre gênerait.
             metersPerPixel={tool ? null : scale}
+            matching={matching}
             onSelect={select}
             onPlace={place}
             onMove={(id, position) => update.mutate({ id, input: { position } })}
@@ -340,6 +381,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
             onRestart={() => setPoints([])}
           />
         )}
+        {floor.plan && !showUpload && badges.size > 0 && !tool && !placing && (
+          <PlanLegend badges={badges} />
+        )}
         <TitleBlock floor={floor} />
       </div>
 
@@ -351,7 +395,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
           isAdmin={isAdmin}
           pending={create.isPending || update.isPending || archive.isPending}
           error={mutationError}
-          onSelect={select}
+          onSelect={selectAndFocus}
           onCreate={(input) => create.mutate(input)}
           onCancelDraft={() => {
             setDraft(null);
@@ -360,7 +404,18 @@ function Floor({ floor }: { floor: FloorDetail }) {
           onUpdate={(id, input) => update.mutate({ id, input })}
           onArchive={(id) => archive.mutate(id)}
           onStartPlacing={(id) => setPlacing({ kind: 'existing', id })}
-          reserveCounts={reserveCounts}
+          badges={badges}
+          matching={matching}
+          search={query.search}
+          onClearQuery={() => setQuery(EMPTY_QUERY)}
+          filters={
+            <PlanFilters
+              query={query}
+              types={presentTypes(items)}
+              onChange={setQuery}
+              onSubmitSearch={goToFirstMatch}
+            />
+          }
           renderReserves={(id) => (
             <EquipmentReserves
               reserves={(reserves.data ?? []).filter((r) => r.equipment?.id === id)}

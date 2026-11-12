@@ -366,6 +366,13 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Barre d'échelle sur le plan, ajustée au zoom, et état « calibrée » dans le cartouche ; outil « Mesurer » pour tout membre une fois l'échelle connue
 - [x] Vue 3D en vrais mètres quand tous les plans du bâtiment sont calibrés ; sinon largeur commune, pour ne pas mêler des étages à des échelles différentes
 
+**Après le MVP — Lisibilité du plan**
+
+- [x] Recherche d'un équipement (repère, autres noms, type ; sans accents ni casse ; les repères qui commencent par la recherche d'abord) ; Entrée ouvre le premier résultat et recentre le plan sur lui
+- [x] Filtres : tous, avec réserves, en retard, à placer, et par type présent sur l'étage ; sur le plan, les repères écartés restent visibles mais pâlis, pour garder le repère des lieux
+- [x] Légende des pastilles (statuts présents sur l'étage, retard), zoom au bouton (plus, moins, tout afficher), recentrage sur l'équipement choisi dans la liste
+- [x] Actions rares de l'admin (échelle, remplacer le plan, PDF d'origine, archiver l'étage) dans un menu « Plus » ; sur téléphone, plan bord à bord et sans cartouche (le titre nomme l'étage)
+
 ## Risques et questions ouvertes
 
 Le risque principal est l'accès à de vrais rapports : sans eux, l'extraction ne peut être ni construite ni évaluée.

@@ -324,7 +324,7 @@ button.session-out svg {
   margin-inline: auto;
 }
 
-.main-full {
+.main.main-full {
   flex: 1 1 0;
   min-height: 0;
   max-width: none;
@@ -1218,6 +1218,225 @@ details.hint summary {
   background: var(--paper);
 }
 
+/* Liste des équipements : plaque, type, puis réserves ou « Non placé », sur une grille. */
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.count {
+  font-size: 0.875rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.equipment-list .equipment-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.equipment-row .row-meta {
+  overflow: hidden;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.equipment-row-end {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.reserve-count {
+  --dot: var(--faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.reserve-count::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--dot);
+  border-radius: 50%;
+}
+
+/* Retard : double cerclage, comme la pastille du plan. */
+.reserve-count.late::before {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px var(--danger);
+}
+
+.reserve-count-ouverte {
+  --dot: var(--danger);
+}
+
+.reserve-count-assignee {
+  --dot: var(--cobalt);
+}
+
+.reserve-count-corrigee {
+  --dot: var(--pending);
+}
+
+/* Recherche et filtres du plan. */
+.plan-filters {
+  display: grid;
+  gap: 8px;
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-field > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-field input {
+  width: 100%;
+  padding-inline: 36px;
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-clear,
+.search-clear:hover:not(:disabled) {
+  position: absolute;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 0;
+}
+
+.search-clear:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.segmented-small button {
+  flex: 1 1 auto;
+  min-height: 32px;
+  padding-inline: 8px;
+  font-size: 0.875rem;
+}
+
+.inline-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.inline-select select {
+  flex: 1;
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
+/* Légende des pastilles et zoom, posés sur le plan. */
+.plan-legend {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  max-width: calc(100% - 88px);
+  margin: 0;
+  padding: 4px 10px;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  background: rgb(255 255 255 / 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+
+.plan-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-ouverte {
+  background: var(--danger);
+}
+
+.legend-assignee {
+  background: var(--cobalt);
+}
+
+.legend-corrigee {
+  background: var(--pending);
+}
+
+.legend-late {
+  box-shadow: inset 0 0 0 2px var(--danger);
+}
+
+.plan-zoom {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.plan-zoom button,
+.plan-zoom button:hover:not(:disabled) {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.plan-zoom button + button {
+  border-top: 1px solid var(--line);
+}
+
+.plan-zoom button:hover:not(:disabled) {
+  background: var(--paper);
+}
+
 .details {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1603,27 +1822,16 @@ fieldset {
   }
 
   .panel {
-    max-height: 42dvh;
+    max-height: 40dvh;
     border-left: 0;
     border-top: 1px solid var(--line);
     box-shadow: 0 -8px 24px rgb(0 0 0 / 0.06);
   }
 
-  .title-block {
-    right: 8px;
-    bottom: 8px;
-    min-width: 0;
-  }
-
-  .tb-site,
-  .tb-building,
-  .tb-scale {
+  /* Le titre de la page nomme déjà l'étage : le cartouche laisserait moins de plan. */
+  .title-block,
+  .long-label {
     display: none;
-  }
-
-  .tb-floor,
-  .tb-level {
-    border-top: 0;
   }
 
   .plan-empty {
@@ -3061,7 +3269,8 @@ li.open .item-number {
   border-radius: 50%;
 }
 
-.help-menu {
+.help-menu,
+.menu-pop {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -3076,7 +3285,10 @@ li.open .item-number {
   box-shadow: 0 8px 24px rgb(24 32 31 / 0.16);
 }
 
-.help-menu > button {
+.help-menu > button,
+.menu-pop > button,
+.menu-pop > a,
+.menu-pop .confirm > button {
   justify-content: flex-start;
   width: 100%;
   text-align: left;
@@ -3452,4 +3664,41 @@ li.open .item-number {
 
 .setting .contractor-form {
   max-width: 640px;
+}
+
+.short-label {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .short-label {
+    display: inline;
+  }
+}
+
+/* Menu « Plus » des barres d'outils : actions rares, une par ligne. */
+.menu {
+  position: relative;
+}
+
+.menu-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.menu-pop {
+  min-width: 260px;
+}
+
+.menu-pop > a {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  padding-inline: 12px;
+}
+
+.menu-pop .confirm {
+  display: grid;
+  gap: 2px;
 }

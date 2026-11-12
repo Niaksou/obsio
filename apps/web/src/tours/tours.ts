@@ -124,7 +124,12 @@ export const TOURS: Tour[] = [
         title: 'Plan',
         body: 'Un repère par équipement, coloré selon ses réserves.',
       },
-      { target: 'plan-tools', title: 'Outils', body: 'Recentrer, mesurer, placer un équipement.' },
+      {
+        target: 'plan-filters',
+        title: 'Trouver',
+        body: 'Cherchez un repère ou filtrez : les autres pâlissent.',
+      },
+      { target: 'plan-tools', title: 'Outils', body: 'Mesurer, placer un équipement.' },
       { target: 'title-block', title: 'Cartouche', body: 'Site, bâtiment, étage et échelle.' },
     ],
   },
