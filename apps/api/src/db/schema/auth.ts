@@ -97,6 +97,11 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     activeOrganisationId: uuid('active_organisation_id').references(() => organisation.id),
+    /**
+     * Console Obsio déverrouillée jusqu'à cette date : posée par une connexion par clé d'accès
+     * d'un compte de l'équipe, prolongée à chaque requête de la console (15 minutes d'inactivité).
+     */
+    consoleUntil: timestamp('console_until', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

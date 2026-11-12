@@ -1,13 +1,15 @@
 import { memberRoleSchema, type MemberRole } from '@obsio/shared';
 import { fromNodeHeaders } from 'better-auth/node';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gt } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { Database } from '../db/client.js';
-import { member, organisation } from '../db/schema/index.js';
+import { CONSOLE_IDLE_MS, isStaff } from '../console/staff.js';
+import { member, organisation, session } from '../db/schema/index.js';
 import type { Auth } from './auth.js';
 
 export interface SessionUser {
   id: string;
+  sessionId: string;
   name: string;
   email: string;
   activeOrganisationId: string | null;
@@ -53,6 +55,7 @@ export function createGuards(auth: Auth, db: Database) {
     }
     request.user = {
       id: result.user.id,
+      sessionId: result.session.id,
       name: result.user.name,
       email: result.user.email,
       activeOrganisationId: result.session.activeOrganizationId ?? null,
@@ -80,7 +83,30 @@ export function createGuards(auth: Auth, db: Database) {
     }
   }
 
-  return { requireUser, requireOrganisation, requireAdmin };
+  /**
+   * Console Obsio : compte de l'équipe (404 pour les autres, la console n'existe pas pour eux)
+   * et console déverrouillée par une clé d'accès depuis moins de 15 minutes d'inactivité.
+   */
+  async function requireStaff(request: FastifyRequest, reply: FastifyReply) {
+    await requireUser(request, reply);
+    if (reply.sent || !request.user) return;
+    if (!(await isStaff(db, request.user.id))) {
+      return reply.code(404).send({ message: 'Introuvable' });
+    }
+    const [unlocked] = await db
+      .update(session)
+      .set({ consoleUntil: new Date(Date.now() + CONSOLE_IDLE_MS) })
+      .where(and(eq(session.id, request.user.sessionId), gt(session.consoleUntil, new Date())))
+      .returning({ id: session.id });
+    if (!unlocked) {
+      return reply.code(403).send({
+        code: 'CONSOLE_LOCKED',
+        message: 'Console verrouillée : reconnectez-vous avec votre clé d’accès.',
+      });
+    }
+  }
+
+  return { requireUser, requireOrganisation, requireAdmin, requireStaff };
 }
 
 export type Guards = ReturnType<typeof createGuards>;

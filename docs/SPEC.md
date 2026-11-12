@@ -375,6 +375,16 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 - [x] Zones d'un étage (atelier, quai, local TGBT), de n'importe quelle forme : l'admin clique chaque angle de la pièce, puis le premier (ou Entrée, ou « Fermer la zone ») pour refermer, et la nomme ; les côtés presque horizontaux ou verticaux sont redressés et le dernier angle s'aligne sur le premier, pour des pièces d'équerre sans effort ; « Annuler l'angle » (Retour arrière) retire le dernier. Renommer, redessiner le contour, retirer (archivage). Contour validé de la même façon par le navigateur et l'API (`zoneShapeSchema`, `@obsio/shared/polygon`). Sur le plan, contour en tirets et nom ; toucher le nom choisit la zone et la cadre. Liste des équipements groupée par zone (hors zone en dernier), filtre par zone. Routes `GET/POST /api/floors/:id/zones`, `PATCH /api/zones/:id`, `POST /api/zones/:id/archive` ; table `zone` cloisonnée par RLS
 - [x] Actions rares de l'admin (tracer une zone, échelle, remplacer le plan, PDF d'origine, archiver l'étage) dans un menu « Plus » ; sur téléphone, plan bord à bord et sans cartouche (le titre nomme l'étage)
 
+**Après le MVP — Console Obsio (équipe de l'éditeur)**
+
+Interface réservée à l'équipe Obsio, jamais aux clients, dans l'application (`/console`, chargée à part). Décisions validées : licence par organisation (formule, date de fin, plafonds réglables) ; licence expirée, suspendue ou révoquée : lecture seule et export ; l'équipe ne voit que des chiffres, jamais le contenu d'un client.
+
+- [x] Comptes de l'équipe (`pnpm staff:grant <e-mail> [--revoke]`, rôle propriétaire de la base), console déverrouillée par clé d'accès pour 15 minutes d'inactivité, journal des actions en ajout seul (`console_audit`)
+- [ ] Licences : formule, état, échéance, plafonds ; effet sur l'application
+- [ ] Clients : liste, création, gestion de la licence
+- [ ] Usage : extraction (pages OCR, jetons, coût estimé, échecs, qualité), pages vues
+- [ ] À surveiller et fiche client
+
 ## Risques et questions ouvertes
 
 Le risque principal est l'accès à de vrais rapports : sans eux, l'extraction ne peut être ni construite ni évaluée.

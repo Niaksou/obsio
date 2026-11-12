@@ -8,6 +8,7 @@ import { ac, roles } from '@obsio/shared/permissions';
 import type { ApiConfig } from '../config.js';
 import type { Database } from '../db/client.js';
 import * as schema from '../db/schema/index.js';
+import { CONSOLE_IDLE_MS, isStaff } from '../console/staff.js';
 import type { EmailSender } from '../email/sender.js';
 import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { endCollaboratorAssignments } from '../reserves/collaborators.js';
@@ -112,7 +113,20 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
           });
         }
       }),
-      after: createAuthMiddleware(rememberUsedCode),
+      after: createAuthMiddleware(async (ctx) => {
+        await rememberUsedCode(ctx);
+        // Console Obsio : seule une connexion par clé d'accès (deux facteurs résistants au
+        // hameçonnage) d'un compte de l'équipe la déverrouille, pour 15 minutes d'inactivité.
+        const created = ctx.context.newSession;
+        if (ctx.path === '/passkey/verify-authentication' && created) {
+          if (await isStaff(db, created.user.id)) {
+            await db
+              .update(schema.session)
+              .set({ consoleUntil: new Date(Date.now() + CONSOLE_IDLE_MS) })
+              .where(eq(schema.session.id, created.session.id));
+          }
+        }
+      }),
     },
     // Reconnexion après 2 heures sans activité (prolongée au plus toutes les 5 minutes d'usage) ;
     // durée maximale de 12 heures fixée par la base (migration 0007_session_lifetime).

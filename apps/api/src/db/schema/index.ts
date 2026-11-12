@@ -5,3 +5,4 @@ export * from './premises.js';
 export * from './reports.js';
 export * from './interventions.js';
 export * from './inspections.js';
+export * from './console.js';

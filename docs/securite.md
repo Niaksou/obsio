@@ -92,6 +92,14 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Sessions parallèles permises (poste et téléphone), sans limite de nombre : chacune est visible et peut être fermée par l'utilisateur sur la page « Mon compte ». Toutes sont fermées à la réinitialisation du mot de passe, et quand un admin retire le membre de l'organisation.
 - Jeton de session aléatoire, signé, dans un cookie `__Host-obsio.session_token` (`HttpOnly`, `Secure`, `SameSite=Lax`, sans domaine) ; session vérifiée en base à chaque requête et supprimée à la déconnexion.
 
+## Console Obsio (équipe de l'éditeur)
+
+- Réservée aux comptes de l'équipe Obsio (`staff_member`), attribués seulement par `pnpm staff:grant` avec le rôle propriétaire de la base : l'application (`app_user`) n'a pas le droit d'écrire dans cette table, une faille ne peut donc pas créer de compte de l'équipe.
+- Pour un autre compte, les routes `/api/console/*` répondent 404 : la console n'existe pas pour lui.
+- Déverrouillage par une connexion par clé d'accès (deux facteurs résistants au hameçonnage, ASVS 6.6), jamais par mot de passe et code ; reverrouillage après 15 minutes sans activité (`session.console_until`).
+- Chaque action est inscrite dans `console_audit`, en ajout seul (`UPDATE` et `DELETE` retirés à `app_user`).
+- La console ne lit que des métadonnées et des compteurs, organisation par organisation, sous la RLS (`withOrganisation`) : jamais le contenu d'un client (réserves, rapports, plans, photos).
+
 ## Limites d'usage
 
 | Limite | Valeur | Où |
