@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { equipmentTypeSchema } from './equipment.js';
+import { isSimplePolygon, MIN_ZONE_AREA, polygonArea } from './polygon.js';
 
 // Contrat de l'API pour la hiérarchie du terrain : site → bâtiment → étage → équipement.
 
@@ -143,28 +144,29 @@ export const planScaleSchema = z.object({
 });
 export type PlanScale = z.infer<typeof planScaleSchema>;
 
-/** Rectangle sur le plan, en proportion de la largeur et de la hauteur de l'image. */
-export const planBoundsSchema = z
-  .object({
-    x: z.number().min(0).max(1),
-    y: z.number().min(0).max(1),
-    width: z.number().min(0.005).max(1),
-    height: z.number().min(0.005).max(1),
-  })
-  .refine((b) => b.x + b.width <= 1.0001 && b.y + b.height <= 1.0001, {
-    message: 'La zone dépasse du plan',
+/**
+ * Contour d'une zone : les angles de la pièce dans l'ordre, en proportion de l'image. Rectangle,
+ * pièce en L ou toute autre forme, tant que les côtés ne se croisent pas.
+ */
+export const zoneShapeSchema = z
+  .array(planPositionSchema)
+  .min(3, 'Il faut au moins trois angles')
+  .max(100, 'Contour trop détaillé : 100 angles au plus')
+  // Les côtés croisés d'abord : la surface d'un contour en « 8 » ne veut rien dire.
+  .refine(isSimplePolygon, { message: 'Les côtés de la zone se croisent', abort: true })
+  .refine((points) => polygonArea(points) >= MIN_ZONE_AREA, {
+    message: 'Zone trop petite : tracez un contour plus grand',
   });
-export type PlanBounds = z.infer<typeof planBoundsSchema>;
 
-/** Zone d'un étage : un rectangle nommé ; ses équipements sont ceux dont le repère y tombe. */
+/** Zone d'un étage : un contour nommé ; ses équipements sont ceux dont le repère y tombe. */
 export const zoneSchema = z.object({
   id: z.uuid(),
   floorId: z.uuid(),
   name: z.string(),
-  bounds: planBoundsSchema,
+  points: z.array(planPositionSchema),
 });
 export type Zone = z.infer<typeof zoneSchema>;
 
-export const zoneInputSchema = z.object({ name, bounds: planBoundsSchema });
+export const zoneInputSchema = z.object({ name, points: zoneShapeSchema });
 export type ZoneInput = z.infer<typeof zoneInputSchema>;
 export const zoneUpdateSchema = zoneInputSchema.partial();

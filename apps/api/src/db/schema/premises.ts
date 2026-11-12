@@ -1,10 +1,11 @@
-import { EQUIPMENT_TYPES } from '@obsio/shared';
+import { EQUIPMENT_TYPES, type PlanPosition } from '@obsio/shared';
 import { sql } from 'drizzle-orm';
 import {
   check,
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   real,
@@ -113,9 +114,10 @@ export const equipment = pgTable(
 );
 
 /**
- * Zone d'un étage (atelier, quai, local électrique) : rectangle nommé sur le plan, en proportion
- * de l'image comme les équipements. Un équipement appartient à la zone qui contient son repère :
- * pas de lien stocké, rien à resynchroniser quand on déplace un repère.
+ * Zone d'un étage (atelier, quai, local électrique) : contour nommé sur le plan, angles en
+ * proportion de l'image comme les équipements. Toute forme sans côtés croisés (rectangle, L…).
+ * Un équipement appartient à la plus petite zone qui contient son repère : pas de lien stocké,
+ * rien à resynchroniser quand on déplace un repère.
  */
 export const zone = pgTable(
   'zone',
@@ -124,10 +126,8 @@ export const zone = pgTable(
     organisationId: organisationId(),
     floorId: uuid('floor_id').notNull(),
     name: text('name').notNull(),
-    x: real('x').notNull(),
-    y: real('y').notNull(),
-    width: real('width').notNull(),
-    height: real('height').notNull(),
+    /** Angles du contour, dans l'ordre : [{ x, y }, …], validés par zoneShapeSchema. */
+    points: jsonb('points').$type<PlanPosition[]>().notNull(),
     archivedAt: archivedAt(),
     ...timestamps,
   },
@@ -140,8 +140,8 @@ export const zone = pgTable(
       foreignColumns: [floor.id, floor.organisationId],
     }),
     check(
-      'zone_bounds',
-      sql`${table.x} >= 0 and ${table.y} >= 0 and ${table.width} > 0 and ${table.height} > 0 and ${table.x} + ${table.width} <= 1.0001 and ${table.y} + ${table.height} <= 1.0001`,
+      'zone_points',
+      sql`jsonb_typeof(${table.points}) = 'array' and jsonb_array_length(${table.points}) between 3 and 100`,
     ),
     organisationIsolation('zone'),
   ],

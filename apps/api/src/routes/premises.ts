@@ -72,7 +72,7 @@ const toZone = (row: ZoneRow) => ({
   id: row.id,
   floorId: row.floorId,
   name: row.name,
-  bounds: { x: row.x, y: row.y, width: row.width, height: row.height },
+  points: row.points,
 });
 const positionColumns = (position: PlanPosition | null) => ({
   x: position?.x ?? null,
@@ -596,7 +596,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
       },
     },
     async (request, reply) => {
-      const { name, bounds } = request.body;
+      const { name, points } = request.body;
       const row = await scoped(request, async (tx) => {
         if (!(await activeFloor(tx, request.params.id))) return null;
         const [created] = await tx
@@ -605,7 +605,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
             organisationId: request.organisation!.id,
             floorId: request.params.id,
             name,
-            ...bounds,
+            points,
           })
           .returning();
         return created!;
@@ -625,11 +625,14 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
       },
     },
     async (request, reply) => {
-      const { name, bounds } = request.body;
+      const { name, points } = request.body;
       const [row] = await scoped(request, (tx) =>
         tx
           .update(zone)
-          .set({ ...(name !== undefined ? { name } : {}), ...(bounds ?? {}) })
+          .set({
+            ...(name !== undefined ? { name } : {}),
+            ...(points !== undefined ? { points } : {}),
+          })
           .where(and(eq(zone.id, request.params.id), isNull(zone.archivedAt)))
           .returning(),
       );

@@ -1,38 +1,67 @@
-import type { Equipment, PlanBounds, PlanPosition, Zone } from '@obsio/shared';
+import {
+  polygonArea,
+  polygonContains,
+  zoneShapeSchema,
+  type Equipment,
+  type PlanPosition,
+  type Zone,
+} from '@obsio/shared';
 import type { Point, Size } from './geometry.js';
 
-// Zones d'un étage : rectangles nommés. Un équipement appartient à la plus petite zone qui
-// contient son repère (une zone peut en contenir une autre : « Atelier » et « Cabine de peinture »).
+// Zones d'un étage : contours nommés (rectangle, pièce en L, toute forme). Un équipement
+// appartient à la plus petite zone qui contient son repère (une zone peut en contenir une autre :
+// « Atelier » et « Cabine de peinture »).
 
-/** Rectangle défini par deux coins opposés, en pixels de l'image, ramené en proportions. */
-export function boundsFromPoints(a: Point, b: Point, plan: Size): PlanBounds {
+/** Angles en pixels de l'image vers positions en proportion, ramenées dans le plan. */
+export function toPositions(points: Point[], plan: Size): PlanPosition[] {
   const clamp = (value: number) => Math.min(1, Math.max(0, value));
-  const x1 = clamp(Math.min(a.x, b.x) / plan.width);
-  const y1 = clamp(Math.min(a.y, b.y) / plan.height);
-  const x2 = clamp(Math.max(a.x, b.x) / plan.width);
-  const y2 = clamp(Math.max(a.y, b.y) / plan.height);
-  return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+  return points.map((p) => ({ x: clamp(p.x / plan.width), y: clamp(p.y / plan.height) }));
 }
 
-/** Zone assez grande pour être enregistrée (l'API refuse moins d'un demi-pour-cent). */
-export const isUsable = (bounds: PlanBounds) => bounds.width >= 0.005 && bounds.height >= 0.005;
+/** Ce qui empêche d'enregistrer ce contour, ou null s'il est valable. */
+export function shapeError(points: PlanPosition[]): string | null {
+  const result = zoneShapeSchema.safeParse(points);
+  return result.success ? null : (result.error.issues[0]?.message ?? 'Contour invalide');
+}
 
-export const contains = (bounds: PlanBounds, position: PlanPosition) =>
-  position.x >= bounds.x &&
-  position.x <= bounds.x + bounds.width &&
-  position.y >= bounds.y &&
-  position.y <= bounds.y + bounds.height;
+/** Angle sous lequel un côté est redressé à l'horizontale ou à la verticale. */
+const SNAP_DEGREES = 7;
+
+/**
+ * Point suivant d'un contour, redressé : côté horizontal ou vertical s'il en est proche (murs
+ * d'équerre), et aligné sur le premier angle s'il en passe à moins de `tolerance` pixels de
+ * l'image (pour refermer une pièce en L d'équerre).
+ */
+export function snapPoint(points: Point[], point: Point, tolerance: number): Point {
+  const last = points.at(-1);
+  if (!last) return point;
+  let { x, y } = point;
+  const angle = (Math.atan2(Math.abs(y - last.y), Math.abs(x - last.x)) * 180) / Math.PI;
+  if (angle < SNAP_DEGREES) y = last.y;
+  else if (angle > 90 - SNAP_DEGREES) x = last.x;
+  const first = points[0]!;
+  if (points.length >= 2) {
+    if (x !== last.x && Math.abs(x - first.x) < tolerance) x = first.x;
+    if (y !== last.y && Math.abs(y - first.y) < tolerance) y = first.y;
+  }
+  return { x, y };
+}
+
+/** Où poser le nom : l'angle le plus haut, puis le plus à gauche. */
+export function labelAnchor(points: PlanPosition[]): PlanPosition {
+  return points.reduce((best, p) => (p.y < best.y || (p.y === best.y && p.x < best.x) ? p : best));
+}
 
 /** Zone d'une position : la plus petite qui la contient, ou null. */
 export function zoneOf(position: PlanPosition | null, zones: Zone[]): Zone | null {
   if (!position) return null;
-  let best: Zone | null = null;
+  let best: { zone: Zone; area: number } | null = null;
   for (const zone of zones) {
-    if (!contains(zone.bounds, position)) continue;
-    const area = zone.bounds.width * zone.bounds.height;
-    if (!best || area < best.bounds.width * best.bounds.height) best = zone;
+    if (!polygonContains(zone.points, position)) continue;
+    const area = polygonArea(zone.points);
+    if (!best || area < best.area) best = { zone, area };
   }
-  return best;
+  return best?.zone ?? null;
 }
 
 export interface ZoneGroup {

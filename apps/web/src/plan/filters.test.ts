@@ -59,7 +59,17 @@ describe('recherche du plan', () => {
 
   it('filtre par zone, ou hors zone', () => {
     const zones = [
-      { id: 'z', floorId: 'f', name: 'Atelier', bounds: { x: 0, y: 0, width: 0.6, height: 1 } },
+      {
+        id: 'z',
+        floorId: 'f',
+        name: 'Atelier',
+        points: [
+          { x: 0, y: 0 },
+          { x: 0.6, y: 0 },
+          { x: 0.6, y: 1 },
+          { x: 0, y: 1 },
+        ],
+      },
     ];
     const at = (zone: string) => [
       ...(matchingIds(items, { ...EMPTY_QUERY, zone }, badges, zones) ?? []),

@@ -151,10 +151,12 @@ export async function seedDemo(
             equipmentIds.set(e.name, row!.id);
           }
           for (const z of f.zones ?? []) {
-            const [x, y, width, height] = z.bounds;
-            await tx
-              .insert(zone)
-              .values({ organisationId: orgId, floorId, name: z.name, x, y, width, height });
+            await tx.insert(zone).values({
+              organisationId: orgId,
+              floorId,
+              name: z.name,
+              points: z.points.map(([x, y]) => ({ x, y })),
+            });
           }
         });
       }

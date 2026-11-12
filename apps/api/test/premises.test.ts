@@ -138,49 +138,64 @@ describe('Sites, bâtiments, étages et équipements', () => {
 });
 
 describe("Zones d'un étage", () => {
-  const atelier = { x: 0.1, y: 0.2, width: 0.5, height: 0.4 };
+  // Atelier en L : la forme compte, pas seulement le rectangle qui l'entoure.
+  const atelier = [
+    { x: 0.1, y: 0.2 },
+    { x: 0.6, y: 0.2 },
+    { x: 0.6, y: 0.4 },
+    { x: 0.3, y: 0.4 },
+    { x: 0.3, y: 0.6 },
+    { x: 0.1, y: 0.6 },
+  ];
 
   it("l'admin trace, renomme et archive une zone ; un membre la consulte", async () => {
     const { floorId } = await createFloor();
     const created = await admin.post(`/api/floors/${floorId}/zones`, {
       name: ' Atelier ',
-      bounds: atelier,
+      points: atelier,
     });
     expect(created.statusCode).toBe(201);
     const zone = created.json();
-    expect(zone).toMatchObject({ floorId, name: 'Atelier', bounds: atelier });
+    expect(zone).toMatchObject({ floorId, name: 'Atelier', points: atelier });
 
     expect((await membre.get(`/api/floors/${floorId}/zones`)).json()).toEqual([zone]);
     expect(
-      (await membre.post(`/api/floors/${floorId}/zones`, { name: 'Quai', bounds: atelier }))
+      (await membre.post(`/api/floors/${floorId}/zones`, { name: 'Quai', points: atelier }))
         .statusCode,
     ).toBe(403);
 
     const renamed = await admin.patch(`/api/zones/${zone.id}`, { name: 'Atelier usinage' });
-    expect(renamed.json()).toMatchObject({ name: 'Atelier usinage', bounds: atelier });
+    expect(renamed.json()).toMatchObject({ name: 'Atelier usinage', points: atelier });
+    const reshaped = atelier.slice(0, 3);
+    expect(
+      (await admin.patch(`/api/zones/${zone.id}`, { points: reshaped })).json().points,
+    ).toEqual(reshaped);
 
     expect((await admin.post(`/api/zones/${zone.id}/archive`)).statusCode).toBe(204);
     expect((await membre.get(`/api/floors/${floorId}/zones`)).json()).toEqual([]);
   });
 
-  it('refuse une zone qui dépasse du plan ou sans nom', async () => {
+  it('refuse un contour croisé, hors du plan, à deux angles, ou sans nom', async () => {
     const { floorId } = await createFloor();
     const post = (body: object) => admin.post(`/api/floors/${floorId}/zones`, body);
-    expect((await post({ name: 'Quai', bounds: { ...atelier, x: 0.8 } })).statusCode).toBe(400);
-    expect((await post({ name: 'Quai', bounds: { ...atelier, width: 0 } })).statusCode).toBe(400);
-    expect((await post({ name: '  ', bounds: atelier })).statusCode).toBe(400);
+    const crossed = [atelier[0], atelier[2], atelier[1], atelier[3]];
+    const outside = [...atelier.slice(1), { x: 1.2, y: 0.2 }];
+    expect((await post({ name: 'Quai', points: crossed })).statusCode).toBe(400);
+    expect((await post({ name: 'Quai', points: outside })).statusCode).toBe(400);
+    expect((await post({ name: 'Quai', points: atelier.slice(0, 2) })).statusCode).toBe(400);
+    expect((await post({ name: '  ', points: atelier })).statusCode).toBe(400);
   });
 
   it("une autre organisation ne voit ni ne modifie les zones de l'organisation", async () => {
     const { floorId } = await createFloor();
     const zone = (
-      await admin.post(`/api/floors/${floorId}/zones`, { name: 'Atelier', bounds: atelier })
+      await admin.post(`/api/floors/${floorId}/zones`, { name: 'Atelier', points: atelier })
     ).json();
     const { admin: other } = await openClient('Usine Martin', 'Carol', 'carol@martin.fr');
 
     expect((await other.get(`/api/floors/${floorId}/zones`)).statusCode).toBe(404);
     expect(
-      (await other.post(`/api/floors/${floorId}/zones`, { name: 'Intrus', bounds: atelier }))
+      (await other.post(`/api/floors/${floorId}/zones`, { name: 'Intrus', points: atelier }))
         .statusCode,
     ).toBe(404);
     expect((await other.patch(`/api/zones/${zone.id}`, { name: 'Piraté' })).statusCode).toBe(404);

@@ -1,4 +1,4 @@
-import type { Equipment, PlanBounds, PlanPosition, Zone } from '@obsio/shared';
+import type { Equipment, PlanPosition, Zone } from '@obsio/shared';
 import Konva from 'konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { Maximize, Minus, Plus } from 'lucide-react';
@@ -10,7 +10,6 @@ import {
   Label,
   Layer,
   Line,
-  Rect,
   Stage,
   Tag,
   Text,
@@ -27,6 +26,7 @@ import {
   type View,
 } from './geometry.js';
 import { scaleBar } from './scale.js';
+import { labelAnchor, snapPoint } from './zones.js';
 
 // Les repères doivent rester saisissables pendant un pincement à deux doigts.
 Konva.hitOnDragEnabled = true;
@@ -69,9 +69,14 @@ export interface PlanViewerHandle {
   fit: () => void;
   /** Centre la vue sur une position, en zoomant assez pour lire les repères voisins. */
   focus: (position: PlanPosition) => void;
-  /** Cadre la vue sur un rectangle du plan (une zone). */
-  show: (bounds: PlanBounds) => void;
+  /** Cadre la vue sur un rectangle du plan (le cadre d'une zone), en proportions. */
+  show: (bounds: { x: number; y: number; width: number; height: number }) => void;
 }
+
+/** Distance à l'écran sous laquelle un clic sur le premier angle referme le contour. */
+const CLOSE_DISTANCE = 14;
+/** Distance à l'écran sous laquelle un angle s'aligne sur le premier. */
+const ALIGN_DISTANCE = 10;
 
 /** Marge autour d'une zone cadrée, en pixels d'écran. */
 const SHOW_MARGIN = 48;
@@ -97,8 +102,10 @@ interface PlanViewerProps {
   activeZoneId?: string | null;
   /** Toucher le nom d'une zone la choisit. */
   onZoneSelect?: (id: string) => void;
-  /** Zone en cours de tracé : un ou deux coins, en pixels de l'image. */
-  zoneDraft?: Point[];
+  /** Contour en cours de tracé : angles posés, en pixels de l'image, et s'il est refermé. */
+  zoneDraft?: { points: Point[]; closed: boolean };
+  /** Clic sur le premier angle (trois angles au moins) : le contour se referme. */
+  onZoneClose?: () => void;
   selectedId: string | null;
   /** Position du nouvel équipement en cours de saisie, affichée en attendant l'enregistrement. */
   draft: PlanPosition | null;
@@ -186,6 +193,7 @@ export function PlanViewer({
   activeZoneId = null,
   onZoneSelect,
   zoneDraft,
+  onZoneClose,
   selectedId,
   draft,
   editable,
@@ -206,6 +214,9 @@ export function PlanViewer({
   // Tant que l'utilisateur n'a ni zoomé ni déplacé, la vue suit la taille de la fenêtre.
   const moved = useRef(false);
   const pinch = useRef<{ distance: number; center: Point } | null>(null);
+  // Position du pointeur pendant le tracé d'une zone, pour prolonger le contour jusqu'à lui.
+  const [hover, setHover] = useState<Point | null>(null);
+  const drawing = zoneDraft && !zoneDraft.closed ? zoneDraft.points : null;
 
   useEffect(() => {
     if (size && (!view || !moved.current)) setView(fitView(plan, size));
@@ -317,9 +328,21 @@ export function PlanViewer({
     const onBackground = event.target === stage || event.target.name() === 'plan';
     if (!stage || !view) return;
     if (measuring) {
+      if (zoneDraft?.closed) return;
       const pointer = stage.getPointerPosition();
       const position = pointer && toPlan(view, pointer, plan);
-      if (position) onMeasurePoint?.(toImage(position, plan));
+      if (!position) return;
+      const point = toImage(position, plan);
+      if (drawing) {
+        const first = drawing[0];
+        if (first && drawing.length >= 3 && isNear(first, point, CLOSE_DISTANCE)) {
+          onZoneClose?.();
+          return;
+        }
+        onMeasurePoint?.(snapPoint(drawing, point, ALIGN_DISTANCE / view.scale));
+        return;
+      }
+      onMeasurePoint?.(point);
       return;
     }
     if (!onBackground) return;
@@ -331,6 +354,26 @@ export function PlanViewer({
     const position = pointer && toPlan(view, pointer, plan);
     if (position) onPlace(position);
   }
+
+  /** Deux points de l'image à moins de `distance` pixels l'un de l'autre à l'écran. */
+  function isNear(a: Point, b: Point, distance: number) {
+    return !!view && Math.hypot(a.x - b.x, a.y - b.y) * view.scale <= distance;
+  }
+
+  function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
+    if (!drawing || !view) return;
+    const pointer = event.target.getStage()?.getPointerPosition();
+    const position = pointer && toPlan(view, pointer, plan);
+    setHover(position ? toImage(position, plan) : null);
+  }
+
+  // Le contour suit le pointeur, redressé comme le sera l'angle posé ; aimanté au premier angle.
+  const preview =
+    drawing && hover && view
+      ? drawing.length >= 3 && isNear(drawing[0]!, hover, CLOSE_DISTANCE)
+        ? { point: drawing[0]!, closing: true }
+        : { point: snapPoint(drawing, hover, ALIGN_DISTANCE / view.scale), closing: false }
+      : null;
 
   // Les repères en évidence passent devant les autres.
   const placed = equipment
@@ -377,6 +420,8 @@ export function PlanViewer({
           }}
           onClick={handleStageClick}
           onTap={handleStageClick}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHover(null)}
         >
           <Layer>
             <KonvaImage image={image} width={plan.width} height={plan.height} name="plan" />
@@ -418,9 +463,14 @@ export function PlanViewer({
               )}
             </Layer>
           )}
-          {zoneDraft && zoneDraft.length > 0 && (
+          {zoneDraft && zoneDraft.points.length > 0 && (
             <Layer listening={false}>
-              <ZoneDraft points={zoneDraft} scale={1 / view.scale} />
+              <ZoneDraft
+                points={zoneDraft.points}
+                closed={zoneDraft.closed}
+                preview={preview}
+                scale={1 / view.scale}
+              />
             </Layer>
           )}
           {segment && segment.points.length > 0 && (
@@ -577,24 +627,22 @@ function ZoneShape({
   active: boolean;
   onSelect?: () => void;
 }) {
-  const x = zone.bounds.x * plan.width;
-  const y = zone.bounds.y * plan.height;
+  const anchor = toImage(labelAnchor(zone.points), plan);
   return (
     <>
-      <Rect
-        x={x}
-        y={y}
-        width={zone.bounds.width * plan.width}
-        height={zone.bounds.height * plan.height}
+      <Line
+        points={zone.points.flatMap((p) => [p.x * plan.width, p.y * plan.height])}
+        closed
         fill={active ? ZONE_ACTIVE_FILL : ZONE_FILL}
         stroke={active ? COPPER : ZONE_INK}
         strokeWidth={(active ? 2 : 1.25) * scale}
         dash={active ? undefined : [6 * scale, 4 * scale]}
+        lineJoin="round"
         listening={false}
       />
       <Label
-        x={x + 4 * scale}
-        y={y + 4 * scale}
+        x={anchor.x + 4 * scale}
+        y={anchor.y + 4 * scale}
         scaleX={scale}
         scaleY={scale}
         listening={!!onSelect}
@@ -623,20 +671,50 @@ function ZoneShape({
   );
 }
 
-/** Zone en cours de tracé : coins marqués, rectangle cuivre une fois le second coin posé. */
-function ZoneDraft({ points, scale }: { points: Point[]; scale: number }) {
-  const [a, b] = points;
+/**
+ * Contour en cours de tracé : côtés posés en cuivre, côté suivant en tirets jusqu'au pointeur,
+ * premier angle cerclé (le toucher referme la zone).
+ */
+function ZoneDraft({
+  points,
+  closed,
+  preview,
+  scale,
+}: {
+  points: Point[];
+  closed: boolean;
+  preview: { point: Point; closing: boolean } | null;
+  scale: number;
+}) {
+  const flat = points.flatMap((p) => [p.x, p.y]);
+  const last = points.at(-1)!;
+  const first = points[0]!;
   return (
     <>
-      {a && b && (
-        <Rect
-          x={Math.min(a.x, b.x)}
-          y={Math.min(a.y, b.y)}
-          width={Math.abs(a.x - b.x)}
-          height={Math.abs(a.y - b.y)}
-          fill={ZONE_ACTIVE_FILL}
+      <Line
+        points={flat}
+        closed={closed}
+        fill={closed ? ZONE_ACTIVE_FILL : undefined}
+        stroke={COPPER}
+        strokeWidth={2 * scale}
+        lineJoin="round"
+      />
+      {preview && (
+        <Line
+          points={[last.x, last.y, preview.point.x, preview.point.y]}
+          stroke={COPPER}
+          strokeWidth={1.5 * scale}
+          dash={[6 * scale, 4 * scale]}
+        />
+      )}
+      {!closed && points.length >= 3 && (
+        <Circle
+          x={first.x}
+          y={first.y}
+          radius={(preview?.closing ? 11 : 9) * scale}
           stroke={COPPER}
           strokeWidth={2 * scale}
+          fill={preview?.closing ? ZONE_ACTIVE_FILL : undefined}
         />
       )}
       {points.map((p, i) => (
@@ -644,7 +722,7 @@ function ZoneDraft({ points, scale }: { points: Point[]; scale: number }) {
           key={i}
           x={p.x}
           y={p.y}
-          radius={5 * scale}
+          radius={(i === 0 ? 5 : 4) * scale}
           fill={COPPER}
           stroke={INK}
           strokeWidth={1.5 * scale}

@@ -162,16 +162,6 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
         </p>
       )}
       {sorted.length > 0 && props.filters}
-      {sorted.length > 0 && shown.length === 0 && (
-        <p className="empty">
-          Aucun équipement ne correspond.{' '}
-          {props.onClearQuery && (
-            <button type="button" className="link" onClick={props.onClearQuery}>
-              Tout afficher
-            </button>
-          )}
-        </p>
-      )}
       {props.activeZone && (
         <div className="zone-head">
           <div className="zone-head-title">
@@ -182,6 +172,18 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
           </div>
           {props.zoneActions}
         </div>
+      )}
+      {sorted.length > 0 && shown.length === 0 && (
+        <p className="empty">
+          {props.activeZone
+            ? 'Aucun équipement ne correspond dans cette zone.'
+            : 'Aucun équipement ne correspond.'}{' '}
+          {props.onClearQuery && (
+            <button type="button" className="link" onClick={props.onClearQuery}>
+              Tout afficher
+            </button>
+          )}
+        </p>
       )}
       {shown.length > 0 &&
         (zones.length > 0 && !props.activeZone ? (

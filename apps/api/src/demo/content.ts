@@ -19,8 +19,17 @@ export interface DemoEquipment {
 
 export interface DemoZone {
   name: string;
-  bounds: [x: number, y: number, width: number, height: number];
+  /** Angles du contour, dans l'ordre, en proportion du plan. */
+  points: [x: number, y: number][];
 }
+
+/** Contour d'un rectangle : coin supérieur gauche, largeur, hauteur. */
+const rect = (x: number, y: number, width: number, height: number): DemoZone['points'] => [
+  [x, y],
+  [x + width, y],
+  [x + width, y + height],
+  [x, y + height],
+];
 
 export interface DemoFloor {
   name: string;
@@ -132,12 +141,12 @@ export const LYON: DemoSite = {
             { name: 'BAES quai B', type: 'eclairage_securite', at: [0.87, 0.22] },
           ],
           zones: [
-            { name: 'Atelier usinage', bounds: [0.015, 0.015, 0.6, 0.97] },
-            { name: 'Local TGBT', bounds: [0.62, 0.015, 0.14, 0.25] },
-            { name: 'Quai B', bounds: [0.76, 0.015, 0.225, 0.25] },
-            { name: 'Stockage', bounds: [0.62, 0.265, 0.365, 0.35] },
-            { name: 'Vestiaires', bounds: [0.62, 0.615, 0.18, 0.37] },
-            { name: 'Local compresseur', bounds: [0.8, 0.615, 0.185, 0.37] },
+            { name: 'Atelier usinage', points: rect(0.015, 0.015, 0.6, 0.97) },
+            { name: 'Local TGBT', points: rect(0.62, 0.015, 0.14, 0.25) },
+            { name: 'Quai B', points: rect(0.76, 0.015, 0.225, 0.25) },
+            { name: 'Stockage', points: rect(0.62, 0.265, 0.365, 0.35) },
+            { name: 'Vestiaires', points: rect(0.62, 0.615, 0.18, 0.37) },
+            { name: 'Local compresseur', points: rect(0.8, 0.615, 0.185, 0.37) },
           ],
         },
         {

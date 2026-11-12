@@ -3780,3 +3780,49 @@ li.open .item-number {
 .zone-rename input {
   flex: 1 1 160px;
 }
+
+/* Tracé d'une zone : consigne et actions, en haut du plan. */
+.draw-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  width: min(560px, calc(100% - 112px));
+  padding: 8px 8px 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--copper);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  transform: translateX(-50%);
+}
+
+.draw-bar p {
+  flex: 1 1 220px;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.draw-bar .actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* Téléphone : en bas du plan, pour laisser le haut libre au tracé. */
+@media (max-width: 720px) {
+  .draw-bar {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    width: calc(100% - 24px);
+    padding: 8px 8px 8px 12px;
+    transform: none;
+  }
+
+  .draw-bar p {
+    font-size: 0.875rem;
+  }
+}

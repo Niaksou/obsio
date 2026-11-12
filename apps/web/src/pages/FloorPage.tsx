@@ -1,11 +1,12 @@
-import type {
-  Equipment,
-  EquipmentInput,
-  FloorDetail,
-  PlanPosition,
-  ReserveListItem,
-  Zone,
-  ZoneInput,
+import {
+  type Equipment,
+  type EquipmentInput,
+  type FloorDetail,
+  type PlanPosition,
+  type ReserveListItem,
+  polygonBounds,
+  type Zone,
+  type ZoneInput,
 } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -28,7 +29,7 @@ import type { Point } from '../plan/geometry.js';
 import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
 import { formatLength, metersPerPixel, pixelDistance } from '../plan/scale.js';
 import { ZoneActions, ZoneNameForm } from '../plan/ZoneForms.js';
-import { boundsFromPoints, isUsable } from '../plan/zones.js';
+import { shapeError, toPositions } from '../plan/zones.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { StatusLabel } from '../reserves/status.js';
@@ -37,7 +38,10 @@ import { StatusLabel } from '../reserves/status.js';
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
 
 type Placing = { kind: 'new' } | { kind: 'existing'; id: string } | null;
-/** Outils à deux points : calibrer l'échelle, tracer une zone (admin) ou mesurer une distance. */
+/**
+ * Outils qui posent des points sur le plan : calibrer l'échelle (deux points, admin), tracer le
+ * contour d'une zone (un point par angle, admin) ou mesurer une distance (deux points).
+ */
 type Tool = 'calibrer' | 'zone' | 'mesurer' | null;
 
 export function FloorPage() {
@@ -75,6 +79,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
   const [replacingPlan, setReplacingPlan] = useState(false);
   const [tool, setTool] = useState<Tool>(null);
   const [points, setPoints] = useState<Point[]>([]);
+  // Contour de zone refermé, et zone existante dont on redessine le contour.
+  const [zoneClosed, setZoneClosed] = useState(false);
+  const [reshaping, setReshaping] = useState<string | null>(null);
   const viewer = useRef<PlanViewerHandle | null>(null);
   const setViewer = useCallback((handle: PlanViewerHandle) => {
     viewer.current = handle;
@@ -150,6 +157,17 @@ function Floor({ floor }: { floor: FloorDetail }) {
       ),
   });
 
+  const reshapeZone = useMutation({
+    mutationFn: ({ id, points }: { id: string; points: PlanPosition[] }) =>
+      api.updateZone(id, { points }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Zone[]>(zonesKey, (current) =>
+        current?.map((zone) => (zone.id === updated.id ? updated : zone)),
+      );
+      switchTool(null);
+    },
+  });
+
   const archiveZone = useMutation({
     mutationFn: (id: string) => api.archive('zones', id),
     onSuccess: (_result, id) => {
@@ -163,8 +181,8 @@ function Floor({ floor }: { floor: FloorDetail }) {
   /** Choix d'une zone (liste, filtre ou nom sur le plan) : le plan la cadre. */
   function chooseZone(zone: PlanQuery['zone']) {
     setQuery((current) => ({ ...current, zone }));
-    const bounds = zones.find((candidate) => candidate.id === zone)?.bounds;
-    if (bounds) viewer.current?.show(bounds);
+    const points = zones.find((candidate) => candidate.id === zone)?.points;
+    if (points) viewer.current?.show(polygonBounds(points));
   }
 
   const archiveFloor = useMutation({
@@ -218,30 +236,64 @@ function Floor({ floor }: { floor: FloorDetail }) {
   function switchTool(next: Tool) {
     setTool(next);
     setPoints([]);
+    setZoneClosed(false);
+    setReshaping(null);
     saveScale.reset();
     createZone.reset();
+    reshapeZone.reset();
     if (next) {
       setPlacing(null);
       setSelectedId(null);
     }
   }
 
-  // Échap quitte l'outil ou le placement en cours, comme le second clic sur leur bouton.
+  // Échap quitte l'outil ou le placement en cours, comme le second clic sur leur bouton. Pendant
+  // le tracé d'une zone : Entrée la referme, Retour arrière retire le dernier angle.
+  const drawingZone = tool === 'zone' && !zoneClosed;
   useEffect(() => {
     if (!tool && !placing) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key !== 'Escape') return;
-      setTool(null);
-      setPoints([]);
-      setPlacing(null);
+      const typing = event.target instanceof HTMLInputElement;
+      if (event.key === 'Escape') {
+        setTool(null);
+        setPoints([]);
+        setZoneClosed(false);
+        setReshaping(null);
+        setPlacing(null);
+      } else if (drawingZone && !typing && event.key === 'Enter') {
+        event.preventDefault();
+        closeZone();
+      } else if (drawingZone && !typing && event.key === 'Backspace') {
+        event.preventDefault();
+        setPoints((current) => current.slice(0, -1));
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [tool, placing]);
+  });
 
-  // Un troisième clic recommence le segment.
+  /** Mesure, calibrage : un troisième clic recommence le segment. Zone : un angle de plus. */
   function addPoint(point: Point) {
-    setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
+    if (tool === 'zone') {
+      setPoints((current) => (current.length >= 100 ? current : [...current, point]));
+    } else {
+      setPoints((current) => (current.length >= 2 ? [point] : [...current, point]));
+    }
+  }
+
+  /** Referme le contour ; pour une zone existante, le nouveau contour est enregistré aussitôt. */
+  function closeZone() {
+    if (points.length < 3 || !floor.plan) return;
+    setZoneClosed(true);
+    const shape = toPositions(points, floor.plan);
+    if (reshaping && !shapeError(shape)) reshapeZone.mutate({ id: reshaping, points: shape });
+  }
+
+  function restartZone() {
+    setPoints([]);
+    setZoneClosed(false);
+    createZone.reset();
+    reshapeZone.reset();
   }
 
   const scale = floor.plan?.scale ?? null;
@@ -250,10 +302,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
       ? formatLength(pixelDistance(points[0]!, points[1]!) * scale)
       : null;
 
-  const zoneBounds =
-    tool === 'zone' && points.length === 2 && floor.plan
-      ? boundsFromPoints(points[0]!, points[1]!, floor.plan)
-      : null;
+  const zoneShape =
+    tool === 'zone' && zoneClosed && floor.plan ? toPositions(points, floor.plan) : null;
+  const zoneShapeError = zoneShape && shapeError(zoneShape);
   const mutationError = create.error ?? update.error ?? archive.error;
   const showUpload = isAdmin && (!floor.plan || replacingPlan);
 
@@ -304,7 +355,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   aria-pressed
                   onClick={() => switchTool(null)}
                 >
-                  Tracer une zone
+                  Annuler le tracé
                 </button>
               )}
               {tool === 'calibrer' && (
@@ -410,7 +461,8 @@ function Floor({ floor }: { floor: FloorDetail }) {
             placing={!!placing}
             measuring={tool !== null}
             segment={tool === 'zone' ? undefined : { points, label: measured }}
-            zoneDraft={tool === 'zone' ? points : undefined}
+            zoneDraft={tool === 'zone' ? { points, closed: zoneClosed } : undefined}
+            onZoneClose={closeZone}
             zones={zones}
             activeZoneId={activeZone?.id ?? null}
             onZoneSelect={chooseZone}
@@ -438,27 +490,51 @@ function Floor({ floor }: { floor: FloorDetail }) {
             <span className="keyboard-hint"> Échap pour terminer.</span>
           </p>
         )}
-        {tool === 'zone' && points.length < 2 && (
-          <p className="placing-hint" role="status">
-            {points.length === 0
-              ? 'Cliquez un coin de la zone, puis le coin opposé.'
-              : 'Cliquez le coin opposé.'}
-            <span className="keyboard-hint"> Échap pour annuler.</span>
-          </p>
+        {drawingZone && (
+          <div className="draw-bar" role="status">
+            <p>
+              {points.length === 0
+                ? reshaping
+                  ? 'Cliquez les angles du nouveau contour, dans l’ordre.'
+                  : 'Cliquez chaque angle de la pièce, dans l’ordre.'
+                : points.length < 3
+                  ? 'Angle suivant : les côtés presque droits sont redressés.'
+                  : 'Cliquez le premier angle pour fermer.'}
+              <span className="keyboard-hint"> Entrée : fermer.</span>
+            </p>
+            {points.length > 0 && (
+              <div className="actions">
+                <button
+                  type="button"
+                  className="quiet"
+                  onClick={() => setPoints((current) => current.slice(0, -1))}
+                >
+                  Annuler l’angle
+                </button>
+                <button type="button" disabled={points.length < 3} onClick={closeZone}>
+                  Fermer la zone
+                </button>
+              </div>
+            )}
+          </div>
         )}
-        {tool === 'zone' && zoneBounds && (
+        {zoneShape && !reshaping && (
           <ZoneNameForm
             pending={createZone.isPending}
-            error={
-              isUsable(zoneBounds)
-                ? createZone.error
-                : new Error('Zone trop petite : tracez un rectangle plus grand.')
-            }
-            onSubmit={(name) =>
-              isUsable(zoneBounds) && createZone.mutate({ name, bounds: zoneBounds })
-            }
-            onRestart={() => setPoints([])}
+            error={zoneShapeError ? new Error(zoneShapeError) : createZone.error}
+            onSubmit={(name) => !zoneShapeError && createZone.mutate({ name, points: zoneShape })}
+            onRestart={restartZone}
           />
+        )}
+        {zoneShape && reshaping && (zoneShapeError || reshapeZone.error) && (
+          <div className="draw-bar" role="alert">
+            <p className="error">{zoneShapeError ?? reshapeZone.error?.message}</p>
+            <div className="actions">
+              <button type="button" className="secondary" onClick={restartZone}>
+                Retracer
+              </button>
+            </div>
+          </div>
         )}
         {tool === 'calibrer' && points.length < 2 && (
           <p className="placing-hint" role="status">
@@ -514,6 +590,10 @@ function Floor({ floor }: { floor: FloorDetail }) {
                 error={renameZone.error ?? archiveZone.error}
                 onRename={(name) => renameZone.mutate({ id: activeZone.id, name })}
                 onArchive={() => archiveZone.mutate(activeZone.id)}
+                onReshape={() => {
+                  switchTool('zone');
+                  setReshaping(activeZone.id);
+                }}
               />
             ) : undefined
           }

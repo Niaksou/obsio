@@ -47,19 +47,22 @@ export function ZoneNameForm({
   );
 }
 
-/** Renommer ou retirer la zone choisie (admin). Les équipements restent à leur place. */
+/** Renommer, redessiner ou retirer la zone choisie (admin). Les équipements restent en place. */
 export function ZoneActions({
   zone,
   pending,
   error,
   onRename,
   onArchive,
+  onReshape,
 }: {
   zone: Zone;
   pending: boolean;
   error: Error | null;
   onRename: (name: string) => void;
   onArchive: () => void;
+  /** Retracer le contour de la zone sur le plan. */
+  onReshape: () => void;
 }) {
   const [renaming, setRenaming] = useState(false);
 
@@ -97,6 +100,9 @@ export function ZoneActions({
     <div className="zone-actions">
       <button type="button" className="quiet" onClick={() => setRenaming(true)}>
         Renommer
+      </button>
+      <button type="button" className="quiet" onClick={onReshape}>
+        Redessiner
       </button>
       <ConfirmButton
         label="Retirer la zone"

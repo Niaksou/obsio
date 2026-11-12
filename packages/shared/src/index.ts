@@ -5,6 +5,7 @@ export * from './extraction.js';
 export * from './storage.js';
 export * from './equipment.js';
 export * from './premises.js';
+export * from './polygon.js';
 export * from './invitations.js';
 export * from './reports.js';
 export * from './reserves.js';
