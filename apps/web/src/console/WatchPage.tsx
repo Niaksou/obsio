@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { useClients } from './api.js';
-import { WATCH_GROUPS, watchItems, type WatchGroup } from './watch.js';
+import { WATCH_GROUPS, WATCH_RULES, watchItems, type WatchGroup } from './watch.js';
 import { Loading } from '../components/Loading.js';
 
 /** Clients qui demandent une action de l'équipe, groupés par raison. */
@@ -17,26 +17,23 @@ export function WatchPage() {
 
   return (
     <div className="console-page">
-      <div className="console-head">
-        <h1>À surveiller</h1>
-        <p className="hint">
-          Échéance sous 30 jours, plus de 30 jours sans connexion, plafond utilisé à 80 %, analyse
-          en échec
-        </p>
-      </div>
+      <h1>À surveiller</h1>
       {items.length === 0 ? (
         <p className="empty">
-          Rien à signaler : tous les clients sont actifs et dans leurs limites.
+          Rien à signaler : tous les clients sont actifs et dans leurs limites
         </p>
       ) : (
         <div className="watch-groups">
           {groups.map(({ group, items }) => (
             <section key={group} className="usage-card">
-              <h2>
-                {WATCH_GROUPS[group]} <span className="count">{items.length}</span>
-              </h2>
+              <div className="watch-head">
+                <h2>
+                  {WATCH_GROUPS[group]} <span className="count">{items.length}</span>
+                </h2>
+                <p className="hint">{WATCH_RULES[group]}</p>
+              </div>
               {items.length === 0 ? (
-                <p className="hint">Aucun client.</p>
+                <p className="hint">Aucun client</p>
               ) : (
                 <ul className="watch-list">
                   {items.map((item) => (

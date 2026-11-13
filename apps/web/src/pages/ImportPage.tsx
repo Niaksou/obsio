@@ -42,7 +42,7 @@ export function ImportPage() {
   });
 
   if (detail.error) return <p className="error page-message">{detail.error.message}</p>;
-  if (!detail.data) return <Loading page />;
+  if (!detail.data) return <Loading shape="detail" page />;
   return <ImportReview detail={detail.data} />;
 }
 

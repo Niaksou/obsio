@@ -60,7 +60,9 @@ const consolePages = {
   ),
 };
 
-const lazyPage = (page: ReactNode) => <Suspense fallback={<Loading page />}>{page}</Suspense>;
+const lazyPage = (page: ReactNode) => (
+  <Suspense fallback={<Loading shape="bar" />}>{page}</Suspense>
+);
 
 const session = (page: ReactNode) => (
   <RequireSession>

@@ -21,7 +21,7 @@ const ROLE_LABELS: Record<string, string> = { admin: 'Administrateur', membre: '
 export function Home() {
   const { data: session } = authClient.useSession();
   const { data: organisation } = authClient.useActiveOrganization();
-  if (!organisation) return <Loading />;
+  if (!organisation) return <Loading shape="detail" />;
 
   const me = organisation.members.find((m) => m.userId === session?.user.id);
   const isAdmin = me?.role === 'admin';

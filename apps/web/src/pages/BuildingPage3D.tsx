@@ -36,7 +36,7 @@ export function BuildingPage3D() {
     queryFn: () => api.floors(buildingId),
   });
   if (floors.error) return <p className="error page-message">{floors.error.message}</p>;
-  if (!floors.data) return <Loading page />;
+  if (!floors.data) return <Loading shape="plan" page />;
   if (floors.data.length === 0) {
     return <p className="empty page-message">Ce bâtiment n’a pas encore d’étage.</p>;
   }
@@ -96,7 +96,7 @@ function Building({ floors }: { floors: Floor[] }) {
   const error = details.error ?? equipment.error;
   if (error) return <p className="error page-message">{error.message}</p>;
   if (!first || sceneFloors.length === 0) {
-    return <Loading page />;
+    return <Loading shape="plan" page />;
   }
 
   const byLevel = [...sceneFloors].sort((a, b) => b.level - a.level);

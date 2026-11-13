@@ -6,8 +6,16 @@ export const WATCH_GROUPS = {
   licence: 'Licences à renouveler',
   silence: 'Clients sans connexion',
   plafond: 'Proches d’un plafond',
-  echecs: 'Analyses en échec ce mois',
+  echecs: 'Analyses en échec',
 } as const;
+
+/** Règle de chaque groupe, affichée sous son titre. */
+export const WATCH_RULES: Record<keyof typeof WATCH_GROUPS, string> = {
+  licence: 'Échéance sous 30 jours ou lecture seule',
+  silence: '30 jours sans connexion, ou personne connecté 14 jours après l’ouverture',
+  plafond: 'Plafond utilisé à 80 % ou plus',
+  echecs: 'Depuis le début du mois',
+};
 export type WatchGroup = keyof typeof WATCH_GROUPS;
 
 export interface WatchItem {

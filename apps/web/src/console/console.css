@@ -80,7 +80,6 @@
   height: 8px;
   background: var(--patina-light);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgb(140 199 182 / 0.2);
 }
 
 .console-main {
@@ -112,7 +111,7 @@
 
 .console-figures {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
   margin: 0;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -140,6 +139,16 @@
   font-size: 1.75rem;
   font-weight: 500;
   line-height: 1.1;
+}
+
+/* Chiffre principal du bandeau : plus grand, avec ce qu'il couvre. */
+.console-figures .lead dd {
+  font-size: 2.5rem;
+}
+
+.lead-note {
+  font-size: 0.8125rem;
+  color: var(--muted);
 }
 
 .console-figures .alert-figure dd {
@@ -201,6 +210,7 @@
 
 .console-table tbody tr.selected {
   background: var(--paper-deep);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 .console-table tbody th {
@@ -423,6 +433,11 @@
 
   .console-figures > div + div {
     border-left: 0;
+  }
+
+  .console-figures .lead {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--line);
   }
 }
 
@@ -723,14 +738,8 @@
 /* --- À surveiller et fiche client */
 
 .console-count {
-  min-width: 20px;
-  padding: 0 6px;
-  font-size: 0.75rem;
-  line-height: 20px;
-  text-align: center;
-  color: var(--ink);
-  background: var(--patina-light);
-  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: var(--patina-light);
 }
 
 .watch-groups {
@@ -738,6 +747,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   align-items: start;
+}
+
+.watch-head {
+  display: grid;
+  gap: 4px;
 }
 
 .watch-groups h2 .count {
@@ -757,7 +771,7 @@
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 0;
+  padding: 12px 0;
   font-size: 0.9375rem;
   border-top: 1px solid var(--line-soft);
 }

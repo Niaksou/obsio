@@ -26,7 +26,7 @@ export function RequireOrganisation({ children }: { children: ReactNode }) {
   }, [activeId, queryClient]);
 
   if (listPending || activePending || (!active && organisations?.length)) {
-    return <Loading />;
+    return <Loading shape="bar" />;
   }
   if (!active) {
     return (

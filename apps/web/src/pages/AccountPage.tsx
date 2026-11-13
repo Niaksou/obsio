@@ -16,7 +16,7 @@ import { Loading } from '../components/Loading.js';
 
 export function AccountPage() {
   const { data: session } = authClient.useSession();
-  if (!session) return <Loading />;
+  if (!session) return <Loading shape="detail" />;
 
   return (
     <div className="settings-page">

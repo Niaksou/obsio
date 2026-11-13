@@ -85,10 +85,10 @@ export function AuditPage() {
     <div className="console-page">
       <div className="console-head">
         <h1>Journal</h1>
-        <p className="hint">200 dernières actions de l'équipe, en ajout seul</p>
+        <p className="hint">Les 200 dernières actions de l'équipe, non modifiables</p>
       </div>
       {entries.length === 0 ? (
-        <p className="empty">Aucune action pour l'instant.</p>
+        <p className="empty">Aucune action pour l'instant</p>
       ) : (
         <AuditList entries={entries} />
       )}

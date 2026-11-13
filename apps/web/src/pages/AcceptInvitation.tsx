@@ -12,7 +12,7 @@ export function AcceptInvitation() {
   const { data: session, isPending } = authClient.useSession();
   const location = useLocation();
 
-  if (isPending) return <Loading />;
+  if (isPending) return <Loading shape="bar" />;
   if (!session) {
     const redirect = encodeURIComponent(location.pathname);
     return (
@@ -57,7 +57,7 @@ function InvitationForSession({ invitationId }: { invitationId: string }) {
       </div>
     );
   }
-  if (!details) return <Loading />;
+  if (!details) return <Loading shape="bar" />;
 
   return (
     <div className="card">

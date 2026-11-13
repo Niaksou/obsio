@@ -53,7 +53,7 @@ function LockScreen() {
 
   return (
     <div className="card console-gate">
-      <KeyRound size={24} strokeWidth={1.5} aria-hidden />
+      <KeyRound size={18} strokeWidth={1.5} aria-hidden />
       <h1>Console verrouillée</h1>
       <p className="hint">
         Confirmez votre identité avec votre clé d'accès. La console se reverrouille après 15 minutes
@@ -64,7 +64,7 @@ function LockScreen() {
           Déverrouiller avec ma clé d'accès
         </button>
       ) : (
-        <p className="error">Ce navigateur ne permet pas d'utiliser une clé d'accès.</p>
+        <p className="error">Ce navigateur ne permet pas d'utiliser une clé d'accès</p>
       )}
       {error && <p className="error">{error}</p>}
       <p className="hint">
@@ -101,7 +101,7 @@ function ConsoleShell() {
   const { pathname } = useLocation();
   const watchCount = useWatchCount(!!session?.unlockedUntil);
 
-  if (isPending) return <Loading page />;
+  if (isPending) return <Loading shape="bar" />;
   if (!session?.staff) return <NotFound />;
   if (!session.unlockedUntil) return <LockScreen />;
 

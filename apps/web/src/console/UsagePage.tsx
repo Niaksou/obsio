@@ -1,7 +1,7 @@
 import { PAGE_LABELS } from '@obsio/shared';
 import { useState } from 'react';
 import { useUsage } from './api.js';
-import { DailyBars } from './DailyBars.js';
+import { DailyBars, formatDay } from './DailyBars.js';
 import { Loading } from '../components/Loading.js';
 
 const number = new Intl.NumberFormat('fr-FR');
@@ -71,14 +71,18 @@ export function UsagePage() {
           ))}
         </div>
       </div>
-      {isPending && <Loading inline />}
+      {isPending && <Loading shape="detail" inline />}
       {error && <p className="error">{error.message}</p>}
       {usage && totals && (
         <>
           <dl className="console-figures">
-            <div>
+            {/* Chiffre principal : ce que l'extraction a coûté sur la période. */}
+            <div className="lead">
               <dt>Coût estimé</dt>
               <dd>{euros.format(totals.cost)}</dd>
+              <span className="lead-note">
+                Du {formatDay(usage.from)} au {formatDay(usage.to)}
+              </span>
             </div>
             <div>
               <dt>Analyses</dt>
@@ -112,7 +116,7 @@ export function UsagePage() {
               value={(day) => day.cost}
               format={euros.format}
               label="Coût estimé par jour"
-              empty="Aucune consommation d'extraction sur la période."
+              empty="Aucune consommation d'extraction sur la période"
               tooltip={(day) => (
                 <>
                   <span>{euros.format(day.cost)} estimés</span>
@@ -134,7 +138,7 @@ export function UsagePage() {
             <section className="usage-card">
               <h2>Par client</h2>
               <RankedList
-                empty="Aucun client."
+                empty="Aucun client"
                 rows={usage.clients.map((c) => ({
                   key: c.id,
                   label: c.name,
@@ -147,7 +151,7 @@ export function UsagePage() {
             <section className="usage-card">
               <h2>Pages les plus vues</h2>
               <RankedList
-                empty="Aucune page vue sur la période."
+                empty="Aucune page vue sur la période"
                 rows={usage.pages.map((p) => ({
                   key: p.path,
                   label: PAGE_LABELS[p.path],
@@ -164,7 +168,7 @@ export function UsagePage() {
               <p className="hint">Points extraits déjà tranchés par les clients</p>
             </div>
             {usage.quality.length === 0 ? (
-              <p className="empty">Aucun brouillon tranché sur la période.</p>
+              <p className="empty">Aucun brouillon tranché sur la période</p>
             ) : (
               <table className="console-table quality-table">
                 <thead>

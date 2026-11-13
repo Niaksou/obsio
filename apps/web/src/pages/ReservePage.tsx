@@ -25,7 +25,7 @@ export function ReservePage() {
     queryFn: () => api.reserve(reserveId),
   });
   if (reserve.error) return <p className="error page-message">{reserve.error.message}</p>;
-  if (!reserve.data) return <Loading page />;
+  if (!reserve.data) return <Loading shape="detail" page />;
   return <Reserve reserve={reserve.data} />;
 }
 

@@ -12,7 +12,7 @@ export function RequireSession({ children }: { children: ReactNode }) {
   const { data: session, isPending } = authClient.useSession();
   const location = useLocation();
 
-  if (isPending) return <Loading />;
+  if (isPending) return <Loading shape="bar" />;
   if (!session) {
     const redirect = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/connexion?redirect=${redirect}`} replace />;

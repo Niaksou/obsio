@@ -30,7 +30,7 @@ export function SitePage() {
   });
 
   if (site.error) return <p className="error">{site.error.message}</p>;
-  if (!site.data) return <Loading />;
+  if (!site.data) return <Loading shape="detail" />;
 
   return (
     <div className="page">

@@ -54,7 +54,7 @@ export function FloorPage() {
   });
 
   if (floor.error) return <p className="error page-message">{floor.error.message}</p>;
-  if (!floor.data) return <Loading page />;
+  if (!floor.data) return <Loading shape="plan" page />;
   return <Floor floor={floor.data} />;
 }
 

@@ -99,15 +99,26 @@ function Overview({ clients }: { clients: ConsoleClient[] }) {
   const pages = clients.reduce((sum, c) => sum + c.ocrPagesThisMonth, 0);
   const figures = [
     { label: 'Clients', value: clients.length },
-    { label: 'Échéance sous 30 jours', value: soon, alert: soon > 0 },
     { label: 'En lecture seule', value: readOnly },
     { label: 'Analyses ce mois', value: analyses },
     { label: 'Pages OCR ce mois', value: pages },
   ];
   return (
     <dl className="console-figures">
+      {/* Chiffre principal : ce qui demande une action de l'équipe. */}
+      <div className={soon > 0 ? 'lead alert-figure' : 'lead'}>
+        <dt>Échéance sous 30 jours</dt>
+        <dd>{number.format(soon)}</dd>
+        <span className="lead-note">
+          {soon > 0 ? (
+            <Link to="/console/a-surveiller">Licences à renouveler</Link>
+          ) : (
+            'Aucune licence à renouveler'
+          )}
+        </span>
+      </div>
       {figures.map((figure) => (
-        <div key={figure.label} className={figure.alert ? 'alert-figure' : undefined}>
+        <div key={figure.label}>
           <dt>{figure.label}</dt>
           <dd>{number.format(figure.value)}</dd>
         </div>
@@ -201,7 +212,7 @@ export function ClientPanel({
       </div>
       {onClose && (
         <Link to={`/console/clients/${client.id}`} className="console-more">
-          Fiche du client : démarrage, activité, historique
+          Fiche du client
         </Link>
       )}
 
@@ -357,7 +368,7 @@ export function ClientsPage() {
               ))}
             </tbody>
           </table>
-          {clients.length === 0 && <p className="empty">Aucun client pour l'instant.</p>}
+          {clients.length === 0 && <p className="empty">Aucun client pour l'instant</p>}
         </div>
         {creating && <NewClient onDone={() => setCreating(false)} />}
         {selected && !creating && (

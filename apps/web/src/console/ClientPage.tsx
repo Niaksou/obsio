@@ -13,7 +13,7 @@ const number = new Intl.NumberFormat('fr-FR');
 export function ClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const { data, error, isPending } = useClientDetail(clientId!);
-  if (isPending) return <Loading />;
+  if (isPending) return <Loading shape="detail" />;
   if (error) return <p className="error">{error.message}</p>;
 
   const { client, onboarding, activity, audit } = data;
@@ -44,7 +44,7 @@ export function ClientPage() {
               value={(day) => day.pageViews}
               format={number.format}
               label="Pages vues par jour"
-              empty="Aucune page vue sur les 90 derniers jours."
+              empty="Aucune page vue sur les 90 derniers jours"
               tooltip={(day) => (
                 <>
                   <span>{number.format(day.pageViews)} pages vues</span>
@@ -70,7 +70,7 @@ export function ClientPage() {
               {onboarding.map((step) => (
                 <li key={step.step} className={step.done ? 'done' : undefined}>
                   <span className="onboarding-mark" aria-hidden>
-                    {step.done && <Check size={14} strokeWidth={2} />}
+                    {step.done && <Check size={14} strokeWidth={1.5} />}
                   </span>
                   {ONBOARDING_LABELS[step.step]}
                   <span className="visually-hidden">{step.done ? ' : fait' : ' : à faire'}</span>
@@ -82,7 +82,7 @@ export function ClientPage() {
           <section className="usage-card">
             <h2>Historique de la licence</h2>
             {audit.length === 0 ? (
-              <p className="hint">Aucune action de l'équipe sur ce client.</p>
+              <p className="hint">Aucune action de l'équipe sur ce client</p>
             ) : (
               <AuditList entries={audit} showClient={false} />
             )}
