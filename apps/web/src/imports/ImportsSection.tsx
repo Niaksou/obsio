@@ -1,5 +1,6 @@
 import { IMPORT_STATUS_LABELS, REPORT_MAX_BYTES, type ReportImport } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { FileUp } from 'lucide-react';
 import { Link } from 'react-router';
 import { api, uploadToStorage } from '../api.js';
 import { MutationError } from '../components/MutationError.js';
@@ -24,18 +25,11 @@ function importSummary(item: ReportImport) {
   return `${n} réserve${n > 1 ? 's' : ''} à relire`;
 }
 
-/** Rapports de vérification d'un site : dépôt (admin) et suivi de l'analyse. */
-export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+/** Dépôt d'un rapport PDF : envoi au stockage, puis création de l'import (analyse). */
+export function useReportUpload(siteId: string) {
   const queryClient = useQueryClient();
-  const imports = useQuery({
-    queryKey: keys.imports(siteId),
-    queryFn: () => api.imports(siteId),
-    // Tant qu'un rapport est en analyse, la liste se met à jour toute seule.
-    refetchInterval: (query) =>
-      query.state.data?.some((item) => item.status === 'en_analyse') ? ANALYSIS_POLL_MS : false,
-  });
-
-  const upload = useMutation({
+  return useMutation({
+    mutationKey: ['report-upload', siteId],
     mutationFn: async (file: File) => {
       if (file.type !== 'application/pdf') throw new Error('Déposez le rapport au format PDF.');
       if (file.size > REPORT_MAX_BYTES) throw new Error(`Ce fichier dépasse ${MAX_MB} Mo.`);
@@ -45,51 +39,66 @@ export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: b
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.imports(siteId) }),
   });
+}
+
+/** Bouton « Importer un rapport » : un champ fichier habillé en bouton principal. */
+export function ReportUploadButton({ siteId }: { siteId: string }) {
+  const upload = useReportUpload(siteId);
+  return (
+    <div className="upload-button" data-tour="site-upload">
+      <label className={upload.isPending ? 'button-file pending' : 'button-file'}>
+        <FileUp size={18} strokeWidth={1.5} aria-hidden />
+        <span>{upload.isPending ? 'Envoi du rapport…' : 'Importer un rapport'}</span>
+        <input
+          type="file"
+          accept="application/pdf"
+          disabled={upload.isPending}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (file) upload.mutate(file);
+          }}
+        />
+      </label>
+      <MutationError error={upload.error} />
+    </div>
+  );
+}
+
+/** Rapports de vérification d'un site et suivi de leur analyse ; le dépôt est dans l'en-tête. */
+export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+  const imports = useQuery({
+    queryKey: keys.imports(siteId),
+    queryFn: () => api.imports(siteId),
+    // Tant qu'un rapport est en analyse, la liste se met à jour toute seule.
+    refetchInterval: (query) =>
+      query.state.data?.some((item) => item.status === 'en_analyse') ? ANALYSIS_POLL_MS : false,
+  });
 
   return (
-    <section className="reports" data-tour="site-reports">
-      <div className="title-row section-title">
-        <h2>Rapports de vérification</h2>
-      </div>
+    <section className="site-section" data-tour="site-reports" aria-labelledby="reports-title">
+      <h2 id="reports-title">Rapports de vérification</h2>
       {imports.data?.length === 0 && (
         <p className="empty">
           {isAdmin
-            ? 'Déposez le rapport PDF de l’organisme de contrôle : les réserves sont extraites, puis vous les relisez avant de les activer.'
+            ? 'Importez le rapport PDF de l’organisme de contrôle : les réserves sont extraites, puis vous les relisez avant de les activer.'
             : 'Aucun rapport importé pour l’instant.'}
         </p>
       )}
       {imports.data && imports.data.length > 0 && (
-        <ul className="rows">
+        <ul className="rows report-rows">
           {imports.data.map((item) => (
             <li key={item.id}>
-              <Link to={`/imports/${item.id}`} className="row-link">
+              <Link to={`/imports/${item.id}`} className="report-row">
                 <span className="row-title">{item.fileName}</span>
-                <span className="row-meta">déposé le {formatDate(item.createdAt)}</span>
-                <span className={`status status-${item.status}`}>
-                  {IMPORT_STATUS_LABELS[item.status]} : {importSummary(item)}
+                <span className={`report-status status-${item.status}`}>
+                  {IMPORT_STATUS_LABELS[item.status]} · {importSummary(item)}
                 </span>
+                <small>Déposé le {formatDate(item.createdAt)}</small>
               </Link>
             </li>
           ))}
         </ul>
-      )}
-      {isAdmin && (
-        <div className="inline-form compact">
-          <label className="file-drop file-drop-inline">
-            <span>{upload.isPending ? 'Envoi du rapport…' : 'Importer un rapport PDF'}</span>
-            <input
-              type="file"
-              accept="application/pdf"
-              disabled={upload.isPending}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = '';
-                if (file) upload.mutate(file);
-              }}
-            />
-          </label>
-          <MutationError error={upload.error} />
-        </div>
       )}
     </section>
   );

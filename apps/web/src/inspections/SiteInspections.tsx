@@ -1,15 +1,22 @@
 import type { Inspection } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalendarClock } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { api } from '../api.js';
 import { field } from '../components/Form.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys } from '../queries.js';
-import { dateParts, keyDate, KIND_SHORT } from './describe.js';
-import { DueLine } from './DueLine.js';
+import {
+  InspectionStatusLabel,
+  keyDate,
+  KIND_SHORT,
+  lastVisitLabel,
+  nextStep,
+  relativeDay,
+} from './describe.js';
 
-/** Échéancier d'un site : une ligne par type de vérification, réglable par l'admin. */
+/** Échéancier d'un site : une carte par type de vérification, avec l'action de l'admin. */
 export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
   const inspections = useQuery({
     queryKey: keys.siteInspections(siteId),
@@ -28,13 +35,13 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
   return (
     <section
       ref={section}
-      className="inspections"
+      className="site-section"
       data-tour="site-inspections"
       id="verifications"
       aria-labelledby="verifications-title"
     >
       <h2 id="verifications-title">Échéances de contrôle</h2>
-      <ul className="rows due-rows">
+      <ul className="rows inspection-cards">
         {inspections.data.map((inspection) => (
           <InspectionRow key={inspection.kind} inspection={inspection} isAdmin={isAdmin} />
         ))}
@@ -43,38 +50,40 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
   );
 }
 
-const shortDay = (day: string) => {
-  const { dayMonth, year } = dateParts(day);
-  return `${dayMonth} ${year}`;
-};
+/** Ce que fait le bouton de la ligne, selon l'état du suivi. */
+function actionLabel(inspection: Inspection) {
+  if (!inspection.enabled) return 'Suivre ce contrôle';
+  return inspection.plannedDate ? 'Modifier la visite' : 'Programmer la visite';
+}
 
 function InspectionRow({ inspection, isAdmin }: { inspection: Inspection; isAdmin: boolean }) {
   const [editing, setEditing] = useState(false);
   const key = keyDate(inspection);
-  const last = inspection.lastVisit;
-  // Précision : ce que représente la date, et la dernière visite (l'interlocuteur est dans
-  // « Régler »).
-  const detail = [key?.label, last && `dernière visite le ${shortDay(last.date)}`]
-    .filter(Boolean)
-    .join(' · ');
+  const last = lastVisitLabel(inspection);
   return (
-    <li className={inspection.enabled ? undefined : 'disabled'}>
-      <div className={isAdmin ? 'due-row has-action' : 'due-row'}>
-        <DueLine
-          inspection={inspection}
-          title={KIND_SHORT[inspection.kind]}
-          detail={detail || undefined}
-        />
-        {isAdmin && (
-          <span className="due-action">
-            {!editing && (
-              <button type="button" className="quiet" onClick={() => setEditing(true)}>
-                Régler
-              </button>
-            )}
-          </span>
-        )}
+    <li className={inspection.enabled ? 'inspection-card' : 'inspection-card disabled'}>
+      <div className="inspection-card-head">
+        <span className="row-title">{KIND_SHORT[inspection.kind]}</span>
+        <InspectionStatusLabel status={inspection.status} />
       </div>
+      <p className="inspection-card-when">
+        {key ? (
+          <>
+            {nextStep(inspection)}
+            <span className="inspection-card-relative"> · {relativeDay(key.date)}</span>
+          </>
+        ) : (
+          nextStep(inspection)
+        )}
+      </p>
+      {last && <p className="hint">{last}</p>}
+      {inspection.contact && <p className="hint">Contact : {inspection.contact}</p>}
+      {isAdmin && !editing && (
+        <button type="button" className="secondary compact" onClick={() => setEditing(true)}>
+          <CalendarClock size={16} strokeWidth={1.5} aria-hidden />
+          {actionLabel(inspection)}
+        </button>
+      )}
       {editing && <InspectionForm inspection={inspection} onDone={() => setEditing(false)} />}
     </li>
   );
@@ -99,7 +108,7 @@ function InspectionForm({ inspection, onDone }: { inspection: Inspection; onDone
 
   return (
     <form
-      className="inline-form compact inspection-form"
+      className="inspection-form"
       onSubmit={(event) => {
         event.preventDefault();
         save.mutate(new FormData(event.currentTarget));

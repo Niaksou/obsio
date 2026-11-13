@@ -1,14 +1,17 @@
 import type { Building } from '@obsio/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Box, ChevronRight, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { field } from '../components/Form.js';
-import { ImportsSection } from '../imports/ImportsSection.js';
+import { ImportsSection, ReportUploadButton } from '../imports/ImportsSection.js';
 import { SiteInspections } from '../inspections/SiteInspections.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys, useIsAdmin } from '../queries.js';
-import { SiteDashboard } from '../reserves/SiteDashboard.js';
+import { SiteAlerts, SiteProgress } from '../reserves/SiteDashboard.js';
+import { plural } from '../reserves/status.js';
 import { Loading } from '../components/Loading.js';
 
 export function SitePage() {
@@ -17,10 +20,6 @@ export function SitePage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const site = useQuery({ queryKey: keys.site(siteId), queryFn: () => api.site(siteId) });
-  const buildings = useQuery({
-    queryKey: keys.buildings(siteId),
-    queryFn: () => api.buildings(siteId),
-  });
   const archive = useMutation({
     mutationFn: () => api.archive('sites', siteId),
     onSuccess: async () => {
@@ -33,29 +32,79 @@ export function SitePage() {
   if (!site.data) return <Loading shape="detail" />;
 
   return (
-    <div className="page">
-      <p className="crumbs">
-        <Link to="/">Sites</Link>
-      </p>
-      <div className="title-row">
-        <div>
+    <div className="page site-page">
+      <header className="site-head">
+        <div className="site-head-text">
+          <p className="crumbs">
+            <Link to="/">Sites</Link>
+          </p>
           <h1>{site.data.name}</h1>
           {site.data.address && <p className="row-meta">{site.data.address}</p>}
         </div>
-        {isAdmin && (
+        <div className="site-head-actions">
+          <Link to={`/sites/${siteId}/reserves`} className="button-link secondary">
+            Réserves du site
+          </Link>
+          {isAdmin && <ReportUploadButton siteId={siteId} />}
+        </div>
+      </header>
+
+      <SiteAlerts siteId={siteId} />
+
+      <div className="site-grid">
+        <div className="site-main">
+          <SiteProgress siteId={siteId} isAdmin={isAdmin} />
+          <BuildingsSection siteId={siteId} isAdmin={isAdmin} />
+        </div>
+        <div className="site-side">
+          <SiteInspections siteId={siteId} isAdmin={isAdmin} />
+          <ImportsSection siteId={siteId} isAdmin={isAdmin} />
+        </div>
+      </div>
+
+      {isAdmin && (
+        <footer className="site-archive">
+          <p className="hint">
+            Un site archivé disparaît des listes ; ses réserves et ses preuves sont conservées
+          </p>
           <ConfirmButton
             label="Archiver le site"
             confirmLabel="Archiver le site et ses bâtiments"
             disabled={archive.isPending}
             onConfirm={() => archive.mutate()}
           />
+          <MutationError error={archive.error} />
+        </footer>
+      )}
+    </div>
+  );
+}
+
+/** Bâtiments du site, chacun avec ses étages ; ajout replié derrière un bouton. */
+function BuildingsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+  const [adding, setAdding] = useState(false);
+  const buildings = useQuery({
+    queryKey: keys.buildings(siteId),
+    queryFn: () => api.buildings(siteId),
+  });
+  return (
+    <section className="site-section" aria-labelledby="buildings-title">
+      <div className="site-section-head">
+        <h2 id="buildings-title">Bâtiments</h2>
+        {isAdmin && !adding && (
+          <button
+            type="button"
+            className="secondary compact"
+            data-tour="add-building"
+            onClick={() => setAdding(true)}
+          >
+            <Plus size={16} strokeWidth={1.5} aria-hidden />
+            Ajouter un bâtiment
+          </button>
         )}
       </div>
-      <MutationError error={archive.error} />
-      <SiteDashboard siteId={siteId} />
-      <SiteInspections siteId={siteId} isAdmin={isAdmin} />
-
-      {buildings.data?.length === 0 && (
+      {adding && <AddBuilding siteId={siteId} onDone={() => setAdding(false)} />}
+      {buildings.data?.length === 0 && !adding && (
         <p className="empty">
           {isAdmin
             ? 'Ajoutez les bâtiments du site, puis leurs étages et leurs plans.'
@@ -63,16 +112,15 @@ export function SitePage() {
         </p>
       )}
       {buildings.data?.map((building) => (
-        <BuildingSection key={building.id} building={building} isAdmin={isAdmin} />
+        <BuildingCard key={building.id} building={building} isAdmin={isAdmin} />
       ))}
-      {isAdmin && <AddBuilding siteId={siteId} />}
-      <ImportsSection siteId={siteId} isAdmin={isAdmin} />
-    </div>
+    </section>
   );
 }
 
-function BuildingSection({ building, isAdmin }: { building: Building; isAdmin: boolean }) {
+function BuildingCard({ building, isAdmin }: { building: Building; isAdmin: boolean }) {
   const queryClient = useQueryClient();
+  const [adding, setAdding] = useState(false);
   const floors = useQuery({
     queryKey: keys.floors(building.id),
     queryFn: () => api.floors(building.id),
@@ -81,71 +129,98 @@ function BuildingSection({ building, isAdmin }: { building: Building; isAdmin: b
     mutationFn: () => api.archive('buildings', building.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.buildings(building.siteId) }),
   });
+  const count = floors.data?.length ?? 0;
 
   return (
-    <section className="building" data-tour="site-building">
-      <div className="title-row">
-        <h2>{building.name}</h2>
-        {floors.data && floors.data.length > 0 && (
-          <Link to={`/batiments/${building.id}/3d`} className="quiet-link">
-            Vue 3D
-          </Link>
-        )}
-        {isAdmin && (
-          <ConfirmButton
-            label="Archiver"
-            confirmLabel="Archiver le bâtiment"
-            disabled={archive.isPending}
-            onConfirm={() => archive.mutate()}
-          />
-        )}
-      </div>
+    <article className="site-card building-card" data-tour="site-building">
+      <header className="building-card-head">
+        <div>
+          <h3>{building.name}</h3>
+          {floors.data && (
+            <p className="hint">{count === 0 ? 'Aucun étage' : plural(count, 'étage')}</p>
+          )}
+        </div>
+        <div className="building-card-actions">
+          {count > 0 && (
+            <Link to={`/batiments/${building.id}/3d`} className="quiet-link">
+              <Box size={16} strokeWidth={1.5} aria-hidden />
+              Vue 3D
+            </Link>
+          )}
+          {isAdmin && (
+            <ConfirmButton
+              label="Archiver"
+              confirmLabel="Archiver le bâtiment"
+              disabled={archive.isPending}
+              onConfirm={() => archive.mutate()}
+            />
+          )}
+        </div>
+      </header>
       <MutationError error={archive.error} />
-      {floors.data?.length === 0 && <p className="empty">Aucun étage.</p>}
-      {floors.data && floors.data.length > 0 && (
-        <ul className="rows">
-          {floors.data.map((floor) => (
+      {count > 0 && (
+        <ul className="floor-rows">
+          {floors.data!.map((floor) => (
             <li key={floor.id}>
-              <Link to={`/etages/${floor.id}`} className="row-link">
+              <Link to={`/etages/${floor.id}`} className="floor-row">
+                <span className="floor-level">{floorLevel(floor.level)}</span>
                 <span className="row-title">{floor.name}</span>
-                <span className="row-meta">Niveau {floor.level}</span>
-                <span className={floor.plan ? 'status' : 'status status-missing'}>
+                <span className={floor.plan ? 'floor-plan' : 'floor-plan missing'}>
                   {floor.plan ? 'Plan déposé' : 'Pas de plan'}
                 </span>
+                <ChevronRight size={16} strokeWidth={1.5} aria-hidden className="floor-chevron" />
               </Link>
             </li>
           ))}
         </ul>
       )}
-      {isAdmin && <AddFloor buildingId={building.id} />}
-    </section>
+      {isAdmin &&
+        (adding ? (
+          <AddFloor buildingId={building.id} onDone={() => setAdding(false)} />
+        ) : (
+          <button type="button" className="quiet compact add-floor" onClick={() => setAdding(true)}>
+            <Plus size={16} strokeWidth={1.5} aria-hidden />
+            Ajouter un étage
+          </button>
+        ))}
+    </article>
   );
 }
 
-function AddBuilding({ siteId }: { siteId: string }) {
+/** Niveau en repère court : « RDC », « R+2 », « R-1 ». */
+function floorLevel(level: number) {
+  if (level === 0) return 'RDC';
+  return level > 0 ? `R+${level}` : `R${level}`;
+}
+
+function AddBuilding({ siteId, onDone }: { siteId: string; onDone: () => void }) {
   const queryClient = useQueryClient();
   const create = useMutation({
     mutationFn: (name: string) => api.createBuilding(siteId, { name }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.buildings(siteId) }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: keys.buildings(siteId) });
+      onDone();
+    },
   });
   return (
     <form
-      className="inline-form"
-      data-tour="add-building"
+      className="site-card add-form"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;
         create.mutate(field(new FormData(form), 'name'), { onSuccess: () => form.reset() });
       }}
     >
-      <h2>Ajouter un bâtiment</h2>
       <div className="fields">
         <label>
-          Nom
-          <input name="name" required placeholder="Atelier principal" />
+          Nom du bâtiment
+          <input name="name" required autoFocus placeholder="Atelier principal" />
         </label>
         <button type="submit" disabled={create.isPending}>
-          Ajouter le bâtiment
+          Ajouter
+        </button>
+        <button type="button" className="quiet" onClick={onDone}>
+          Annuler
         </button>
       </div>
       <MutationError error={create.error} />
@@ -153,15 +228,18 @@ function AddBuilding({ siteId }: { siteId: string }) {
   );
 }
 
-function AddFloor({ buildingId }: { buildingId: string }) {
+function AddFloor({ buildingId, onDone }: { buildingId: string; onDone: () => void }) {
   const queryClient = useQueryClient();
   const create = useMutation({
     mutationFn: (input: { name: string; level: number }) => api.createFloor(buildingId, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.floors(buildingId) }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: keys.floors(buildingId) });
+      onDone();
+    },
   });
   return (
     <form
-      className="inline-form compact"
+      className="add-form add-floor-form"
       onSubmit={(event) => {
         event.preventDefault();
         const form = event.currentTarget;
@@ -175,14 +253,17 @@ function AddFloor({ buildingId }: { buildingId: string }) {
       <div className="fields">
         <label>
           Nouvel étage
-          <input name="name" required placeholder="Rez-de-chaussée" />
+          <input name="name" required autoFocus placeholder="Rez-de-chaussée" />
         </label>
         <label className="narrow">
           Niveau
           <input name="level" type="number" min={-20} max={200} defaultValue={0} />
         </label>
         <button type="submit" disabled={create.isPending}>
-          Ajouter l’étage
+          Ajouter
+        </button>
+        <button type="button" className="quiet" onClick={onDone}>
+          Annuler
         </button>
       </div>
       <MutationError error={create.error} />

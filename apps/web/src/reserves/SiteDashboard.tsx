@@ -5,111 +5,116 @@ import { api } from '../api.js';
 import { keys } from '../queries.js';
 import { formatDay, plural } from './status.js';
 
-/** Tableau de bord d'un site : alertes du dernier Q18, compteurs, étages à traiter. */
-export function SiteDashboard({ siteId }: { siteId: string }) {
-  const dashboard = useQuery({
-    queryKey: keys.dashboard(siteId),
-    queryFn: () => api.dashboard(siteId),
-  });
+function useDashboard(siteId: string) {
+  return useQuery({ queryKey: keys.dashboard(siteId), queryFn: () => api.dashboard(siteId) });
+}
+
+/** Alertes du dernier compte rendu Q18, en tête de la page du site. */
+export function SiteAlerts({ siteId }: { siteId: string }) {
+  const dashboard = useDashboard(siteId);
+  if (!dashboard.data?.q18) return null;
+  return <Q18Alerts q18={dashboard.data.q18} />;
+}
+
+/**
+ * Avancement d'un site : part des réserves levées, une barre par état (chaque état mène à la
+ * liste filtrée), puis les étages où il reste du travail.
+ */
+export function SiteProgress({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+  const dashboard = useDashboard(siteId);
   if (dashboard.error) return <p className="error">{dashboard.error.message}</p>;
   if (!dashboard.data) return null;
-  const { counts, floors, unattached, q18 } = dashboard.data;
+  const { counts, floors, unattached } = dashboard.data;
   const list = (vue?: string) => `/sites/${siteId}/reserves${vue ? `?vue=${vue}` : ''}`;
+  const total = counts.open + counts.toVerify + counts.levees;
 
   return (
-    <section className="dashboard" aria-label="Tableau de bord" data-tour="site-dashboard">
-      <Q18Alerts q18={q18} />
-
-      <ul className="counters">
-        <Counter to={list()} value={counts.open} label="en cours" />
-        <Counter
-          to={list('en_retard')}
-          value={counts.overdue}
-          label="en retard"
-          tone={counts.overdue ? 'danger' : undefined}
-        />
-        <Counter
-          to={list('a_verifier')}
-          value={counts.toVerify}
-          label="corrigées, à vérifier"
-          tone={counts.toVerify ? 'pending' : undefined}
-        />
-        <Counter to={list()} value={counts.reconduites} label="reconduites" />
-        <Counter to={list('levees')} value={counts.levees} label="levées" />
-      </ul>
-
-      <Progress counts={counts} />
+    <section
+      className="site-card site-progress"
+      data-tour="site-dashboard"
+      aria-labelledby="progress-title"
+    >
+      <h2 id="progress-title" className="visually-hidden">
+        Avancement
+      </h2>
+      {total === 0 ? (
+        <p className="empty">
+          {isAdmin
+            ? 'Aucune réserve active. Importez le rapport de l’organisme de contrôle pour commencer le suivi.'
+            : 'Aucune réserve active sur ce site.'}
+        </p>
+      ) : (
+        <Progress counts={counts} total={total} list={list} />
+      )}
 
       {(floors.length > 0 || unattached > 0) && (
-        <ul className="rows floor-load">
-          {floors.map((floor) => (
-            <li key={floor.floorId}>
-              <Link to={`/etages/${floor.floorId}`} className="row-link">
-                <span className="row-title">
-                  {floor.buildingName}, {floor.floorName}
-                </span>
-                <span className="row-meta">{plural(floor.open, 'réserve')} en cours</span>
-                {floor.overdue > 0 && (
-                  <span className="status late">{floor.overdue} en retard</span>
-                )}
-              </Link>
-            </li>
-          ))}
-          {unattached > 0 && (
-            <li>
-              <Link to={list()} className="row-link">
-                <span className="row-title">Sans équipement rattaché</span>
-                <span className="row-meta">{plural(unattached, 'réserve')} en cours</span>
-              </Link>
-            </li>
-          )}
-        </ul>
+        <div className="progress-floors">
+          <h3>Reste à traiter par étage</h3>
+          <ul>
+            {floors.map((floor) => (
+              <li key={floor.floorId}>
+                <Link to={`/etages/${floor.floorId}`}>
+                  <span className="row-title">
+                    {floor.buildingName}, {floor.floorName}
+                  </span>
+                  <span className="progress-floor-count">
+                    {floor.overdue > 0 && (
+                      <span className="late">{floor.overdue} en retard · </span>
+                    )}
+                    {plural(floor.open, 'réserve')}
+                  </span>
+                </Link>
+              </li>
+            ))}
+            {unattached > 0 && (
+              <li>
+                <Link to={list()}>
+                  <span className="row-title">Sans équipement rattaché</span>
+                  <span className="progress-floor-count">{plural(unattached, 'réserve')}</span>
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
       )}
     </section>
   );
 }
 
-function Counter({
-  to,
-  value,
-  label,
-  tone,
-}: {
-  to: string;
-  value: number;
-  label: string;
-  tone?: 'danger' | 'pending';
-}) {
-  return (
-    <li>
-      <Link to={to} className={tone ? `counter counter-${tone}` : 'counter'}>
-        <span className="counter-value">{value}</span>
-        <span className="counter-label">{label}</span>
-      </Link>
-    </li>
-  );
-}
-
 /**
- * Avancement du site : une barre unique, une part par état, de la plus urgente à la levée.
- * Les quatre parts sont disjointes : en retard et en cours (ouvertes ou assignées), corrigées
- * à vérifier, levées.
+ * Une barre unique, une part par état, de la plus urgente à la levée. Les quatre parts sont
+ * disjointes : en retard et en cours (ouvertes ou assignées), corrigées à vérifier, levées.
  */
-function Progress({ counts }: { counts: Dashboard['counts'] }) {
-  const total = counts.open + counts.toVerify + counts.levees;
-  if (total === 0) return null;
+function Progress({
+  counts,
+  total,
+  list,
+}: {
+  counts: Dashboard['counts'];
+  total: number;
+  list: (vue?: string) => string;
+}) {
   const parts = [
-    { key: 'overdue', label: 'en retard', value: counts.overdue },
-    { key: 'open', label: 'en cours', value: counts.open - counts.overdue },
-    { key: 'verify', label: 'à vérifier', value: counts.toVerify },
-    { key: 'done', label: 'levées', value: counts.levees },
+    { key: 'overdue', label: 'En retard', value: counts.overdue, to: list('en_retard') },
+    { key: 'open', label: 'En cours', value: counts.open - counts.overdue, to: list() },
+    {
+      key: 'verify',
+      label: 'Corrigées, à vérifier',
+      value: counts.toVerify,
+      to: list('a_verifier'),
+    },
+    { key: 'done', label: 'Levées', value: counts.levees, to: list('levees') },
   ];
   return (
     <figure className="progress">
       <figcaption className="progress-caption">
         <span className="progress-figure">{Math.round((counts.levees / total) * 100)} %</span>
         <span>
-          des réserves levées, {counts.levees} sur {total}
+          des réserves levées
+          <small>
+            {counts.levees} sur {total}
+            {counts.reconduites > 0 && `, dont ${counts.reconduites} reconduites`}
+          </small>
         </span>
       </figcaption>
       <div className="progress-bar" aria-hidden="true">
@@ -122,9 +127,11 @@ function Progress({ counts }: { counts: Dashboard['counts'] }) {
       <ul className="progress-legend">
         {parts.map((p) => (
           <li key={p.key}>
-            <span className={`dot progress-${p.key}`} aria-hidden="true" />
-            {p.label}
-            <span className="progress-value">{p.value}</span>
+            <Link to={p.to}>
+              <span className={`dot progress-${p.key}`} aria-hidden="true" />
+              <span>{p.label}</span>
+              <span className="progress-value">{p.value}</span>
+            </Link>
           </li>
         ))}
       </ul>
@@ -132,22 +139,23 @@ function Progress({ counts }: { counts: Dashboard['counts'] }) {
   );
 }
 
-function Q18Alerts({ q18 }: { q18: Dashboard['q18'] }) {
-  if (!q18) return null;
+function Q18Alerts({ q18 }: { q18: NonNullable<Dashboard['q18']> }) {
   const source = `Compte rendu Q18 de ${q18.organisme}${q18.dateVisite ? `, visite du ${formatDay(q18.dateVisite)}` : ''}`;
   const risk = q18.conclusion === 'risque';
   if (!risk && q18.nonVerifiees.length === 0) return null;
   return (
-    <div className="alerts">
+    <section className="site-alert" aria-label="Alertes du dernier Q18">
       {risk && (
-        <div className="alert alert-danger" role="alert">
-          <p className="alert-title">Risque d’incendie ou d’explosion signalé par le dernier Q18</p>
-          <p className="row-meta">{source}</p>
+        <div className="site-alert-part" role="alert">
+          <h2 className="site-alert-title danger">
+            Risque d’incendie ou d’explosion signalé par le dernier Q18
+          </h2>
           {q18.dangers.length > 0 && (
             <ul>
               {q18.dangers.map((n) => (
                 <li key={n}>
-                  Constatation {n} : {Q18_CONSTATATIONS[n]}
+                  <span className="q18-number">{n}</span>
+                  {Q18_CONSTATATIONS[n]}
                 </li>
               ))}
             </ul>
@@ -155,22 +163,28 @@ function Q18Alerts({ q18 }: { q18: Dashboard['q18'] }) {
         </div>
       )}
       {q18.nonVerifiees.length > 0 && (
-        <div className="alert alert-pending">
-          <p className="alert-title">
+        <div className="site-alert-part">
+          <h2 className="site-alert-title pending">
             {q18.nonVerifiees.length > 1
-              ? `${q18.nonVerifiees.length} constatations du Q18 n’ont pas été vérifiées`
-              : 'Une constatation du Q18 n’a pas été vérifiée'}
+              ? `${q18.nonVerifiees.length} constatations n’ont pas été vérifiées`
+              : 'Une constatation n’a pas été vérifiée'}
+          </h2>
+          <p className="hint">
+            Demandez à l’organisme{' '}
+            {q18.nonVerifiees.length > 1 ? 'de les vérifier' : 'de la vérifier'} lors de sa
+            prochaine visite
           </p>
-          <p className="row-meta">{source}. Demandez à l’organisme de les vérifier.</p>
           <ul>
             {q18.nonVerifiees.map((n) => (
               <li key={n}>
-                Constatation {n} : {Q18_CONSTATATIONS[n]}
+                <span className="q18-number">{n}</span>
+                {Q18_CONSTATATIONS[n]}
               </li>
             ))}
           </ul>
         </div>
       )}
-    </div>
+      <p className="site-alert-source">{source}</p>
+    </section>
   );
 }

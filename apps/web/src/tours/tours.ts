@@ -50,8 +50,8 @@ export const TOURS: Tour[] = [
     steps: [
       {
         target: 'site-dashboard',
-        title: 'Tableau de bord',
-        body: 'En cours, en retard, levées : touchez un chiffre.',
+        title: 'Avancement',
+        body: 'La part des réserves levées. Touchez un état pour voir la liste.',
       },
       {
         target: 'site-inspections',
@@ -69,9 +69,14 @@ export const TOURS: Tour[] = [
         body: 'Ajoutez les bâtiments, puis les étages.',
       },
       {
+        target: 'site-upload',
+        title: 'Importer un rapport',
+        body: 'Déposez le PDF : les réserves sont extraites, puis vous les relisez.',
+      },
+      {
         target: 'site-reports',
         title: 'Rapports',
-        body: 'Déposez le PDF : les réserves sont extraites.',
+        body: 'L’analyse de chaque rapport importé.',
       },
     ],
   },

@@ -319,13 +319,14 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 **J6 — Pilotage et bêta**
 
 - [x] Tableau de bord par site : ouvertes, en retard, reconduites ; alertes quand le dernier Q18 conclut à un risque d'incendie ou contient des constatations « non vérifié »
+- [x] Page d'un site refondue : en-tête avec « Réserves du site » et « Importer un rapport » ; alertes du Q18 dans un seul encart ; avancement (part des réserves levées, une barre par état, chaque état mène à la liste filtrée, étages où il reste du travail) ; bâtiments en cartes, ajout de bâtiment ou d'étage replié derrière un bouton ; échéances et rapports dans une colonne à droite ; archivage du site en bas de page
 - [x] Export PDF du dossier de preuves (généré par l'API avec pdfkit, filtrable par origine et limité aux réserves levées si besoin)
 - [x] Notifications de retard
 - [ ] Bêta privée avec 2 ou 3 sites réels
 
 **Après le MVP — Échéancier des vérifications**
 
-- [x] Prochaine visite par site et par type (vérification périodique du Code du travail, Q18, Q19) : dernière visite d'après les rapports validés, plus la périodicité ; visite programmée et contact de l'organisme saisis par l'admin ; page « Échéances de contrôle » pour tous les sites (À traiter, Planifiées, par date ; sans rapport et non suivies repliées) et section sur la page du site, même présentation
+- [x] Prochaine visite par site et par type (vérification périodique du Code du travail, Q18, Q19) : dernière visite d'après les rapports validés, plus la périodicité ; visite programmée et contact de l'organisme saisis par l'admin ; page « Échéances de contrôle » pour tous les sites (À traiter, Planifiées, par date ; sans rapport et non suivies repliées) et section sur la page du site (une carte par contrôle, bouton « Programmer la visite » ou « Modifier la visite » pour l'admin)
 - [x] Relances e-mail aux admins, avec les relances de retard de 8 h
 - Décisions prises, à relire (règles par défaut, faute de règle métier confirmée) :
   - Périodicité proposée : 12 mois pour les trois types, réglable de 1 à 60 mois par site. Un type peut être « non suivi » (par exemple un Q19 que l'assureur n'exige pas).
