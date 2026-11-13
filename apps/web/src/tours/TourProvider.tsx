@@ -14,6 +14,7 @@ import {
   hasSeen,
   markSeen,
   placeBubble,
+  SPOTLIGHT_PAD,
   playableSteps,
   resetSeen,
   toursFor,
@@ -252,7 +253,7 @@ function TourOverlay({ tour, onClose }: { tour: Tour; onClose: () => void }) {
   const visible = playableSteps(tour.steps, exists);
   const number = Math.max(1, visible.indexOf(step) + 1);
   const last = !tour.steps.slice(index + 1).some((s) => !s.target || exists(s.target));
-  const pad = 6;
+  const pad = SPOTLIGHT_PAD;
 
   return (
     <div className="tour" aria-live="polite">

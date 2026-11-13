@@ -63,39 +63,55 @@ export function autoTourFor(tours: Tour[], path: string, seen: (id: string) => b
   return tours.find((tour) => tour.auto && tour.match(path) && !seen(tour.id)) ?? null;
 }
 
-export type Placement = 'below' | 'above' | 'center' | 'sheet' | 'sheet-top';
+export type Placement = 'beside' | 'below' | 'above' | 'center' | 'sheet' | 'sheet-top';
+
+/** Écart entre la bulle et le contour de l'élément montré, et marge avec les bords de l'écran. */
+export const BUBBLE_GAP = 16;
+export const SCREEN_EDGE = 24;
+/** Le contour de l'élément montré déborde de lui de cette distance. */
+export const SPOTLIGHT_PAD = 6;
 
 /**
- * Position de la bulle : sous l'élément, sinon au-dessus, sinon centrée ; en bas de l'écran
- * sur un téléphone (à portée du pouce), ou en haut si l'élément est dans la moitié basse
- * (barre d'onglets).
+ * Position de la bulle sur ordinateur : à droite d'un élément étroit du bord gauche (barre
+ * latérale), sinon sous l'élément, au-dessus, ou centrée ; toujours à distance des bords.
+ * Sur un téléphone, en bas de l'écran (à portée du pouce), ou en haut si l'élément est dans la
+ * moitié basse (barre d'onglets).
  */
 export function placeBubble(
   target: { top: number; bottom: number; left: number; width: number } | null,
   viewport: { width: number; height: number },
   bubble: { width: number; height: number },
-  margin = 12,
 ): { placement: Placement; top: number; left: number } {
   if (viewport.width <= 720) {
+    const margin = 12;
     if (target && target.top > viewport.height / 2) {
       return { placement: 'sheet-top', top: margin, left: margin };
     }
     return { placement: 'sheet', top: viewport.height - bubble.height - margin, left: margin };
   }
+  const edge = SCREEN_EDGE;
+  const gap = SPOTLIGHT_PAD + BUBBLE_GAP;
+  const clampTop = (top: number) =>
+    Math.min(Math.max(edge, top), viewport.height - bubble.height - edge);
   const centered = {
-    top: Math.max(margin, (viewport.height - bubble.height) / 2),
-    left: Math.max(margin, (viewport.width - bubble.width) / 2),
+    top: Math.max(edge, (viewport.height - bubble.height) / 2),
+    left: Math.max(edge, (viewport.width - bubble.width) / 2),
   };
   if (!target) return { placement: 'center', ...centered };
-  const left = Math.min(
-    Math.max(margin, target.left + target.width / 2 - bubble.width / 2),
-    viewport.width - bubble.width - margin,
-  );
-  if (target.bottom + margin + bubble.height <= viewport.height - margin) {
-    return { placement: 'below', top: target.bottom + margin, left };
+
+  const right = target.left + target.width;
+  if (right < viewport.width / 3 && right + gap + bubble.width <= viewport.width - edge) {
+    return { placement: 'beside', top: clampTop(target.top - SPOTLIGHT_PAD), left: right + gap };
   }
-  if (target.top - margin - bubble.height >= margin) {
-    return { placement: 'above', top: target.top - margin - bubble.height, left };
+  const left = Math.min(
+    Math.max(edge, target.left + target.width / 2 - bubble.width / 2),
+    viewport.width - bubble.width - edge,
+  );
+  if (target.bottom + gap + bubble.height <= viewport.height - edge) {
+    return { placement: 'below', top: target.bottom + gap, left };
+  }
+  if (target.top - gap - bubble.height >= edge) {
+    return { placement: 'above', top: target.top - gap - bubble.height, left };
   }
   return { placement: 'center', ...centered };
 }

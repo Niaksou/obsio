@@ -105,21 +105,33 @@ describe('placeBubble', () => {
   const viewport = { width: 1200, height: 800 };
   const bubble = { width: 320, height: 150 };
 
-  it('place la bulle sous l’élément, centrée sur lui', () => {
+  it('place la bulle sous l’élément, centrée sur lui, à distance du contour', () => {
     const target = { top: 100, bottom: 140, left: 500, width: 200 };
     expect(placeBubble(target, viewport, bubble)).toEqual({
       placement: 'below',
-      top: 152,
+      top: 162,
       left: 440,
     });
   });
 
-  it('passe au-dessus en bas d’écran, et reste dans l’écran sur les bords', () => {
+  it('pose la bulle à droite d’un élément de la barre latérale', () => {
+    const target = { top: 120, bottom: 156, left: 12, width: 216 };
+    expect(placeBubble(target, viewport, bubble)).toEqual({
+      placement: 'beside',
+      top: 114,
+      left: 250,
+    });
+    // Élément en bas de la barre (Mon compte) : la bulle remonte pour rester dans l’écran.
+    const account = { top: 760, bottom: 790, left: 12, width: 216 };
+    expect(placeBubble(account, viewport, bubble).top).toBe(626);
+  });
+
+  it('passe au-dessus en bas d’écran, et garde 24 px avec les bords', () => {
     const target = { top: 700, bottom: 740, left: 1150, width: 40 };
     expect(placeBubble(target, viewport, bubble)).toEqual({
       placement: 'above',
-      top: 538,
-      left: 868,
+      top: 528,
+      left: 856,
     });
   });
 
