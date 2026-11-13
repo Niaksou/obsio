@@ -12,6 +12,7 @@ import { ConfirmButton } from '../components/ConfirmButton.js';
 import { MutationError } from '../components/MutationError.js';
 import { useClients, useCreateClient, useSaveLicence } from './api.js';
 import { LicenceFields, useLicenceSubmit } from './LicenceForm.js';
+import { Loading } from '../components/Loading.js';
 
 const iconProps = { size: 18, strokeWidth: 1.5, 'aria-hidden': true } as const;
 
@@ -274,7 +275,7 @@ export function ClientsPage() {
   const [creating, setCreating] = useState(false);
   const selected = clients?.find((c) => c.id === selectedId) ?? null;
 
-  if (isPending) return <p className="loading">Chargement…</p>;
+  if (isPending) return <Loading />;
   if (error) return <p className="error">{error.message}</p>;
 
   return (

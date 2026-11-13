@@ -9,13 +9,14 @@ import { Passkeys } from '../components/Passkeys.js';
 import { Setting, SettingItem, SettingItems, SettingsGroup } from '../components/Settings.js';
 import { useSubmit } from '../components/useSubmit.js';
 import { PushSettings } from '../push/PushSettings.js';
+import { Loading } from '../components/Loading.js';
 
 // Mon compte : connexion (clés d'accès, mot de passe, codes de secours), notifications de cet
 // appareil et sessions ouvertes. Une page de réglages en lignes ; les formulaires sont repliés.
 
 export function AccountPage() {
   const { data: session } = authClient.useSession();
-  if (!session) return <p className="loading">Chargement…</p>;
+  if (!session) return <Loading />;
 
   return (
     <div className="settings-page">
@@ -275,7 +276,7 @@ function Sessions({ currentToken }: { currentToken: string }) {
         }
       >
         {!sessions ? (
-          <p className="loading">Chargement…</p>
+          <Loading inline />
         ) : (
           <SettingItems>
             {shown.map((s) => (

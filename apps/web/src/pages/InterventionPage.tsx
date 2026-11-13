@@ -7,6 +7,7 @@ import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, plural, StatusLabel } from '../reserves/status.js';
 import { Logo } from '../components/Logo.js';
 import { HelpButton } from '../tours/HelpButton.js';
+import { Loading } from '../components/Loading.js';
 
 // Vue de l'électricien, ouverte depuis le lien reçu par e-mail : pas de compte, pensée pour le
 // téléphone, utilisable sans réseau une fois ouverte (dernière version gardée sur l'appareil).
@@ -85,9 +86,7 @@ export function InterventionPage() {
       {!refused && intervention.error && !intervention.data && (
         <p className="error page-message">{intervention.error.message}</p>
       )}
-      {!intervention.data && intervention.isPending && (
-        <p className="loading page-message">Chargement…</p>
-      )}
+      {!intervention.data && intervention.isPending && <Loading page />}
       {intervention.data && !refused && <Assignment token={token} data={intervention.data} />}
     </div>
   );

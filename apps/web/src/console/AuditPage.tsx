@@ -1,5 +1,6 @@
 import { LICENCE_PLAN_LABELS, type ConsoleAuditEntry, type LicencePlan } from '@obsio/shared';
 import { useAudit } from './api.js';
+import { Loading } from '../components/Loading.js';
 
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeZone: 'UTC' });
 const timeFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -78,7 +79,7 @@ export function AuditList({
 
 export function AuditPage() {
   const { data: entries, error, isPending } = useAudit();
-  if (isPending) return <p className="loading">Chargement…</p>;
+  if (isPending) return <Loading />;
   if (error) return <p className="error">{error.message}</p>;
   return (
     <div className="console-page">

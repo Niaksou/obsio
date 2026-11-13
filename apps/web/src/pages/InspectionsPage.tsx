@@ -5,6 +5,7 @@ import { api } from '../api.js';
 import { keyDate, KIND_SHORT, PLANNED, TO_HANDLE } from '../inspections/describe.js';
 import { DueLine } from '../inspections/DueLine.js';
 import { keys } from '../queries.js';
+import { Loading } from '../components/Loading.js';
 
 /**
  * Échéances de contrôle de toute l'organisation : ce qui est à traiter, puis ce qui est planifié, par
@@ -14,7 +15,7 @@ export function InspectionsPage() {
   const inspections = useQuery({ queryKey: keys.inspections, queryFn: api.inspections });
 
   if (inspections.error) return <p className="error">{inspections.error.message}</p>;
-  if (!inspections.data) return <p className="loading">Chargement…</p>;
+  if (!inspections.data) return <Loading />;
   const all = inspections.data;
   const byDate = (a: Inspection, b: Inspection) =>
     (keyDate(a)?.date ?? '').localeCompare(keyDate(b)?.date ?? '');

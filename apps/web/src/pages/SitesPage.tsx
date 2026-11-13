@@ -6,6 +6,7 @@ import { MutationError } from '../components/MutationError.js';
 import { PasskeySuggestion } from '../components/Passkeys.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { plural } from '../reserves/status.js';
+import { Loading } from '../components/Loading.js';
 
 export function SitesPage() {
   const isAdmin = useIsAdmin();
@@ -28,7 +29,7 @@ export function SitesPage() {
         </Link>
       )}
       <h1>Sites</h1>
-      {sites.isPending && <p className="loading">Chargement…</p>}
+      {sites.isPending && <Loading inline />}
       {sites.error && <p className="error">{sites.error.message}</p>}
       {sites.data?.length === 0 && (
         <p className="empty">

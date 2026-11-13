@@ -7,6 +7,7 @@ import { RequireSession } from '../components/RequireSession.js';
 import { consoleKeys, useClients, useConsoleSession } from './api.js';
 import { watchItems } from './watch.js';
 import './console.css';
+import { Loading } from '../components/Loading.js';
 
 const iconProps = { size: 18, strokeWidth: 1.5, 'aria-hidden': true } as const;
 
@@ -100,7 +101,7 @@ function ConsoleShell() {
   const { pathname } = useLocation();
   const watchCount = useWatchCount(!!session?.unlockedUntil);
 
-  if (isPending) return <p className="loading page-message">Chargement…</p>;
+  if (isPending) return <Loading page />;
   if (!session?.staff) return <NotFound />;
   if (!session.unlockedUntil) return <LockScreen />;
 

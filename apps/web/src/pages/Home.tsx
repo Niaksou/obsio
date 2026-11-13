@@ -11,6 +11,7 @@ import { dateParts } from '../inspections/describe.js';
 import { keys } from '../queries.js';
 import { ContractorForm } from '../reserves/ContractorForm.js';
 import { summary } from '../reserves/contractors.js';
+import { Loading } from '../components/Loading.js';
 
 // Organisation : les membres (avec un compte) et les électriciens externes (sans compte,
 // un lien par e-mail), avec le suivi de ce qui leur est confié.
@@ -20,7 +21,7 @@ const ROLE_LABELS: Record<string, string> = { admin: 'Administrateur', membre: '
 export function Home() {
   const { data: session } = authClient.useSession();
   const { data: organisation } = authClient.useActiveOrganization();
-  if (!organisation) return <p className="loading">Chargement…</p>;
+  if (!organisation) return <Loading />;
 
   const me = organisation.members.find((m) => m.userId === session?.user.id);
   const isAdmin = me?.role === 'admin';

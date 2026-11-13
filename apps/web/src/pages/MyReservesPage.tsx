@@ -4,6 +4,7 @@ import { PushSuggestion } from '../push/PushSettings.js';
 import { keys } from '../queries.js';
 import { plural } from '../reserves/status.js';
 import { ReserveRow } from './ReservesPage.js';
+import { Loading } from '../components/Loading.js';
 
 /** Réserves confiées à l'utilisateur connecté, tous sites confondus, les plus urgentes d'abord. */
 export function MyReservesPage() {
@@ -19,7 +20,7 @@ export function MyReservesPage() {
         {reserves.data && <p className="row-meta">{plural(toFix.length, 'réserve')} à corriger</p>}
       </div>
       <PushSuggestion />
-      {reserves.isPending && <p className="loading">Chargement…</p>}
+      {reserves.isPending && <Loading inline />}
       {reserves.error && <p className="error">{reserves.error.message}</p>}
       {reserves.data && rows.length === 0 && (
         <p className="empty">Aucune réserve ne vous est confiée pour l’instant.</p>

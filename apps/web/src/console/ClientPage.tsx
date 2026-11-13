@@ -5,6 +5,7 @@ import { useClientDetail } from './api.js';
 import { AuditList } from './AuditPage.js';
 import { ClientPanel } from './ClientsPage.js';
 import { DailyBars } from './DailyBars.js';
+import { Loading } from '../components/Loading.js';
 
 const number = new Intl.NumberFormat('fr-FR');
 
@@ -12,7 +13,7 @@ const number = new Intl.NumberFormat('fr-FR');
 export function ClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const { data, error, isPending } = useClientDetail(clientId!);
-  if (isPending) return <p className="loading">Chargement…</p>;
+  if (isPending) return <Loading />;
   if (error) return <p className="error">{error.message}</p>;
 
   const { client, onboarding, activity, audit } = data;

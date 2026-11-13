@@ -9,6 +9,7 @@ import { SiteInspections } from '../inspections/SiteInspections.js';
 import { MutationError } from '../components/MutationError.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { SiteDashboard } from '../reserves/SiteDashboard.js';
+import { Loading } from '../components/Loading.js';
 
 export function SitePage() {
   const siteId = useParams().siteId!;
@@ -29,7 +30,7 @@ export function SitePage() {
   });
 
   if (site.error) return <p className="error">{site.error.message}</p>;
-  if (!site.data) return <p className="loading">Chargement…</p>;
+  if (!site.data) return <Loading />;
 
   return (
     <div className="page">

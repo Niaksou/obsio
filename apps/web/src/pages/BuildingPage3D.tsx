@@ -8,6 +8,7 @@ import { BuildingScene, readSceneColors, type SceneFloor } from '../plan3d/Build
 import { keys } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { plural } from '../reserves/status.js';
+import { Loading } from '../components/Loading.js';
 
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
 
@@ -35,7 +36,7 @@ export function BuildingPage3D() {
     queryFn: () => api.floors(buildingId),
   });
   if (floors.error) return <p className="error page-message">{floors.error.message}</p>;
-  if (!floors.data) return <p className="loading page-message">Chargement…</p>;
+  if (!floors.data) return <Loading page />;
   if (floors.data.length === 0) {
     return <p className="empty page-message">Ce bâtiment n’a pas encore d’étage.</p>;
   }
@@ -95,7 +96,7 @@ function Building({ floors }: { floors: Floor[] }) {
   const error = details.error ?? equipment.error;
   if (error) return <p className="error page-message">{error.message}</p>;
   if (!first || sceneFloors.length === 0) {
-    return <p className="loading page-message">Chargement…</p>;
+    return <Loading page />;
   }
 
   const byLevel = [...sceneFloors].sort((a, b) => b.level - a.level);

@@ -5,13 +5,14 @@ import { api } from '../api.js';
 import { authClient } from '../auth-client.js';
 import { useSubmit } from '../components/useSubmit.js';
 import { TwoFactorSetup } from './TwoFactorSetup.js';
+import { Loading } from '../components/Loading.js';
 
 export function AcceptInvitation() {
   const { id = '' } = useParams();
   const { data: session, isPending } = authClient.useSession();
   const location = useLocation();
 
-  if (isPending) return <p className="loading">Chargement…</p>;
+  if (isPending) return <Loading />;
   if (!session) {
     const redirect = encodeURIComponent(location.pathname);
     return (
@@ -56,7 +57,7 @@ function InvitationForSession({ invitationId }: { invitationId: string }) {
       </div>
     );
   }
-  if (!details) return <p className="loading">Chargement…</p>;
+  if (!details) return <Loading />;
 
   return (
     <div className="card">

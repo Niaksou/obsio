@@ -16,6 +16,7 @@ import { keys, useIsAdmin } from '../queries.js';
 import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
 import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, StatusLabel } from '../reserves/status.js';
+import { Loading } from '../components/Loading.js';
 
 export function ReservePage() {
   const reserveId = useParams().reserveId!;
@@ -24,7 +25,7 @@ export function ReservePage() {
     queryFn: () => api.reserve(reserveId),
   });
   if (reserve.error) return <p className="error page-message">{reserve.error.message}</p>;
-  if (!reserve.data) return <p className="loading page-message">Chargement…</p>;
+  if (!reserve.data) return <Loading page />;
   return <Reserve reserve={reserve.data} />;
 }
 

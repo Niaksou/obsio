@@ -18,6 +18,7 @@ import { formatDate } from '../imports/ImportsSection.js';
 import { PdfPage } from '../imports/PdfPage.js';
 import { openPdfUrl } from '../plan/rasterize.js';
 import { keys, useIsAdmin } from '../queries.js';
+import { Loading } from '../components/Loading.js';
 
 const ANALYSIS_POLL_MS = 3000;
 /** En dessous, la réserve est mise en avant à la relecture (spec, étape 7). */
@@ -41,7 +42,7 @@ export function ImportPage() {
   });
 
   if (detail.error) return <p className="error page-message">{detail.error.message}</p>;
-  if (!detail.data) return <p className="loading page-message">Chargement…</p>;
+  if (!detail.data) return <Loading page />;
   return <ImportReview detail={detail.data} />;
 }
 

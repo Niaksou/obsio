@@ -1,11 +1,12 @@
 import { Link } from 'react-router';
 import { useClients } from './api.js';
 import { WATCH_GROUPS, watchItems, type WatchGroup } from './watch.js';
+import { Loading } from '../components/Loading.js';
 
 /** Clients qui demandent une action de l'équipe, groupés par raison. */
 export function WatchPage() {
   const { data: clients, error, isPending } = useClients();
-  if (isPending) return <p className="loading">Chargement…</p>;
+  if (isPending) return <Loading />;
   if (error) return <p className="error">{error.message}</p>;
 
   const items = watchItems(clients);

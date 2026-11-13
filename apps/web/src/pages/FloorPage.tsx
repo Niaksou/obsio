@@ -33,6 +33,7 @@ import { shapeError, toPositions } from '../plan/zones.js';
 import { keys, useIsAdmin } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { StatusLabel } from '../reserves/status.js';
+import { Loading } from '../components/Loading.js';
 
 /** Les liens signés du plan valent 15 minutes : on ne les renouvelle pas plus souvent. */
 const FLOOR_STALE_TIME = 10 * 60 * 1000;
@@ -53,7 +54,7 @@ export function FloorPage() {
   });
 
   if (floor.error) return <p className="error page-message">{floor.error.message}</p>;
-  if (!floor.data) return <p className="loading page-message">Chargement…</p>;
+  if (!floor.data) return <Loading page />;
   return <Floor floor={floor.data} />;
 }
 

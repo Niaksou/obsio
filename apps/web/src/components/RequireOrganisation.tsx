@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, type ReactNode } from 'react';
 import { authClient } from '../auth-client.js';
+import { Loading } from './Loading.js';
 
 /**
  * Garantit une organisation active avant d'afficher la page (l'API en a besoin).
@@ -25,7 +26,7 @@ export function RequireOrganisation({ children }: { children: ReactNode }) {
   }, [activeId, queryClient]);
 
   if (listPending || activePending || (!active && organisations?.length)) {
-    return <p className="loading">Chargement…</p>;
+    return <Loading />;
   }
   if (!active) {
     return (

@@ -17,6 +17,7 @@ import { SignUp } from './pages/SignUp.js';
 import { SitePage } from './pages/SitePage.js';
 import { SitesPage } from './pages/SitesPage.js';
 import { TourProvider } from './tours/TourProvider.js';
+import { Loading } from './components/Loading.js';
 
 // Konva et pdf.js ne sont chargés qu'à l'ouverture d'un étage.
 const FloorPage = lazy(() =>
@@ -59,9 +60,7 @@ const consolePages = {
   ),
 };
 
-const lazyPage = (page: ReactNode) => (
-  <Suspense fallback={<p className="loading page-message">Chargement…</p>}>{page}</Suspense>
-);
+const lazyPage = (page: ReactNode) => <Suspense fallback={<Loading page />}>{page}</Suspense>;
 
 const session = (page: ReactNode) => (
   <RequireSession>

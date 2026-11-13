@@ -2,6 +2,7 @@ import { PAGE_LABELS } from '@obsio/shared';
 import { useState } from 'react';
 import { useUsage } from './api.js';
 import { DailyBars } from './DailyBars.js';
+import { Loading } from '../components/Loading.js';
 
 const number = new Intl.NumberFormat('fr-FR');
 const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -70,7 +71,7 @@ export function UsagePage() {
           ))}
         </div>
       </div>
-      {isPending && <p className="loading">Chargement…</p>}
+      {isPending && <Loading inline />}
       {error && <p className="error">{error.message}</p>}
       {usage && totals && (
         <>
