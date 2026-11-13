@@ -1,4 +1,4 @@
-import { memberRoleSchema, READ_ONLY_MESSAGES, type MemberRole } from '@obsio/shared';
+import { isManager, memberRoleSchema, READ_ONLY_MESSAGES, type MemberRole } from '@obsio/shared';
 import { fromNodeHeaders } from 'better-auth/node';
 import { and, eq, gt } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
@@ -10,6 +10,8 @@ import type { Auth } from './auth.js';
 
 /** Méthodes qui ne modifient rien : permises avec une licence en lecture seule (export compris). */
 const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+const MANAGERS_ONLY = 'Réservé aux administrateurs et aux responsables';
 
 export interface SessionUser {
   id: string;
@@ -29,6 +31,13 @@ declare module 'fastify' {
   interface FastifyRequest {
     user: SessionUser | null;
     organisation: Membership | null;
+  }
+  interface FastifyContextConfig {
+    /**
+     * Route ouverte aux collaborateurs, qui sont refusés partout ailleurs. La route vérifie
+     * elle-même qu'elle ne leur montre que leurs réserves.
+     */
+    collaborator?: boolean;
   }
 }
 
@@ -68,7 +77,8 @@ export function createGuards(auth: Auth, db: Database) {
 
   /**
    * Exige une organisation active dont l'utilisateur est membre. Avec une licence suspendue,
-   * révoquée ou échue, seules les lectures passent (403 LICENCE_READ_ONLY sinon).
+   * révoquée ou échue, seules les lectures passent (403 LICENCE_READ_ONLY sinon). Un
+   * collaborateur n'entre que sur les routes marquées `config: { collaborator: true }`.
    */
   async function requireOrganisation(request: FastifyRequest, reply: FastifyReply) {
     await requireUser(request, reply);
@@ -78,6 +88,9 @@ export function createGuards(auth: Auth, db: Database) {
       ? await findMembership(db, id, activeOrganisationId)
       : null;
     if (!membership) return reply.code(403).send({ message: 'Aucune organisation active' });
+    if (membership.role === 'collaborateur' && !request.routeOptions.config.collaborator) {
+      return reply.code(403).send({ code: 'ROLE_FORBIDDEN', message: MANAGERS_ONLY });
+    }
     if (!READ_METHODS.has(request.method)) {
       const licence = await findLicenceAccess(db, membership.id);
       if (licence.access === 'lecture') {
@@ -90,12 +103,12 @@ export function createGuards(auth: Auth, db: Database) {
     request.organisation = membership;
   }
 
-  /** Exige le rôle admin dans l'organisation active (modification de la structure et des plans). */
-  async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {
+  /** Exige un admin ou un responsable (structure, plans, rapports, réserves, électriciens). */
+  async function requireManager(request: FastifyRequest, reply: FastifyReply) {
     await requireOrganisation(request, reply);
     if (reply.sent || !request.organisation) return;
-    if (request.organisation.role !== 'admin') {
-      return reply.code(403).send({ message: 'Réservé aux administrateurs' });
+    if (!isManager(request.organisation.role)) {
+      return reply.code(403).send({ code: 'ROLE_FORBIDDEN', message: MANAGERS_ONLY });
     }
   }
 
@@ -122,7 +135,7 @@ export function createGuards(auth: Auth, db: Database) {
     }
   }
 
-  return { requireUser, requireOrganisation, requireAdmin, requireStaff };
+  return { requireUser, requireOrganisation, requireManager, requireStaff };
 }
 
 export type Guards = ReturnType<typeof createGuards>;

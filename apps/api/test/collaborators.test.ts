@@ -18,7 +18,7 @@ let bobId: string;
 let carolId: string;
 
 async function newMember(name: string, email: string) {
-  const invitationId = await invite(admin, email, 'membre');
+  const invitationId = await invite(admin, email, 'collaborateur');
   const client = new TestClient(ctx);
   await client.signUpAndVerify(name, email);
   await join(client, invitationId);

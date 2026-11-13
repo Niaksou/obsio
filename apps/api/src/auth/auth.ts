@@ -14,6 +14,7 @@ import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
 import { assertInvitationAllowed, LicenceRefused } from '../licences/licence.js';
 import { endCollaboratorAssignments } from '../reserves/collaborators.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
+import { guardPeopleAction, markFounder } from '../organisations/people.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
 import { composeNameInBody } from './names.js';
 import { passkeyOptions } from './passkey.js';
@@ -89,6 +90,7 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
       // pas d'inscription en libre-service : il faut une invitation en attente pour l'adresse.
       before: createAuthMiddleware(async (ctx) => {
         await enforceTwoFactor(ctx);
+        await guardPeopleAction(db, ctx);
         hashBackupCodeInBody(ctx);
         composeNameInBody(ctx);
         if (PASSWORD_PATHS.includes(ctx.path)) {
@@ -199,6 +201,9 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
           // Un membre retiré est déconnecté partout (ASVS 7.4.5) : son accès à l'organisation
           // est déjà coupé, mais une session ouverte ne doit pas survivre au retrait.
           // Ses réserves en cours ne lui sont plus confiées.
+          afterAcceptInvitation: async ({ member, organization }) => {
+            await markFounder(db, member.id, organization.id);
+          },
           afterRemoveMember: async ({ user, organization }) => {
             await db.delete(schema.session).where(eq(schema.session.userId, user.id));
             await endCollaboratorAssignments(db, organization.id, user.id);
@@ -212,7 +217,13 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
         },
         schema: {
           organization: { modelName: 'organisation' },
-          member: { fields: { organizationId: 'organisationId' } },
+          member: {
+            fields: { organizationId: 'organisationId' },
+            // Lu par l'interface (personne ne le modifie) ; posé par markFounder.
+            additionalFields: {
+              founder: { type: 'boolean', required: false, input: false, defaultValue: false },
+            },
+          },
           invitation: { fields: { organizationId: 'organisationId' } },
           session: { fields: { activeOrganizationId: 'activeOrganisationId' } },
         },

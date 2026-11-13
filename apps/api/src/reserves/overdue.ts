@@ -4,7 +4,7 @@ import { withOrganisation, type Database } from '../db/client.js';
 import { organisation, reserve, site } from '../db/schema/index.js';
 import type { EmailSender } from '../email/sender.js';
 import { overdueEmail } from '../email/templates.js';
-import { adminEmails } from './events.js';
+import { managerEmails } from './events.js';
 import { notSuperseded, today } from './queries.js';
 
 // Relances de retard : chaque matin, les admins reçoivent pour chaque site le nombre de réserves
@@ -58,7 +58,7 @@ export async function sendOverdueNotices(deps: NotificationDeps, on = today()): 
     );
     const due = sites.filter((s) => s.fresh > 0 || (weekly && s.overdue > 0));
     if (due.length === 0) continue;
-    const admins = await adminEmails(deps.db, org.id);
+    const admins = await managerEmails(deps.db, org.id);
     for (const s of due) {
       for (const to of admins) {
         await deps.emailSender.send(

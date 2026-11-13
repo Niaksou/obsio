@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { ApiConfig } from '../config.js';
 import type { Database, Transaction } from '../db/client.js';
 import { member, reserveEvent, user } from '../db/schema/index.js';
@@ -41,13 +41,18 @@ export async function recordEvent(
   });
 }
 
-/** Adresses des administrateurs de l'organisation (destinataires des notifications). */
-export async function adminEmails(db: Database, organisationId: string): Promise<string[]> {
+/** Adresses des admins et des responsables de l'organisation (destinataires des notifications). */
+export async function managerEmails(db: Database, organisationId: string): Promise<string[]> {
   const rows = await db
     .select({ email: user.email })
     .from(member)
     .innerJoin(user, eq(user.id, member.userId))
-    .where(and(eq(member.organisationId, organisationId), eq(member.role, 'admin')));
+    .where(
+      and(
+        eq(member.organisationId, organisationId),
+        inArray(member.role, ['admin', 'responsable']),
+      ),
+    );
   return rows.map((row) => row.email);
 }
 
@@ -60,7 +65,7 @@ export async function notifyCorrection(
   description: string,
 ) {
   const url = `${deps.config.WEB_URL}/reserves/${reserveId}`;
-  for (const to of await adminEmails(deps.db, organisationId)) {
+  for (const to of await managerEmails(deps.db, organisationId)) {
     await deps.emailSender.send(correctionEmail(to, { author, description, url }));
   }
 }

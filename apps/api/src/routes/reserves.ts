@@ -45,6 +45,8 @@ import { notifyCorrection, recordEvent } from '../reserves/events.js';
 import { addProof, checkPhotos, ProofError } from '../reserves/proofs.js';
 import {
   assignCollaborators,
+  collaboratorCanReach,
+  collaboratorReserveIds,
   myReserves,
   removeCollaborator,
   stillAssigned,
@@ -80,12 +82,25 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   push: PushQueue;
   config: ApiConfig;
 }> = async (app, { db, guards, storage, scanner, emailSender, push, config }) => {
-  const { requireOrganisation: member, requireAdmin: admin } = guards;
+  const { requireOrganisation: member, requireManager: manager } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
     withOrganisation(db, request.organisation!.id, fn);
   const fail = (reply: FastifyReply, code: 400 | 404 | 409, message: string) =>
     reply.code(code).send({ message });
+  /** Identifiant du collaborateur connecté, null pour un admin ou un responsable. */
+  const collaborator = (request: FastifyRequest) =>
+    request.organisation!.role === 'collaborateur' ? request.user!.id : null;
+  /** Réserve hors de portée d'un collaborateur : traitée comme introuvable. */
+  const outOfReach = async (
+    request: FastifyRequest,
+    tx: Transaction,
+    id: string,
+    write = false,
+  ) => {
+    const userId = collaborator(request);
+    return userId !== null && !(await collaboratorCanReach(tx, userId, id, write));
+  };
   const activeSite = (tx: Transaction, id: string) =>
     tx.query.site.findFirst({ where: and(eq(site.id, id), isNull(site.archivedAt)) });
 
@@ -95,6 +110,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     '/api/sites/:id/reserves',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: {
         params: idParams,
         querystring: reserveFiltersSchema,
@@ -104,7 +120,13 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     async (request, reply) => {
       const rows = await scoped(request, async (tx) => {
         if (!(await activeSite(tx, request.params.id))) return null;
-        return listReserves(tx, request.params.id, request.query, undefined, request.user!.id);
+        // Un collaborateur ne voit que ses réserves (le plan d'un étage les place).
+        const userId = collaborator(request);
+        const only = userId
+          ? await collaboratorReserveIds(tx, userId, request.params.id)
+          : undefined;
+        if (only?.length === 0) return [];
+        return listReserves(tx, request.params.id, request.query, only, request.user!.id);
       });
       return rows ?? fail(reply, 404, 'Site introuvable');
     },
@@ -112,7 +134,11 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
 
   app.get(
     '/api/me/reserves',
-    { preHandler: member, schema: { response: { 200: z.array(myReserveSchema) } } },
+    {
+      preHandler: member,
+      config: { collaborator: true },
+      schema: { response: { 200: z.array(myReserveSchema) } },
+    },
     async (request) => scoped(request, (tx) => myReserves(tx, request.user!.id)),
   );
 
@@ -120,10 +146,15 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     '/api/reserves/:id',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: { params: idParams, response: { 200: reserveDetailSchema, ...errors } },
     },
     async (request, reply) => {
-      const detail = await scoped(request, (tx) => reserveDetail(tx, storage, request.params.id));
+      const detail = await scoped(request, async (tx) =>
+        (await outOfReach(request, tx, request.params.id))
+          ? null
+          : reserveDetail(tx, storage, request.params.id),
+      );
       return detail ?? fail(reply, 404, 'Réserve introuvable');
     },
   );
@@ -133,7 +164,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/reserves/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: reserveUpdateSchema,
@@ -187,6 +218,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     '/api/reserves/:id/comments',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: {
         params: idParams,
         body: commentInputSchema,
@@ -195,6 +227,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     },
     async (request, reply) => {
       const found = await scoped(request, async (tx) => {
+        if (await outOfReach(request, tx, request.params.id, true)) return false;
         const current = await tx.query.reserve.findFirst({
           where: eq(reserve.id, request.params.id),
         });
@@ -218,6 +251,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     '/api/reserves/:id/photos',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: {
         params: idParams,
         body: photoUploadRequestSchema.omit({ reserveId: true }),
@@ -225,8 +259,10 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
       },
     },
     async (request, reply) => {
-      const found = await scoped(request, (tx) =>
-        tx.query.reserve.findFirst({ where: eq(reserve.id, request.params.id) }),
+      const found = await scoped(request, async (tx) =>
+        (await outOfReach(request, tx, request.params.id, true))
+          ? undefined
+          : tx.query.reserve.findFirst({ where: eq(reserve.id, request.params.id) }),
       );
       if (!found) return fail(reply, 404, 'Réserve introuvable');
       const { contentType } = request.body;
@@ -239,10 +275,14 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
     '/api/reserves/:id/proofs',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: { params: idParams, body: proofInputSchema, response: { 204: z.null(), ...errors } },
     },
     async (request, reply) => {
       const organisationId = request.organisation!.id;
+      if (await scoped(request, (tx) => outOfReach(request, tx, request.params.id, true))) {
+        return fail(reply, 404, 'Réserve introuvable');
+      }
       try {
         await checkPhotos(
           { storage, scanner },
@@ -278,7 +318,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/reserves/:id/review',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: reserveReviewSchema,
@@ -349,7 +389,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/contractors',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { body: contractorInputSchema, response: { 201: contractorSchema } },
     },
     async (request, reply) => {
@@ -367,7 +407,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/contractors/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: contractorInputSchema.partial(),
@@ -392,7 +432,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/assignments',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         body: assignmentInputSchema,
         response: { 201: assignmentCreatedSchema, ...errors },
@@ -483,7 +523,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/assignments/:id/revoke',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { params: idParams, response: { 204: z.null(), ...errors } },
     },
     async (request, reply) => {
@@ -529,7 +569,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/collaborator-assignments',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { body: collaboratorAssignmentInputSchema, response: { 204: z.null(), ...errors } },
     },
     async (request, reply) => {
@@ -598,7 +638,7 @@ export const reserveRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/reserves/:id/collaborators/:userId/remove',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: z.object({ id: z.uuid(), userId: z.uuid() }),
         response: { 204: z.null(), ...errors },

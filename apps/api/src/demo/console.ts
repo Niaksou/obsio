@@ -269,7 +269,7 @@ export async function seedConsoleDemo(db: Database, now = new Date()): Promise<C
       await db.insert(member).values({
         organisationId,
         userId: created!.id,
-        role: index === 0 ? 'admin' : 'membre',
+        role: index === 0 ? 'admin' : 'responsable',
         createdAt: at(client.age - index, 9),
       });
     }
@@ -296,7 +296,7 @@ export async function seedConsoleDemo(db: Database, now = new Date()): Promise<C
         await tx.insert(invitation).values({
           organisationId,
           email: `responsable${i + 1}@${slug}.invalid`,
-          role: client.members.length === 0 ? 'admin' : 'membre',
+          role: client.members.length === 0 ? 'admin' : 'responsable',
           status: 'pending',
           expiresAt: new Date(now.getTime() + 5 * DAY),
           inviterId: inviter.id,

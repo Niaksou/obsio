@@ -277,7 +277,11 @@ export function clientHelpers(ctx: TestApp) {
     return { admin, organisationId: organisation.id };
   }
 
-  async function invite(admin: TestClient, email: string, role: 'admin' | 'membre') {
+  async function invite(
+    admin: TestClient,
+    email: string,
+    role: 'admin' | 'responsable' | 'collaborateur',
+  ) {
     const response = await admin.post('/api/auth/organization/invite-member', { email, role });
     expect(response.statusCode).toBe(200);
     return lastLinkSentTo(ctx, email).pathname.split('/').at(-1)!;

@@ -38,7 +38,7 @@ let orgB: string;
 /** Inscrit un utilisateur invité dans une première organisation. */
 async function newMember(admin: TestClient, name: string, email: string) {
   const client = new TestClient(ctx);
-  const invitationId = await invite(admin, email, 'membre');
+  const invitationId = await invite(admin, email, 'collaborateur');
   await client.signUpAndVerify(name, email);
   await join(client, invitationId);
   return client;
@@ -55,7 +55,7 @@ beforeEach(async () => {
   await seedDemo(deps, { adminEmail: 'bruno@b.fr', organisationId: orgB, on: '2026-11-03' });
   // Carole intervient dans les deux usines ; David n'est que dans A.
   const carole = await newMember(a.admin, 'Carole', 'carole@exemple.fr');
-  await join(carole, await invite(b.admin, 'carole@exemple.fr', 'membre'));
+  await join(carole, await invite(b.admin, 'carole@exemple.fr', 'collaborateur'));
   await newMember(a.admin, 'David', 'david@a.fr');
 });
 

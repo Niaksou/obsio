@@ -101,12 +101,17 @@ describe('échéancier des vérifications', () => {
       contact: 'Thermo Services, 04 00 00 00 00',
     });
 
-    const invitationId = await invite(admin, 'bob@dupont.fr', 'membre');
+    const invitationId = await invite(admin, 'bob@dupont.fr', 'responsable');
     const bob = new TestClient(ctx);
     await bob.signUpAndVerify('Bob', 'bob@dupont.fr');
     await join(bob, invitationId);
+    const forCarole = await invite(admin, 'carole@dupont.fr', 'collaborateur');
+    const carole = new TestClient(ctx);
+    await carole.signUpAndVerify('Carole', 'carole@dupont.fr');
+    await join(carole, forCarole);
     expect((await bob.get(`/api/sites/${siteId}/inspections`)).statusCode).toBe(200);
-    const refused = await bob.put(`/api/sites/${siteId}/inspections/q18`, {
+    expect((await carole.get(`/api/sites/${siteId}/inspections`)).statusCode).toBe(403);
+    const refused = await carole.put(`/api/sites/${siteId}/inspections/q18`, {
       enabled: true,
       periodicityMonths: 12,
       plannedDate: null,

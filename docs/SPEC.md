@@ -23,12 +23,13 @@ Obsio transforme le rapport annuel de vérification électrique en une liste de 
 
 ## Personas et parcours
 
-Trois rôles suffisent au MVP : un qui paie et pilote, un qui contribue, un qui intervient sans compte.
+Trois rôles de compte et un accès sans compte : un qui paie et administre, un qui pilote au quotidien, un qui corrige les réserves qu'on lui confie, et l'électricien externe.
 
 | Persona | Rôle dans le produit | Besoin principal | Accès |
 | --- | --- | --- | --- |
 | Responsable maintenance ou HSE | Administrateur de l'organisation | Savoir ce qui reste ouvert et prouver la conformité | Compte, web desktop |
-| Technicien interne | Membre | Corriger et documenter les réserves simples | Compte, PWA mobile |
+| Chef d'équipe maintenance | Responsable | Suivre sites, rapports et réserves ; gérer les collaborateurs | Compte, web desktop |
+| Technicien interne | Collaborateur | Corriger et documenter les réserves qui lui sont confiées | Compte, PWA mobile |
 | Électricien prestataire | Intervenant externe | Voir ses réserves, prouver la correction | Lien signé, PWA mobile, sans compte |
 
 **Parcours 1 — Importer le rapport annuel (responsable)**
@@ -57,7 +58,7 @@ Le MVP couvre la boucle complète import → assignation → preuve → export, 
 
 **Dans le MVP**
 
-- Organisation, utilisateurs, rôles (admin, membre), invitations par e-mail.
+- Organisation, utilisateurs, rôles (admin, responsable, collaborateur), invitations par e-mail.
 - Sites, bâtiments, étages ; import d'un plan par étage (PDF ou image).
 - Équipements (tableaux électriques en priorité) placés sur le plan 2D.
 - Import d'un rapport PDF avec extraction automatique et écran de validation.
@@ -166,7 +167,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
 | Entité | Champs clés | Relations |
 | --- | --- | --- |
 | `Organisation` | nom, SIRET, plan d'abonnement | possède sites ; a des membres |
-| `Utilisateur` | e-mail, nom | membre d'une ou plusieurs organisations, avec un rôle (admin, membre) dans chacune |
+| `Utilisateur` | e-mail, nom | membre d'une ou plusieurs organisations, avec un rôle (admin, responsable, collaborateur) dans chacune ; le premier admin est « fondateur » |
 | `Site` | nom, adresse | appartient à une organisation ; contient bâtiments |
 | `Batiment` | nom | appartient à un site ; contient étages |
 | `Etage` | nom, niveau, fichier du plan, échelle | appartient à un bâtiment |
@@ -195,7 +196,7 @@ La hiérarchie suit le terrain : Organisation → Site → Bâtiment → Étage 
   - Statuts : `ouverte` → `assignee` (lien envoyé ou collaborateur chargé) → `corrigee` (preuve avec « corrigée », par un membre ou l'intervenant) → `levee` (admin). L'admin peut refuser la correction : la réserve revient à `assignee` si un lien est encore actif ou un collaborateur chargé, sinon à `ouverte`. Révoquer le dernier lien actif ou retirer le dernier collaborateur ramène une réserve assignée à `ouverte`.
   - Une réserve est « en retard » si elle est ouverte ou assignée et que son échéance est passée (date du jour à Paris) ; une réserve corrigée attend l'admin et n'est plus en retard.
   - L'échéance de l'assignation devient celle des réserves assignées. Une réserve corrigée ou levée ne peut pas être assignée ; une réserve réassignée sort de la vue du lien précédent.
-  - Modification d'une réserve (description, préconisation, échéance, équipement), assignation, révocation et levée : admin. Consultation, commentaires et preuves : tout membre.
+  - Modification d'une réserve (description, préconisation, échéance, équipement), assignation, révocation et levée : admin ou responsable. Consultation, commentaires et preuves : admin, responsable, et collaborateur pour les réserves qui lui sont confiées.
   - Une preuve contient au moins une photo ou un commentaire (6 photos au plus, réduites à 2000 px dans le navigateur). Les preuves ne sont ni modifiées ni supprimées (droits retirés à `app_user`).
   - Le lien de l'intervenant n'est montré qu'une fois à l'admin (et envoyé par e-mail) : seule l'empreinte SHA-256 du jeton est stockée. L'API le retrouve par une politique RLS dédiée (`assignment_token_lookup`), puis travaille dans le cloisonnement de l'organisation.
   - Hors ligne : l'application est mise en cache par un service worker écrit à la main (`public/sw.js`, actif en production seulement) ; les preuves passent par une file IndexedDB rejouée au retour du réseau, sans doublon grâce au `clientId` choisi par le téléphone. La vue de l'intervenant garde sa dernière version sur l'appareil.
@@ -238,7 +239,13 @@ Mise en œuvre (J0) :
 - Pas d'inscription en libre-service : le produit est vendu sur devis. Une organisation (le compte d'une entreprise cliente) est ouverte par l'éditeur avec `pnpm org:create "<nom>" <e-mail>`, qui crée l'organisation et invite son premier `admin`.
 - L'inscription n'est acceptée que pour une adresse ayant une invitation en attente et non expirée. Un utilisateur ne peut pas créer d'organisation lui-même.
 - Les invitations de l'éditeur sont envoyées au nom d'un compte technique « opérateur » (`OPERATOR_EMAIL`), sans mot de passe ni appartenance. Comme Better Auth refuse d'afficher une invitation dont l'expéditeur n'est pas membre, la page d'invitation lit son détail par `GET /api/invitations/:id`.
-- L'admin d'une organisation invite ensuite ses collaborateurs (`admin` ou `membre`). Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
+- L'admin d'une organisation invite ensuite les personnes de son équipe. Invitation valable 7 jours, acceptée uniquement par un compte dont l'adresse est vérifiée et correspond à celle invitée.
+- Trois rôles (`@obsio/shared/roles` et `@obsio/shared/permissions`) :
+  - `admin` : tout, y compris inviter, modifier et retirer n'importe quelle personne ;
+  - `responsable` : même travail que l'admin (sites, rapports, réserves, intervenants, échéances), mais il n'invite, ne modifie et ne retire que des collaborateurs ;
+  - `collaborateur` : ne voit que les réserves qui lui sont confiées (« Mes réserves », détail, emplacement sur le plan de l'étage, commentaires, photos et preuves) ; une réserve qui ne lui est plus confiée reste lisible, il n'y agit plus. Le reste de l'organisation lui est refusé (403 `ROLE_FORBIDDEN`) : une route ne lui est ouverte que si elle le déclare (`config: { collaborator: true }`) et filtre elle-même ce qu'elle renvoie.
+- L'admin fondateur (`member.founder`, un par organisation : le premier admin, celui invité à l'ouverture du client) ne peut être ni rétrogradé, ni retiré, ni quitter l'organisation, y compris par un autre admin. Ces règles sont vérifiées avant les routes de Better Auth qui touchent aux personnes (`apps/api/src/organisations/people.ts`), car ses hooks ne disent pas qui agit.
+- L'ancien rôle `membre` est devenu `responsable` (migration `0018_roles`).
 - Un même utilisateur peut être membre de plusieurs organisations (par exemple quelqu'un qui intervient dans plusieurs usines clientes) ; il accepte chaque invitation avec le même compte et choisit l'organisation active dans l'en-tête.
 - L'inscription demande le prénom et le nom (colonnes `first_name` et `last_name`) ; le nom affiché `name` en est composé (« Prénom Nom »).
 - Connexion par e-mail et mot de passe (12 caractères minimum), adresse vérifiée avant toute connexion, puis code TOTP (double authentification obligatoire).

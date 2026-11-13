@@ -32,21 +32,21 @@ Limitation des tentatives, par adresse IP : connexion 10 par 5 minutes, inscript
 
 ## Matrice des autorisations (V8)
 
-Rôles : **admin** et **membre** d'une organisation (Better Auth, `@obsio/shared/permissions`), **intervenant** par lien signé sans compte, **éditeur** (exploitant d'Obsio) en ligne de commande sur le serveur. Chaque route de l'API porte un garde (`apps/api/src/auth/guards.ts`) ; l'appartenance et le rôle sont relus en base à chaque requête, et la double authentification est exigée.
+Rôles : **admin**, **responsable** et **collaborateur** d'une organisation (Better Auth, `@obsio/shared/permissions`), **intervenant** par lien signé sans compte, **éditeur** (exploitant d'Obsio) en ligne de commande sur le serveur. Chaque route de l'API porte un garde (`apps/api/src/auth/guards.ts`) ; l'appartenance et le rôle sont relus en base à chaque requête, et la double authentification est exigée.
 
-| Ressource | Membre | Admin | Intervenant | Éditeur |
-| --- | --- | --- | --- | --- |
-| Sites, bâtiments, étages, équipements, plans | Lecture | Lecture, création, modification, archivage | — | — |
-| Imports de rapports | Lecture | Dépôt, relecture des brouillons, validation, relance | — | — |
-| Réserves | Lecture, commentaire, photo, preuve (passe à « corrigée ») | En plus : modification (description, préconisation, gravité, échéance, équipement), revue (levée ou refus) | Lecture et preuve, pour les réserves de son assignation | — |
-| Intervenants et assignations | Lecture | Création, modification, révocation des liens | — | — |
-| Réserves confiées à des collaborateurs | Lecture ; « Mes réserves » (les siennes) | Confier à des membres de l'organisation, retirer | — | — |
-| Vérifications périodiques | Lecture | Modification | — | — |
-| Tableau de bord, dossier de preuves PDF | Oui | Oui | — | — |
-| Membres et invitations | Lecture | Invitation, changement de rôle, retrait | — | — |
-| Organisation | — | — | — | Création, export, suppression (`pnpm org:*`), réinitialisation de la double authentification |
+| Ressource | Collaborateur | Responsable | Admin | Intervenant | Éditeur |
+| --- | --- | --- | --- | --- | --- |
+| Sites, bâtiments, étages, équipements, plans | Seulement l'étage et les équipements de ses réserves (lecture) | Lecture, création, modification, archivage | Idem | — | — |
+| Imports de rapports | — | Dépôt, relecture des brouillons, validation, relance | Idem | — | — |
+| Réserves | Lecture, commentaire, photo, preuve (passe à « corrigée »), pour les réserves qui lui sont confiées | Toutes : modification (description, préconisation, gravité, échéance, équipement), revue (levée ou refus) | Idem | Lecture et preuve, pour les réserves de son assignation | — |
+| Intervenants et assignations | — | Création, modification, révocation des liens | Idem | — | — |
+| Réserves confiées à des collaborateurs | « Mes réserves » (les siennes) | Confier à des personnes de l'organisation, retirer | Idem | — | — |
+| Vérifications périodiques | — | Modification | Idem | — | — |
+| Tableau de bord, dossier de preuves PDF | — | Oui | Oui | — | — |
+| Personnes et invitations | — | Invitation, changement de rôle et retrait des seuls collaborateurs | Tout le monde, sauf l'admin fondateur (ni rétrogradé, ni retiré) | — | — |
+| Organisation | — | — | — | — | Création, export, suppression (`pnpm org:*`), réinitialisation de la double authentification |
 
-Au niveau du champ : un membre ne modifie aucun champ d'une réserve, il ajoute seulement commentaires, photos et preuves ; le statut ne change que par une preuve (« corrigée ») ou par la revue d'un admin (« levée » ou retour à « ouverte ») et par les assignations (« assignée ») ; seul un membre de l'organisation peut se voir confier une réserve, et ses assignations prennent fin à son retrait ; l'organisation d'une donnée n'est jamais lue dans la requête, toujours dans la session.
+Au niveau du champ : un collaborateur ne modifie aucun champ d'une réserve, il ajoute seulement commentaires, photos et preuves, et seulement tant qu'elle lui est confiée ; le statut ne change que par une preuve (« corrigée ») ou par la revue d'un admin ou d'un responsable (« levée » ou retour à « ouverte ») et par les assignations (« assignée ») ; seule une personne de l'organisation peut se voir confier une réserve, et ses assignations prennent fin à son retrait ; une route n'est ouverte au collaborateur que si elle le déclare (`config: { collaborator: true }`), sinon 403 ; une réserve hors de sa portée répond 404 ; l'organisation d'une donnée n'est jamais lue dans la requête, toujours dans la session.
 
 ## Classification des données (V14)
 

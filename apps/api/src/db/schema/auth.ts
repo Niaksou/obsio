@@ -1,4 +1,14 @@
-import { boolean, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { organisation } from './organisation.js';
 
 // Tables gérées par Better Auth. Les clés des objets suivent les noms de champs attendus par
@@ -154,9 +164,17 @@ export const member = pgTable(
       .notNull()
       .references(() => user.id),
     role: text('role').notNull(),
+    /** Admin fondateur : premier admin du client, modifiable par personne dans l'application. */
+    founder: boolean('founder').notNull().default(false),
     createdAt: createdAt(),
   },
-  (table) => [index().on(table.organisationId), index().on(table.userId)],
+  (table) => [
+    index().on(table.organisationId),
+    index().on(table.userId),
+    uniqueIndex('member_one_founder')
+      .on(table.organisationId)
+      .where(sql`${table.founder}`),
+  ],
 );
 
 export const invitation = pgTable(

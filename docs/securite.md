@@ -10,9 +10,9 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 
 **Accès (ASVS V8 Autorisation)**
 
-- Toute route a un garde : `requireUser`, `requireOrganisation` (membre) ou `requireAdmin` (`apps/api/src/auth/guards.ts`), ou le jeton signé d'un lien intervenant. Une route publique est une décision explicite, commentée.
+- Toute route a un garde : `requireUser`, `requireOrganisation` (membre ; refuse le collaborateur sauf route déclarée `config: { collaborator: true }`) ou `requireManager` (admin ou responsable) (`apps/api/src/auth/guards.ts`), ou le jeton signé d'un lien intervenant. Une route publique est une décision explicite, commentée.
 - Les tables métier ne sont lues et écrites que par `withOrganisation()` ; un identifiant reçu du client (site, réserve, fichier) est relu dans cette transaction, jamais utilisé tel quel.
-- Un test vérifie le refus pour une autre organisation et, si la route est réservée à l'admin, pour un membre.
+- Un test vérifie le refus pour une autre organisation et, si la route est réservée aux admins et responsables, pour un collaborateur ; une route ouverte au collaborateur filtre ce qu'elle renvoie à ses réserves.
 - Le lien intervenant ne donne accès qu'aux réserves de son assignation : lecture et ajout de preuves.
 
 **Entrées et sorties (V1 Encodage, V2 Validation, V4 API)**

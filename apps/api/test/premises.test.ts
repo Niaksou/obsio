@@ -9,15 +9,21 @@ afterAll(() => ctx.close());
 
 let admin: TestClient;
 let membre: TestClient;
+/** Collaborateur : ni structure, ni rapports, ni modification des réserves. */
+let collab: TestClient;
 
 beforeEach(async () => {
   await resetDatabase();
   ctx.emailSender.sent.length = 0;
   ({ admin } = await openClient('Usine Dupont', 'Alice', 'alice@dupont.fr'));
-  const invitationId = await invite(admin, 'bob@dupont.fr', 'membre');
+  const invitationId = await invite(admin, 'bob@dupont.fr', 'responsable');
   membre = new TestClient(ctx);
   await membre.signUpAndVerify('Bob', 'bob@dupont.fr');
   await join(membre, invitationId);
+  const forCarole = await invite(admin, 'carole@dupont.fr', 'collaborateur');
+  collab = new TestClient(ctx);
+  await collab.signUpAndVerify('Carole', 'carole@dupont.fr');
+  await join(collab, forCarole);
 });
 
 /** Crée site, bâtiment et étage en tant qu'admin et renvoie leurs identifiants. */
@@ -81,15 +87,15 @@ describe('Sites, bâtiments, étages et équipements', () => {
     ]);
   });
 
-  it('un membre ne peut rien créer ni modifier', async () => {
+  it('un collaborateur ne peut rien créer ni modifier', async () => {
     const { siteId, floorId } = await createFloor();
-    expect((await membre.post('/api/sites', { name: 'Intrus' })).statusCode).toBe(403);
-    expect((await membre.patch(`/api/sites/${siteId}`, { name: 'Renommé' })).statusCode).toBe(403);
+    expect((await collab.post('/api/sites', { name: 'Intrus' })).statusCode).toBe(403);
+    expect((await collab.patch(`/api/sites/${siteId}`, { name: 'Renommé' })).statusCode).toBe(403);
     expect(
-      (await membre.post(`/api/floors/${floorId}/equipment`, { type: 'td', name: 'TD9' }))
+      (await collab.post(`/api/floors/${floorId}/equipment`, { type: 'td', name: 'TD9' }))
         .statusCode,
     ).toBe(403);
-    expect((await membre.post(`/api/sites/${siteId}/archive`)).statusCode).toBe(403);
+    expect((await collab.post(`/api/sites/${siteId}/archive`)).statusCode).toBe(403);
   });
 
   it("une autre organisation ne voit ni ne modifie rien de l'organisation", async () => {
@@ -160,7 +166,7 @@ describe("Zones d'un étage", () => {
 
     expect((await membre.get(`/api/floors/${floorId}/zones`)).json()).toEqual([zone]);
     expect(
-      (await membre.post(`/api/floors/${floorId}/zones`, { name: 'Quai', points: atelier }))
+      (await collab.post(`/api/floors/${floorId}/zones`, { name: 'Quai', points: atelier }))
         .statusCode,
     ).toBe(403);
 
@@ -315,7 +321,7 @@ describe("Plan d'un étage", () => {
     expect(calibrated.json().plan).toEqual({ width: 2000, height: 1400, scale: 0.0125 });
     expect((await membre.get(`/api/floors/${floorId}`)).json().plan.scale).toBe(0.0125);
 
-    expect((await scale({ scale: 0.01 }, membre)).statusCode).toBe(403);
+    expect((await scale({ scale: 0.01 }, collab)).statusCode).toBe(403);
     expect((await scale({ scale: -1 })).statusCode).toBe(400);
     const other = await openClient('Usine Martin', 'Chloé', 'chloe@martin.fr');
     expect((await scale({ scale: 0.5 }, other.admin)).statusCode).toBe(404);

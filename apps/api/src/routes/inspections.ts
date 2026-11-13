@@ -17,7 +17,7 @@ export const inspectionRoutes: FastifyPluginAsyncZod<{ db: Database; guards: Gua
   app,
   { db, guards },
 ) => {
-  const { requireOrganisation: member, requireAdmin: admin } = guards;
+  const { requireOrganisation: member, requireManager: manager } = guards;
 
   app.get(
     '/api/inspections',
@@ -42,7 +42,7 @@ export const inspectionRoutes: FastifyPluginAsyncZod<{ db: Database; guards: Gua
   app.put(
     '/api/sites/:id/inspections/:kind',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams.extend({ kind: inspectionKindSchema }),
         body: updateInspectionSchema,

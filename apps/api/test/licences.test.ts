@@ -72,7 +72,7 @@ describe('licence d’un client', () => {
       (
         await admin.post('/api/auth/organization/invite-member', {
           email: 'bob@dupont.fr',
-          role: 'membre',
+          role: 'collaborateur',
         })
       ).statusCode,
     ).toBe(403);
@@ -106,15 +106,15 @@ describe('licence d’un client', () => {
     expect(second.json().message).toContain('1 site');
 
     // Alice et une invitation en attente : la licence est pleine.
-    await invite(admin, 'bob@dupont.fr', 'membre');
+    await invite(admin, 'bob@dupont.fr', 'collaborateur');
     const third = await admin.post('/api/auth/organization/invite-member', {
       email: 'carol@dupont.fr',
-      role: 'membre',
+      role: 'collaborateur',
     });
     expect(third.statusCode).toBe(403);
     expect(third.json().message).toContain('2 utilisateurs');
     // Relancer la même personne remplace son invitation : permis.
-    await invite(admin, 'bob@dupont.fr', 'membre');
+    await invite(admin, 'bob@dupont.fr', 'collaborateur');
 
     await seedReserves(ctx, organisationId, siteId, 'alice@dupont.fr', 1);
     const upload = await admin.post(`/api/sites/${siteId}/imports/upload`, {

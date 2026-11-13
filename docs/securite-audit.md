@@ -230,7 +230,7 @@ Aucun à ce jour.
 | --- | --- | --- | --- |
 | V8.1.1 | 1 | Conforme | Matrice des autorisations par rôle et ressource dans `docs/securite-documentation.md`. |
 | V8.1.2 | 2 | Conforme | Règles au niveau du champ (réserves, statut, organisation) dans `docs/securite-documentation.md`. |
-| V8.2.1 | 1 | Conforme | Garde sur chaque route (`requireUser`, `requireOrganisation`, `requireAdmin`), jeton pour le lien intervenant. |
+| V8.2.1 | 1 | Conforme | Garde sur chaque route (`requireUser`, `requireOrganisation`, `requireManager` ; collaborateur refusé par défaut), jeton pour le lien intervenant. |
 | V8.2.2 | 1 | Conforme | RLS, identifiants relus dans la transaction, clés étrangères composites ; `test/rls.test.ts`. |
 | V8.2.3 | 2 | Conforme | Schémas de réponse Zod (champs choisis), corps limités aux champs autorisés. |
 | V8.3.1 | 1 | Conforme | Autorisations appliquées par l’API et la base. |

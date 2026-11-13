@@ -10,6 +10,8 @@ afterAll(() => ctx.close());
 
 let admin: TestClient;
 let membre: TestClient;
+/** Collaborateur : ni structure, ni rapports, ni modification des réserves. */
+let collab: TestClient;
 let organisationId: string;
 let siteId: string;
 let td2: string;
@@ -19,10 +21,14 @@ beforeEach(async () => {
   await resetDatabase();
   ctx.emailSender.sent.length = 0;
   ({ admin, organisationId } = await openClient('Usine Dupont', 'Alice', 'alice@dupont.fr'));
-  const invitationId = await invite(admin, 'bob@dupont.fr', 'membre');
+  const invitationId = await invite(admin, 'bob@dupont.fr', 'responsable');
   membre = new TestClient(ctx);
   await membre.signUpAndVerify('Bob', 'bob@dupont.fr');
   await join(membre, invitationId);
+  const forCarole = await invite(admin, 'carole@dupont.fr', 'collaborateur');
+  collab = new TestClient(ctx);
+  await collab.signUpAndVerify('Carole', 'carole@dupont.fr');
+  await join(collab, forCarole);
 
   siteId = (await admin.post('/api/sites', { name: 'Usine de Lyon' })).json().id;
   const buildingId = (
@@ -77,9 +83,9 @@ describe('suivi des réserves', () => {
     const overdue = await membre.get(`/api/sites/${siteId}/reserves?overdue=true`);
     expect(overdue.json()).toHaveLength(1);
 
-    // Seul l'admin modifie ; le journal garde l'avant et l'après.
+    // Admin et responsable modifient ; le journal garde l'avant et l'après.
     const [first] = reserveIds;
-    expect((await membre.patch(`/api/reserves/${first}`, { equipmentId: td2 })).statusCode).toBe(
+    expect((await collab.patch(`/api/reserves/${first}`, { equipmentId: td2 })).statusCode).toBe(
       403,
     );
     expect((await admin.patch(`/api/reserves/${first}`, { equipmentId: td2 })).statusCode).toBe(
@@ -164,7 +170,7 @@ describe('suivi des réserves', () => {
 
     // Refus de la correction, puis levée.
     expect(
-      (await membre.post(`/api/reserves/${first}/review`, { decision: 'lever' })).statusCode,
+      (await collab.post(`/api/reserves/${first}/review`, { decision: 'lever' })).statusCode,
     ).toBe(403);
     await admin.post(`/api/reserves/${first}/review`, {
       decision: 'refuser',

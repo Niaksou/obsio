@@ -4,7 +4,7 @@ import { withOrganisation, type Database } from '../db/client.js';
 import { organisation } from '../db/schema/index.js';
 import type { EmailSender } from '../email/sender.js';
 import { inspectionReminderEmail, type InspectionReminder } from '../email/templates.js';
-import { adminEmails } from '../reserves/events.js';
+import { managerEmails } from '../reserves/events.js';
 import { listReserves, today } from '../reserves/queries.js';
 import { KIND_DOCUMENTS, listInspections } from './schedule.js';
 
@@ -64,7 +64,7 @@ export async function sendInspectionReminders(deps: Deps, on = today()): Promise
       return found;
     });
     if (due.length === 0) continue;
-    const admins = await adminEmails(deps.db, org.id);
+    const admins = await managerEmails(deps.db, org.id);
     for (const { inspection, reminder, date, openReserves } of due) {
       for (const to of admins) {
         await deps.emailSender.send(

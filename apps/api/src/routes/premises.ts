@@ -25,13 +25,14 @@ import {
   zoneSchema,
   zoneUpdateSchema,
 } from '@obsio/shared';
-import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Guards } from '../auth/guards.js';
 import { withOrganisation, type Database, type Transaction } from '../db/client.js';
-import { building, equipment, floor, site, zone } from '../db/schema/index.js';
+import { building, equipment, floor, reserve, site, zone } from '../db/schema/index.js';
+import { everAssignedTo } from '../reserves/collaborators.js';
 import { assertSiteAvailable } from '../licences/licence.js';
 import type { Storage } from '../storage.js';
 import { verifiedContentType } from '../file-signature.js';
@@ -94,11 +95,14 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   storage: Storage;
   scanner: FileScanner;
 }> = async (app, { db, guards, storage, scanner }) => {
-  const { requireOrganisation: member, requireAdmin: admin } = guards;
+  const { requireOrganisation: member, requireManager: manager } = guards;
 
   /** Transaction cloisonnée sur l'organisation active de la requête. */
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
     withOrganisation(db, request.organisation!.id, fn);
+
+  /** Vrai pour un collaborateur, qui ne voit que les étages et équipements de ses réserves. */
+  const collaborator = (request: FastifyRequest) => request.organisation!.role === 'collaborateur';
 
   const missing = (reply: FastifyReply, what: string) =>
     reply.code(404).send({ message: `${what} introuvable` });
@@ -138,7 +142,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
 
   app.post(
     '/api/sites',
-    { preHandler: admin, schema: { body: siteInputSchema, response: { 201: siteSchema } } },
+    { preHandler: manager, schema: { body: siteInputSchema, response: { 201: siteSchema } } },
     async (request, reply) => {
       const [row] = await scoped(request, async (tx) => {
         await assertSiteAvailable(tx);
@@ -154,7 +158,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/sites/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: siteInputSchema.partial(),
@@ -197,7 +201,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/sites/:id/buildings',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: buildingInputSchema,
@@ -224,7 +228,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/buildings/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: buildingInputSchema.partial(),
@@ -267,7 +271,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/buildings/:id/floors',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: floorInputSchema,
@@ -295,12 +299,20 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     '/api/floors/:id',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: { params: idParams, response: { 200: floorDetailSchema, ...notFound } },
     },
     async (request, reply) => {
       const found = await scoped(request, async (tx) => {
         const row = await activeFloor(tx, request.params.id);
         if (!row) return null;
+        // Un collaborateur ouvre seulement le plan d'un étage où se trouve une de ses réserves.
+        if (
+          collaborator(request) &&
+          (await collaboratorEquipment(tx, request.user!.id, request.params.id)).length === 0
+        ) {
+          return null;
+        }
         // Bâtiment et site pour le cartouche du plan.
         const [parents] = await tx
           .select({
@@ -328,7 +340,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/floors/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: floorInputSchema.partial(),
@@ -352,7 +364,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/floors/:id/plan/uploads',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: planUploadRequestSchema,
@@ -385,7 +397,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.put(
     '/api/floors/:id/plan',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: planConfirmSchema,
@@ -435,7 +447,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.put(
     '/api/floors/:id/plan/scale',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: planScaleSchema,
@@ -499,15 +511,27 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     '/api/floors/:id/equipment',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: { params: idParams, response: { 200: z.array(equipmentSchema), ...notFound } },
     },
     async (request, reply) => {
       const rows = await scoped(request, async (tx) => {
         if (!(await activeFloor(tx, request.params.id))) return null;
+        // Un collaborateur ne voit que les équipements de ses réserves.
+        const only = collaborator(request)
+          ? await collaboratorEquipment(tx, request.user!.id, request.params.id)
+          : null;
+        if (only?.length === 0) return [];
         return tx
           .select()
           .from(equipment)
-          .where(and(eq(equipment.floorId, request.params.id), isNull(equipment.archivedAt)))
+          .where(
+            and(
+              eq(equipment.floorId, request.params.id),
+              isNull(equipment.archivedAt),
+              only ? inArray(equipment.id, only) : undefined,
+            ),
+          )
           .orderBy(asc(equipment.name));
       });
       return rows ? rows.map(toEquipment) : missing(reply, 'Étage');
@@ -517,7 +541,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/floors/:id/equipment',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: equipmentInputSchema,
@@ -546,7 +570,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/equipment/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: equipmentUpdateSchema,
@@ -572,11 +596,14 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     '/api/floors/:id/zones',
     {
       preHandler: member,
+      config: { collaborator: true },
       schema: { params: idParams, response: { 200: z.array(zoneSchema), ...notFound } },
     },
     async (request, reply) => {
       const rows = await scoped(request, async (tx) => {
         if (!(await activeFloor(tx, request.params.id))) return null;
+        // Les zones décrivent le bâtiment : rien pour un collaborateur.
+        if (collaborator(request)) return [];
         return tx
           .select()
           .from(zone)
@@ -590,7 +617,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/floors/:id/zones',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: zoneInputSchema,
@@ -619,7 +646,7 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/zones/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: zoneUpdateSchema,
@@ -655,7 +682,10 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
   for (const { path, table, label } of archivable) {
     app.post(
       `/api/${path}/:id/archive`,
-      { preHandler: admin, schema: { params: idParams, response: { 204: z.null(), ...notFound } } },
+      {
+        preHandler: manager,
+        schema: { params: idParams, response: { 204: z.null(), ...notFound } },
+      },
       async (request, reply) => {
         const [row] = await scoped(request, (tx) =>
           tx
@@ -669,3 +699,13 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     );
   }
 };
+
+/** Équipements d'un étage qui portent une réserve confiée (ou qui a été confiée) à l'utilisateur. */
+async function collaboratorEquipment(tx: Transaction, userId: string, floorId: string) {
+  const rows = await tx
+    .selectDistinct({ id: equipment.id })
+    .from(reserve)
+    .innerJoin(equipment, eq(equipment.id, reserve.equipmentId))
+    .where(and(eq(equipment.floorId, floorId), everAssignedTo(userId)));
+  return rows.map((r) => r.id);
+}

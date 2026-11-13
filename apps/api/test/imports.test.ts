@@ -16,6 +16,8 @@ afterAll(() => ctx.close());
 
 let admin: TestClient;
 let membre: TestClient;
+/** Collaborateur : ni structure, ni rapports, ni modification des réserves. */
+let collab: TestClient;
 let organisationId: string;
 let siteId: string;
 let td2: string;
@@ -25,10 +27,14 @@ beforeEach(async () => {
   ctx.queue.jobs.length = 0;
   ctx.queue.failures.clear();
   ({ admin, organisationId } = await openClient('Usine Dupont', 'Alice', 'alice@dupont.fr'));
-  const invitationId = await invite(admin, 'bob@dupont.fr', 'membre');
+  const invitationId = await invite(admin, 'bob@dupont.fr', 'responsable');
   membre = new TestClient(ctx);
   await membre.signUpAndVerify('Bob', 'bob@dupont.fr');
   await join(membre, invitationId);
+  const forCarole = await invite(admin, 'carole@dupont.fr', 'collaborateur');
+  collab = new TestClient(ctx);
+  await collab.signUpAndVerify('Carole', 'carole@dupont.fr');
+  await join(collab, forCarole);
 
   siteId = (await admin.post('/api/sites', { name: 'Usine de Lyon' })).json().id;
   const buildingId = (
@@ -262,14 +268,14 @@ describe("Import d'un rapport", () => {
 
   it('réserve le dépôt et la relecture aux admins et cloisonne les organisations', async () => {
     expect(
-      (await membre.post(`/api/sites/${siteId}/imports/upload`, { fileName: 'r.pdf', size: 5 }))
+      (await collab.post(`/api/sites/${siteId}/imports/upload`, { fileName: 'r.pdf', size: 5 }))
         .statusCode,
     ).toBe(403);
     const importId = await startImport();
     await finishExtraction(importId, report);
     const [draft] = (await membre.get(`/api/imports/${importId}`)).json().drafts;
     expect(
-      (await membre.patch(`/api/drafts/${draft.id}`, { decision: 'retenue' })).statusCode,
+      (await collab.patch(`/api/drafts/${draft.id}`, { decision: 'retenue' })).statusCode,
     ).toBe(403);
 
     const { admin: other } = await openClient('Usine Martin', 'Carol', 'carol@martin.fr');

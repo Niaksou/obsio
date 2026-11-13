@@ -3,8 +3,14 @@ import { defaultStatements, memberAc, ownerAc } from 'better-auth/plugins/organi
 
 export const ac = createAccessControl(defaultStatements);
 
-// Rôles du MVP : l'admin pilote l'organisation, le membre contribue.
+// Droits Better Auth sur les personnes. Qui peut agir sur qui (le responsable sur les seuls
+// collaborateurs, personne sur l'admin fondateur) est vérifié en plus par l'API
+// (apps/api/src/organisations/people.ts), avec les règles de ./roles.ts.
 export const roles = {
   admin: ac.newRole(ownerAc.statements),
-  membre: ac.newRole(memberAc.statements),
+  responsable: ac.newRole({
+    member: ['create', 'update', 'delete'],
+    invitation: ['create', 'cancel'],
+  }),
+  collaborateur: ac.newRole(memberAc.statements),
 };

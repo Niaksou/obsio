@@ -50,7 +50,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   queue: ExtractionQueue;
   quotas: Quotas;
 }> = async (app, { db, guards, storage, scanner, queue, quotas }) => {
-  const { requireOrganisation: member, requireAdmin: admin } = guards;
+  const { requireOrganisation: member, requireManager: manager } = guards;
 
   const scoped = <T>(request: FastifyRequest, fn: (tx: Transaction) => Promise<T>) =>
     withOrganisation(db, request.organisation!.id, fn);
@@ -88,7 +88,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/sites/:id/imports/upload',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: reportUploadRequestSchema,
@@ -110,7 +110,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/sites/:id/imports',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: {
         params: idParams,
         body: reportImportCreateSchema,
@@ -260,7 +260,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/imports/:id/retry',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { params: idParams, response: { 200: reportImportSchema, ...errors } },
     },
     async (request, reply) => {
@@ -291,7 +291,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   app.patch(
     '/api/drafts/:id',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { params: idParams, body: draftUpdateSchema, response: { 204: z.null(), ...errors } },
     },
     async (request, reply) => {
@@ -360,7 +360,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
   app.post(
     '/api/imports/:id/validate',
     {
-      preHandler: admin,
+      preHandler: manager,
       schema: { params: idParams, response: { 200: reportImportSchema, ...errors } },
     },
     async (request, reply) => {

@@ -201,3 +201,43 @@ export async function myReserves(tx: Transaction, userId: string) {
   // Les plus urgentes d'abord : échéance la plus proche, sans échéance à la fin.
   return items.sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'));
 }
+
+// --- Ce que voit un collaborateur (rôle) : les réserves qui lui sont ou lui ont été confiées.
+
+/** Condition SQL : réserve confiée à l'utilisateur, en ce moment ou par le passé. */
+export function everAssignedTo(userId: string) {
+  return sql`exists (select 1 from ${reserveMember} where ${reserveMember.reserveId} = ${reserve.id} and ${reserveMember.userId} = ${userId})`;
+}
+
+/**
+ * Le collaborateur peut-il voir cette réserve (`write` : y agir, seulement tant qu'elle lui
+ * est confiée) ?
+ */
+export async function collaboratorCanReach(
+  tx: Transaction,
+  userId: string,
+  reserveId: string,
+  write = false,
+) {
+  const [row] = await tx
+    .select({ id: reserveMember.id })
+    .from(reserveMember)
+    .where(
+      and(
+        eq(reserveMember.reserveId, reserveId),
+        eq(reserveMember.userId, userId),
+        write ? isNull(reserveMember.removedAt) : undefined,
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
+/** Réserves d'un site visibles par le collaborateur. */
+export async function collaboratorReserveIds(tx: Transaction, userId: string, siteId: string) {
+  const rows = await tx
+    .select({ id: reserve.id })
+    .from(reserve)
+    .where(and(eq(reserve.siteId, siteId), everAssignedTo(userId)));
+  return rows.map((r) => r.id);
+}

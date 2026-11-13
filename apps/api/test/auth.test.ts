@@ -171,20 +171,20 @@ describe("Ouverture d'un client (org:create)", () => {
 describe('Invitations par un admin', () => {
   it("un invité rejoint l'organisation avec le rôle choisi", async () => {
     const { admin, organisationId } = await openClient('Usine', 'Alice', 'alice@example.org');
-    const invitationId = await invite(admin, 'bob@example.org', 'membre');
+    const invitationId = await invite(admin, 'bob@example.org', 'responsable');
 
     const bob = new TestClient(ctx);
     await bob.signUpAndVerify('Bob', 'bob@example.org');
     await join(bob, invitationId);
     expect((await bob.get('/api/me')).json()).toMatchObject({
-      organisation: { id: organisationId, role: 'membre' },
+      organisation: { id: organisationId, role: 'responsable' },
     });
   });
 
   it("une invitation ne peut pas être acceptée par quelqu'un d'autre", async () => {
     const { admin } = await openClient('Usine', 'Alice', 'alice@example.org');
-    const forBob = await invite(admin, 'bob@example.org', 'membre');
-    await invite(admin, 'eve@example.org', 'membre');
+    const forBob = await invite(admin, 'bob@example.org', 'responsable');
+    await invite(admin, 'eve@example.org', 'responsable');
 
     const eve = new TestClient(ctx);
     await eve.signUpAndVerify('Eve', 'eve@example.org');
@@ -198,13 +198,13 @@ describe('Invitations par un admin', () => {
   it('un membre ne peut pas inviter', async () => {
     const { admin } = await openClient('Usine', 'Alice', 'alice@example.org');
     const bob = new TestClient(ctx);
-    const invitationId = await invite(admin, 'bob@example.org', 'membre');
+    const invitationId = await invite(admin, 'bob@example.org', 'responsable');
     await bob.signUpAndVerify('Bob', 'bob@example.org');
     await join(bob, invitationId);
 
     const response = await bob.post('/api/auth/organization/invite-member', {
       email: 'carol@example.org',
-      role: 'membre',
+      role: 'responsable',
     });
     expect(response.statusCode).toBe(403);
   });
@@ -215,7 +215,7 @@ describe('Utilisateur membre de plusieurs organisations', () => {
     const usineA = await openClient('UsineA', 'Alice', 'alice@example.org');
     const usineB = await openClient('UsineB', 'Bruno', 'bruno@example.org');
     const bob = new TestClient(ctx);
-    const fromA = await invite(usineA.admin, 'bob@example.org', 'membre');
+    const fromA = await invite(usineA.admin, 'bob@example.org', 'responsable');
     await bob.signUpAndVerify('Bob', 'bob@example.org');
     await join(bob, fromA);
     // Déjà inscrit : il accepte la seconde invitation avec le même compte.
@@ -231,7 +231,7 @@ describe('Utilisateur membre de plusieurs organisations', () => {
 
     await bob.post('/api/auth/organization/set-active', { organizationId: usineA.organisationId });
     expect((await bob.get('/api/me')).json()).toMatchObject({
-      organisation: { id: usineA.organisationId, role: 'membre' },
+      organisation: { id: usineA.organisationId, role: 'responsable' },
     });
     await bob.post('/api/auth/organization/set-active', { organizationId: usineB.organisationId });
     expect((await bob.get('/api/me')).json()).toMatchObject({
@@ -264,7 +264,7 @@ describe('Cloisonnement entre organisations', () => {
   it('un membre retiré perd l’accès et ses sessions sont fermées', async () => {
     const { admin, organisationId } = await openClient('Usine', 'Alice', 'alice@example.org');
     const bob = new TestClient(ctx);
-    const invitationId = await invite(admin, 'bob@example.org', 'membre');
+    const invitationId = await invite(admin, 'bob@example.org', 'responsable');
     await bob.signUpAndVerify('Bob', 'bob@example.org');
     await join(bob, invitationId);
     expect((await bob.get('/test/organisation')).json()).toEqual({ organisationId });

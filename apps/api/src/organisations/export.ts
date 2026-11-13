@@ -156,6 +156,7 @@ export async function exportOrganisation(
       last_name: user.lastName,
       email: user.email,
       role: member.role,
+      founder: member.founder,
       created_at: member.createdAt,
     })
     .from(member)
