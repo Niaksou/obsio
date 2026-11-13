@@ -98,7 +98,6 @@ function Overview({ clients }: { clients: ConsoleClient[] }) {
   const analyses = clients.reduce((sum, c) => sum + c.analysesThisMonth, 0);
   const pages = clients.reduce((sum, c) => sum + c.ocrPagesThisMonth, 0);
   const figures = [
-    { label: 'Clients', value: clients.length },
     { label: 'En lecture seule', value: readOnly },
     { label: 'Analyses ce mois', value: analyses },
     { label: 'Pages OCR ce mois', value: pages },
@@ -280,19 +279,33 @@ export function ClientPanel({
   );
 }
 
+/** Date du jour, à laquelle se lisent les chiffres de la page (« vendredi 13 novembre 2026 »). */
+function todayLabel() {
+  const label = new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'full',
+    timeZone: 'Europe/Paris',
+  }).format(new Date());
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function ClientsPage() {
   const { data: clients, error, isPending } = useClients();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const selected = clients?.find((c) => c.id === selectedId) ?? null;
 
-  if (isPending) return <Loading />;
+  if (isPending) return <Loading shape="table" />;
   if (error) return <p className="error">{error.message}</p>;
 
   return (
     <div className="console-page">
       <div className="console-head">
-        <h1>Clients</h1>
+        <div className="console-title">
+          <h1>
+            {number.format(clients.length)} client{clients.length > 1 ? 's' : ''}
+          </h1>
+          <p className="hint">{todayLabel()}</p>
+        </div>
         <button
           type="button"
           onClick={() => {

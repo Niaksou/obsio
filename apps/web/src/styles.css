@@ -3875,8 +3875,12 @@ li.open .item-number {
   width: 100%;
 }
 
-.loading-skeleton span {
+.loading-skeleton :where(span) {
   display: block;
+}
+
+/* Seules les pièces vides sont grisées, pas leurs conteneurs. */
+.loading-skeleton :where(span:empty) {
   background: rgb(24 32 31 / 0.05);
   border-radius: var(--radius);
 }
@@ -3892,11 +3896,54 @@ li.open .item-number {
   border-radius: var(--radius-card);
 }
 
+.loading-skeleton > .skeleton-table {
+  display: grid;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+/* Mêmes proportions que le tableau des clients : nom, licence, trois chiffres, connexion. */
+.skeleton-table-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr 1fr 1fr 1.5fr 1.5fr;
+  align-items: center;
+  gap: 24px;
+  height: 76px;
+  padding: 0 16px;
+}
+
+.skeleton-table-row + .skeleton-table-row {
+  border-top: 1px solid var(--line-soft);
+}
+
+.skeleton-table-row > .cell {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-table-row > .cell.name {
+  width: 70%;
+}
+
+.skeleton-table-row > .cell.track {
+  height: 28px;
+  max-width: 260px;
+}
+
+.skeleton-table-row > .cell.num {
+  width: 40%;
+  justify-self: end;
+}
+
+.skeleton-table-row > .cell.date {
+  width: 60%;
+}
+
 .loading-skeleton > .skeleton-columns {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 24px;
-  background: none;
 }
 
 .skeleton-columns > .skeleton-block {
@@ -3933,6 +3980,28 @@ li.open .item-number {
 }
 
 @media (max-width: 720px) {
+  /* Comme les cartes du tableau sur téléphone : nom, puis licence. */
+  .skeleton-table-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    height: auto;
+    padding: 20px 16px;
+  }
+
+  .skeleton-table-row > .cell.name {
+    width: 50%;
+    height: 16px;
+  }
+
+  .skeleton-table-row > .cell.track {
+    max-width: none;
+  }
+
+  .skeleton-table-row > .cell.num,
+  .skeleton-table-row > .cell.date {
+    display: none;
+  }
+
   .loading-skeleton > .skeleton-columns {
     grid-template-columns: minmax(0, 1fr);
   }

@@ -102,6 +102,11 @@
   flex-wrap: wrap;
 }
 
+.console-title {
+  display: grid;
+  gap: 4px;
+}
+
 .console-gate {
   margin-top: 12vh;
   justify-items: start;
@@ -111,7 +116,10 @@
 
 .console-figures {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+  /* Chiffre principal deux fois plus large, puis autant de colonnes que de chiffres. */
+  grid-template-columns: minmax(0, 2fr);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   margin: 0;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -429,6 +437,7 @@
 
   .console-figures {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-auto-flow: row;
   }
 
   .console-figures > div + div {
