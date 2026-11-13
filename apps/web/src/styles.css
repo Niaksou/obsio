@@ -2882,6 +2882,147 @@ label.check input {
 
 /* --- Vue de l'intervenant (téléphone) */
 
+/* ——— Vérifier un document (page publique) ——— */
+.verify {
+  background: var(--paper);
+}
+
+.verify-body {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 16px 64px;
+}
+
+.verify-body h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.verify-lead {
+  margin: 0;
+  color: var(--muted);
+}
+
+.verify-body .hint {
+  margin: 0;
+}
+
+.verify-drop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 32px 16px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition:
+    border-color 140ms var(--ease),
+    background-color 140ms var(--ease);
+}
+
+.verify-drop:hover,
+.verify-drop.dragging {
+  border-color: var(--ink);
+  background: var(--surface-tint);
+}
+
+.verify-drop:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.verify-drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.verify-drop-title {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.verify-result {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--patina);
+  border-radius: var(--radius-card);
+}
+
+.verify-result.unknown {
+  border-left-color: var(--danger);
+}
+
+.verify-result h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.verify-result.valid h2 svg {
+  color: var(--patina);
+}
+
+.verify-result.unknown h2 svg {
+  color: var(--danger);
+}
+
+.verify-result p {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.verify-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 4px 0 0;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-tag);
+}
+
+.verify-facts > div {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.verify-facts > div:nth-child(odd) {
+  border-right: 1px solid var(--ink);
+}
+
+.verify-facts > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.verify-facts dt {
+  font-size: 0.75rem;
+  color: var(--faint);
+}
+
+.verify-facts dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.verify-note {
+  margin-top: 8px;
+}
+
 .intervention {
   min-height: 100%;
   background: var(--paper);

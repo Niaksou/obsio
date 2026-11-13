@@ -4,6 +4,7 @@ import {
   buildingSchema,
   contractorReserveSchema,
   contractorSchema,
+  documentVerificationSchema,
   equipmentSchema,
   floorDetailSchema,
   floorSchema,
@@ -215,6 +216,8 @@ export const api = {
     request(z.null(), 'POST', '/api/push/subscriptions/remove', { endpoint }),
 
   intervention: (token: string) => request(interventionSchema, 'GET', `/api/intervention/${token}`),
+  verifyDocument: (sha256: string) =>
+    request(documentVerificationSchema, 'POST', '/api/documents/verify', { sha256 }),
   interventionPhotoUpload: (
     token: string,
     input: { reserveId: string; contentType: string; size: number },
@@ -226,12 +229,17 @@ export const api = {
     request(z.null(), 'POST', `/api/${kind}/${id}/archive`),
 };
 
-/** Télécharge le dossier de preuves en PDF (la session passe par le cookie, d'où fetch). */
+/**
+ * Émet le dossier de preuves (PDF signé, enregistré par l'API) et le télécharge ; la session
+ * passe par le cookie, d'où fetch.
+ */
 export async function downloadProofDossier(siteId: string, query: ProofDossierQuery) {
-  const response = await fetch(
-    `${BASE_URL}/api/sites/${siteId}/proof-dossier${queryString({ ...query })}`,
-    { credentials: 'include' },
-  );
+  const response = await fetch(`${BASE_URL}/api/sites/${siteId}/proof-dossier`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(query),
+  });
   if (!response.ok) {
     // Quota atteint : le message de l'API donne le délai d'attente.
     const payload = (await response.json().catch(() => null)) as { message?: string } | null;

@@ -34,6 +34,11 @@ const ImportPage = lazy(() =>
 );
 
 // La vue de l'intervenant est un point d'entrée à part (téléphone, sans compte).
+const VerifyDocumentPage = lazy(() =>
+  import('./pages/VerifyDocumentPage.js').then((module) => ({
+    default: module.VerifyDocumentPage,
+  })),
+);
 const InterventionPage = lazy(() =>
   import('./pages/InterventionPage.js').then((module) => ({ default: module.InterventionPage })),
 );
@@ -123,6 +128,8 @@ const router = createBrowserRouter([
         ],
       },
       { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },
+      // Page publique : vérification d'un dossier de preuves reçu (QR code du PDF).
+      { path: '/verifier', element: lazyPage(<VerifyDocumentPage />) },
       {
         path: '/console',
         element: lazyPage(<consolePages.layout />),

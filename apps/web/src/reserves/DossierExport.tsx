@@ -20,8 +20,8 @@ export function DossierExport({ siteId }: { siteId: string }) {
     <section className="inline-form dossier-export" data-tour="dossier-export">
       <h2>Dossier de preuves</h2>
       <p className="hint">
-        Un PDF avec, pour chaque réserve, le rapport d’origine, son état et les photos de la
-        correction.
+        Un PDF signé avec, pour chaque réserve, le rapport d’origine, son historique et les photos
+        de la correction. Chaque dossier est enregistré : son destinataire peut le vérifier.
       </p>
       <div className="fields">
         <label>
