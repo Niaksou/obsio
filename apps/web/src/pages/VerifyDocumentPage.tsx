@@ -66,7 +66,7 @@ export function VerifyDocumentPage() {
         </Link>
       </header>
       <main className="verify-body">
-        <h1>Vérifier un document</h1>
+        <h1>Vérifier un dossier de preuves</h1>
         <p className="verify-lead">
           Déposez le dossier de preuves reçu en PDF. Son empreinte est calculée sur votre appareil,
           le fichier lui-même n’est pas envoyé.

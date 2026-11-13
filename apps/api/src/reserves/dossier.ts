@@ -551,7 +551,7 @@ export async function buildProofDossier(
     const own = proofs.filter((p) => p.reserveId === item.id);
     if (own.length === 0) {
       doc.moveDown(0.5);
-      doc.fillColor(MUTED).font(F.regular).fontSize(9.5).text('Aucune preuve jointe.', LEFT, doc.y);
+      doc.fillColor(MUTED).font(F.regular).fontSize(9.5).text('Aucune preuve jointe', LEFT, doc.y);
       continue;
     }
     for (const proof of own) {
