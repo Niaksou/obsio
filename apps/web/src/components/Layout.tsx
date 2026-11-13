@@ -6,6 +6,7 @@ import { disablePush } from '../push/push.js';
 import { HelpButton } from '../tours/HelpButton.js';
 import { useTours } from '../tours/TourProvider.js';
 import { LicenceBanner } from './LicenceBanner.js';
+import { usePageViews } from './usePageViews.js';
 import { Logo } from './Logo.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
@@ -160,6 +161,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
     setLastPath(pathname);
     setMoreOpen(false);
   }
+  usePageViews(pathname);
   // Tout ce qui se trouve dans un site (plans, réserves, rapports) relève de la rubrique Sites.
   const inSites = SITE_PATHS.test(pathname);
   const inMore = /^\/(?:compte|organisation)(?:\/|$)/.test(pathname);

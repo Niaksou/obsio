@@ -2,6 +2,7 @@ import {
   consoleAuditEntrySchema,
   consoleClientSchema,
   consoleSessionSchema,
+  consoleUsageSchema,
   type ConsoleClientCreate,
   type Licence,
 } from '@obsio/shared';
@@ -13,6 +14,7 @@ export const consoleApi = {
   session: () => request(consoleSessionSchema, 'GET', '/api/console/session'),
   clients: () => request(z.array(consoleClientSchema), 'GET', '/api/console/clients'),
   audit: () => request(z.array(consoleAuditEntrySchema), 'GET', '/api/console/audit'),
+  usage: (days: number) => request(consoleUsageSchema, 'GET', `/api/console/usage?days=${days}`),
   createClient: (body: ConsoleClientCreate) =>
     request(z.object({ id: z.uuid() }), 'POST', '/api/console/clients', body),
   saveLicence: (id: string, licence: Licence) =>
@@ -23,6 +25,7 @@ export const consoleKeys = {
   session: ['console', 'session'] as const,
   clients: ['console', 'clients'] as const,
   audit: ['console', 'audit'] as const,
+  usage: (days: number) => ['console', 'usage', String(days)] as const,
 };
 
 /** Console reverrouillée côté serveur (15 minutes sans activité). */
@@ -54,6 +57,8 @@ function useConsoleQuery<T>(queryKey: readonly string[], queryFn: () => Promise<
 }
 
 export const useClients = () => useConsoleQuery(consoleKeys.clients, consoleApi.clients);
+export const useUsage = (days: number) =>
+  useConsoleQuery(consoleKeys.usage(days), () => consoleApi.usage(days));
 export const useAudit = () => useConsoleQuery(consoleKeys.audit, consoleApi.audit);
 
 function useConsoleMutation<V, R>(fn: (variables: V) => Promise<R>) {

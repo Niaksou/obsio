@@ -120,6 +120,13 @@
       "when": 1794498182023,
       "tag": "0016_licence",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794554038409,
+      "tag": "0017_page_view",
+      "breakpoints": true
     }
   ]
 }

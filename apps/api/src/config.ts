@@ -38,6 +38,11 @@ const apiEnvSchema = z
     // Certificat et clé de l'API : HTTPS entre le proxy et l'API (ASVS 12.3.3).
     TLS_CERT_FILE: z.string().min(1).optional(),
     TLS_KEY_FILE: z.string().min(1).optional(),
+    // Console Obsio : tarifs Mistral pour le coût estimé des analyses, en euros (à tenir à jour
+    // sur la grille de Mistral ; une estimation, pas la facture).
+    PRICE_OCR_PER_1000_PAGES: z.coerce.number().nonnegative().default(2),
+    PRICE_INPUT_PER_MILLION_TOKENS: z.coerce.number().nonnegative().default(0.4),
+    PRICE_OUTPUT_PER_MILLION_TOKENS: z.coerce.number().nonnegative().default(2),
     // Notifications sur le téléphone (Web Push) : clé privée VAPID (P-256, 32 octets en
     // base64url), la clé publique en est dérivée. Absente : pas de notification, l'e-mail reste.
     VAPID_PRIVATE_KEY: z

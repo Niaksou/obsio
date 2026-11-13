@@ -12,6 +12,7 @@ import {
   inspectionPlan,
   licence,
   organisation,
+  pageView,
   proof,
   reportDocument,
   reportImport,
@@ -47,6 +48,7 @@ export const ORGANISATION_TABLES = [
   { table: reserveMember },
   { table: proof },
   { table: reserveEvent },
+  { table: pageView },
 ] as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

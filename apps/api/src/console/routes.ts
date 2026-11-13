@@ -3,6 +3,7 @@ import {
   consoleClientCreateSchema,
   consoleClientSchema,
   consoleSessionSchema,
+  consoleUsageSchema,
   licenceSchema,
 } from '@obsio/shared';
 import { desc, eq } from 'drizzle-orm';
@@ -17,6 +18,7 @@ import { readLicence, saveLicence } from '../licences/licence.js';
 import { provisionOrganisation } from '../organisations/provision.js';
 import { licenceAction, licenceChanges, listClients } from './clients.js';
 import { audit, isStaff } from './staff.js';
+import { consoleUsage } from './usage.js';
 
 const messageSchema = z.object({ message: z.string() });
 
@@ -143,5 +145,17 @@ export const consoleRoutes: FastifyPluginAsyncZod<{
       }
       return reply.code(204).send(null);
     },
+  );
+
+  app.get(
+    '/api/console/usage',
+    {
+      preHandler: requireStaff,
+      schema: {
+        querystring: z.object({ days: z.coerce.number().int().min(7).max(366).default(30) }),
+        response: { 200: consoleUsageSchema },
+      },
+    },
+    async (request) => consoleUsage(db, config, request.query.days),
   );
 };

@@ -2,8 +2,9 @@ import { sql } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { audit, setStaff } from '../src/console/staff.js';
 import { createDatabase } from '../src/db/client.js';
-import { buildTestApp, clientHelpers, resetDatabase, TestClient } from './helpers.js';
-import { SoftAuthenticator } from './webauthn.js';
+import type { TestClient } from './helpers.js';
+import { buildTestApp, clientHelpers, resetDatabase } from './helpers.js';
+import { passkeySession as passkeySessionFor } from './passkey-session.js';
 
 const ctx = await buildTestApp();
 const { openClient } = clientHelpers(ctx);
@@ -19,24 +20,7 @@ beforeEach(async () => {
   ctx.emailSender.sent.length = 0;
 });
 
-const web = new URL(ctx.config.WEB_URL);
-
-/** Ajoute une clé d'accès au compte connecté, puis ouvre une session avec elle. */
-export async function passkeySession(client: TestClient) {
-  const authenticator = new SoftAuthenticator(web.hostname, web.origin, true);
-  const options = await client.get('/api/auth/passkey/generate-register-options');
-  await client.post('/api/auth/passkey/verify-registration', {
-    response: authenticator.register(options.json()),
-    name: 'Portable',
-  });
-  const device = new TestClient(ctx);
-  const login = await device.get('/api/auth/passkey/generate-authenticate-options');
-  const verified = await device.post('/api/auth/passkey/verify-authentication', {
-    response: authenticator.authenticate(login.json()),
-  });
-  expect(verified.statusCode).toBe(200);
-  return device;
-}
+const passkeySession = (client: TestClient) => passkeySessionFor(ctx, client);
 
 describe('Accès à la console Obsio', () => {
   it('reste invisible pour un compte client', async () => {

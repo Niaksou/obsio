@@ -450,3 +450,157 @@
   min-height: 32px;
   padding: 6px;
 }
+
+/* --- Usage */
+
+.usage-card {
+  display: grid;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.usage-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.usage-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.usage-chart {
+  margin: 0;
+}
+
+.usage-chart-plot {
+  position: relative;
+}
+
+.usage-chart svg {
+  display: block;
+  width: 100%;
+  height: 200px;
+}
+
+.usage-grid {
+  stroke: var(--line-soft);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.usage-baseline {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.usage-axis {
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+
+.usage-axis-max {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  padding-left: 8px;
+  background: var(--surface);
+}
+
+.usage-dates {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.usage-bar {
+  fill: var(--patina);
+  transition: fill 140ms var(--ease);
+}
+
+.usage-bar.hover {
+  fill: var(--ink);
+}
+
+.usage-tooltip {
+  position: absolute;
+  top: 0;
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgb(24 32 31 / 0.08);
+}
+
+.usage-tooltip strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.ranked {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranked li {
+  display: grid;
+  gap: 4px;
+}
+
+.ranked-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.9375rem;
+}
+
+.ranked-value {
+  font-weight: 500;
+}
+
+.ranked-bar {
+  height: 4px;
+  overflow: hidden;
+  background: var(--paper-deep);
+  border-radius: 2px;
+}
+
+.ranked-bar span {
+  display: block;
+  height: 100%;
+  background: var(--line-strong);
+  border-radius: 2px;
+}
+
+.ranked-meta {
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+
+.quality-table tbody tr {
+  cursor: default;
+}
+
+@media (max-width: 1080px) {
+  .usage-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

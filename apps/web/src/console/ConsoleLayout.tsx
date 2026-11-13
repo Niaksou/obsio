@@ -104,6 +104,7 @@ function ConsoleShell() {
           <NavLink to="/console" end>
             Clients
           </NavLink>
+          <NavLink to="/console/usage">Usage</NavLink>
           <NavLink to="/console/journal">Journal</NavLink>
         </nav>
         <UnlockedFor until={session.unlockedUntil} />

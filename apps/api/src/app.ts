@@ -26,6 +26,7 @@ import type { FileScanner } from './antivirus.js';
 import { importRoutes } from './routes/imports.js';
 import { createQuotas } from './quotas.js';
 import { consoleRoutes } from './console/routes.js';
+import { usageRoutes } from './routes/usage.js';
 import { interventionRoutes } from './routes/intervention.js';
 import { invitationRoutes } from './routes/invitations.js';
 import { meRoutes } from './routes/me.js';
@@ -124,6 +125,7 @@ export async function buildApp({
   await app.register(interventionRoutes, { db, storage, scanner, emailSender, config });
   await app.register(dashboardRoutes, { db, guards, storage, quotas });
   await app.register(inspectionRoutes, { db, guards });
+  await app.register(usageRoutes, { db, guards });
   await app.register(consoleRoutes, { db, guards, config, emailSender });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).

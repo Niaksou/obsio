@@ -45,6 +45,9 @@ const consolePages = {
   clients: lazy(() =>
     import('./console/ClientsPage.js').then((module) => ({ default: module.ClientsPage })),
   ),
+  usage: lazy(() =>
+    import('./console/UsagePage.js').then((module) => ({ default: module.UsagePage })),
+  ),
   audit: lazy(() =>
     import('./console/AuditPage.js').then((module) => ({ default: module.AuditPage })),
   ),
@@ -115,6 +118,7 @@ const router = createBrowserRouter([
         element: lazyPage(<consolePages.layout />),
         children: [
           { index: true, element: lazyPage(<consolePages.clients />) },
+          { path: 'usage', element: lazyPage(<consolePages.usage />) },
           { path: 'journal', element: lazyPage(<consolePages.audit />) },
         ],
       },

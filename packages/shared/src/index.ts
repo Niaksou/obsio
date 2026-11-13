@@ -13,3 +13,4 @@ export * from './inspections.js';
 export * from './push.js';
 export * from './console.js';
 export * from './licence.js';
+export * from './usage.js';

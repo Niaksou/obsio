@@ -99,6 +99,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Déverrouillage par une connexion par clé d'accès (deux facteurs résistants au hameçonnage, ASVS 6.6), jamais par mot de passe et code ; reverrouillage après 15 minutes sans activité (`session.console_until`).
 - Chaque action est inscrite dans `console_audit`, en ajout seul (`UPDATE` et `DELETE` retirés à `app_user`).
 - La console ne lit que des métadonnées et des compteurs, organisation par organisation, sous la RLS (`withOrganisation`) : jamais le contenu d'un client (réserves, rapports, plans, photos).
+- Pages vues (`page_view`, sous RLS) : compteur par organisation, jour et modèle de page pris dans une liste fermée (`PAGE_PATTERNS`), sans donnée personnelle ni cookie : aucun consentement à demander, et le nombre de lignes reste borné.
 - Licence d'un client (`licence`, sous RLS) : vérifiée côté serveur à chaque requête qui modifie ses données (`requireOrganisation`), à chaque invitation (crochet `beforeCreateInvitation` de Better Auth) et à chaque preuve déposée par lien intervenant ; les plafonds (sites, utilisateurs, analyses du mois) sont contrôlés dans la transaction de l'ajout. Le bandeau de l'application n'est qu'une information.
 
 ## Limites d'usage
