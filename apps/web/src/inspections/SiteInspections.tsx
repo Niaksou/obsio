@@ -151,8 +151,8 @@ function InspectionForm({ inspection, onDone }: { inspection: Inspection; onDone
         />
       </label>
       <p className="hint">
-        Échéance calculée depuis la dernière visite. Rappel aux admins 60 et 30 jours avant, puis 7
-        jours avant la visite programmée.
+        Échéance calculée depuis la dernière visite. Rappel aux admins et aux responsables 60 et 30
+        jours avant, puis 7 jours avant la visite programmée.
       </p>
       <div className="actions">
         <button type="submit" disabled={save.isPending}>

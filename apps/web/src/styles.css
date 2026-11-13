@@ -3813,8 +3813,10 @@ li.open .item-number {
 }
 
 .help-menu > button.link {
+  display: flex;
   margin-top: 4px;
-  padding: 8px;
+  /* Même retrait que les tutoriels au-dessus (boutons discrets : 12 px). */
+  padding: 8px 12px;
   border-top: 1px solid var(--line-soft);
   border-radius: 0;
 }
@@ -3930,6 +3932,17 @@ li.open .item-number {
   justify-content: flex-start;
   min-height: 44px;
   padding: 0 8px;
+}
+
+/* Barre latérale : le bouton est en bas, le menu s'ouvre au-dessus, dans la largeur de la barre
+   (sinon il déborde à gauche jusqu'au bord de l'écran). */
+.session .help-menu {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 0;
+  width: calc(var(--sidebar-width) - 24px);
 }
 
 .help-inline .help-menu {
