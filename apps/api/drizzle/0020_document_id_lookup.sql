@@ -1,0 +1,1 @@
+CREATE POLICY "issued_document_id_lookup" ON "issued_document" AS PERMISSIVE FOR SELECT TO public USING (id = nullif(current_setting('app.document_id', true), '')::uuid);

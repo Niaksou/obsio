@@ -51,6 +51,12 @@ export const issuedDocument = pgTable(
     organisationIsolation('issued_document'),
     // Vérification publique, sans session : l'API pose l'empreinte du fichier déposé dans la
     // transaction, ce qui rend visible ce seul document.
+    // QR code du document : l'API pose son identifiant (UUID tiré au hasard, impossible à
+    // deviner), ce qui rend visible ce seul document pour en afficher la fiche publique.
+    pgPolicy('issued_document_id_lookup', {
+      for: 'select',
+      using: sql`id = nullif(current_setting('app.document_id', true), '')::uuid`,
+    }),
     pgPolicy('issued_document_sha256_lookup', {
       for: 'select',
       using: sql`sha256 = nullif(current_setting('app.document_sha256', true), '')`,

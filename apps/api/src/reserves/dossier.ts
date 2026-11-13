@@ -375,13 +375,14 @@ export async function buildProofDossier(
       .font(F.regular)
       .fontSize(9.5)
       .text(
-        `Obsio a signé ce fichier électroniquement et enregistré son empreinte à l’émission. Pour vérifier qu’il n’a pas été modifié, scannez le QR code ou ouvrez ${registration.verifyUrl.replace(/^https?:\/\//, '')} et déposez-y le fichier PDF reçu.`,
+        'Scannez le QR code : la page affiche ce dossier tel qu’il a été émis (numéro, date, organisation, réserves levées) pour le comparer à celui que vous avez sous les yeux, imprimé ou à l’écran.',
         { width: textW, lineGap: 1.5 },
       );
-    doc
-      .fillColor(FAINT)
-      .fontSize(8.5)
-      .text(`Un PDF imprimé ou modifié ne peut pas être vérifié.`, { width: textW });
+    doc.moveDown(0.3);
+    doc.text(
+      `Pour contrôler le fichier lui-même, déposez le PDF sur ${registration.verifyUrl.replace(/^https?:\/\//, '')} : son empreinte doit correspondre à celle enregistrée à l’émission.`,
+      { width: textW, lineGap: 1.5 },
+    );
   }
 
   // ——— Sommaire ———

@@ -90,12 +90,52 @@ export const dashboardRoutes: FastifyPluginAsyncZod<{
     },
   );
 
-  // Page publique « Vérifier un document » : le navigateur calcule l'empreinte du PDF déposé,
-  // l'API dit si elle figure au registre. Rien d'autre que le strict minimum n'est renvoyé.
+  // Page publique « Vérifier un document » : réponse minimale, la même pour les deux accès.
+  const publicView = async (found: typeof issuedDocument.$inferSelect) => {
+    const org = await db.query.organisation.findFirst({
+      where: eq(organisation.id, found.organisationId),
+    });
+    return {
+      number: documentNumber(found.id),
+      issuedAt: found.issuedAt.toISOString(),
+      organisationName: org?.name ?? '',
+      reserveCount: found.reserveCount,
+      liftedCount: found.liftedCount,
+    };
+  };
+  const publicRateLimit = { rateLimit: { max: 30, timeWindow: '1 minute' } };
+
+  // Fiche d'un document, ouverte par son QR code (souvent depuis un téléphone, sans le fichier) :
+  // le lecteur compare ce que le registre dit avec le document qu'il a sous les yeux.
+  app.get(
+    '/api/documents/:id',
+    {
+      config: publicRateLimit,
+      schema: {
+        params: idParams,
+        response: { 200: documentVerificationSchema, 404: messageSchema },
+      },
+    },
+    async (request, reply) => {
+      const found = await db.transaction(async (tx) => {
+        await tx.execute(sql`select set_config('app.document_id', ${request.params.id}, true)`);
+        return tx.query.issuedDocument.findFirst({
+          where: eq(issuedDocument.id, request.params.id),
+        });
+      });
+      if (!found) {
+        return reply.code(404).send({ message: 'Ce QR code ne correspond à aucun document.' });
+      }
+      return publicView(found);
+    },
+  );
+
+  // Vérification du fichier lui-même : le navigateur calcule l'empreinte du PDF déposé, l'API
+  // dit si elle figure au registre.
   app.post(
     '/api/documents/verify',
     {
-      config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
+      config: publicRateLimit,
       schema: {
         body: documentVerifyInputSchema,
         response: { 200: documentVerificationSchema, 404: messageSchema },
@@ -113,16 +153,7 @@ export const dashboardRoutes: FastifyPluginAsyncZod<{
       if (!found) {
         return reply.code(404).send({ message: 'Ce fichier ne figure pas au registre d’Obsio.' });
       }
-      const org = await db.query.organisation.findFirst({
-        where: eq(organisation.id, found.organisationId),
-      });
-      return {
-        number: documentNumber(found.id),
-        issuedAt: found.issuedAt.toISOString(),
-        organisationName: org?.name ?? '',
-        reserveCount: found.reserveCount,
-        liftedCount: found.liftedCount,
-      };
+      return publicView(found);
     },
   );
 };

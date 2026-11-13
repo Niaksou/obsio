@@ -216,6 +216,7 @@ export const api = {
     request(z.null(), 'POST', '/api/push/subscriptions/remove', { endpoint }),
 
   intervention: (token: string) => request(interventionSchema, 'GET', `/api/intervention/${token}`),
+  documentSheet: (id: string) => request(documentVerificationSchema, 'GET', `/api/documents/${id}`),
   verifyDocument: (sha256: string) =>
     request(documentVerificationSchema, 'POST', '/api/documents/verify', { sha256 }),
   interventionPhotoUpload: (

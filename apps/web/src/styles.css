@@ -3048,6 +3048,18 @@ label.check input {
   font-weight: 500;
 }
 
+.verify-file {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.verify-file h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
 .verify-note {
   margin-top: 8px;
 }

@@ -43,7 +43,7 @@ Rôles : **admin**, **responsable** et **collaborateur** d'une organisation (Bet
 | Réserves confiées à des collaborateurs | « Mes réserves » (les siennes) | Confier à des personnes de l'organisation, retirer | Idem | — | — |
 | Vérifications périodiques | — | Modification | Idem | — | — |
 | Tableau de bord, émission du dossier de preuves (PDF signé et enregistré) | — | Oui | Oui | — | — |
-| Vérification d'un dossier (page publique `/verifier`) | Tout le monde, sans compte : l'empreinte du fichier seulement, réponse limitée au numéro, à la date, à l'organisation et au nombre de réserves | | | | |
+| Vérification d'un dossier (page publique `/verifier`) | Tout le monde, sans compte : par l'identifiant du QR code (UUID aléatoire) ou par l'empreinte du fichier, réponse limitée au numéro, à la date, à l'organisation et au nombre de réserves | | | | |
 | Personnes et invitations | — | Invitation, changement de rôle et retrait des seuls collaborateurs | Tout le monde, sauf l'admin fondateur (ni rétrogradé, ni retiré) | — | — |
 | Organisation | — | — | — | — | Création, export, suppression (`pnpm org:*`), réinitialisation de la double authentification |
 

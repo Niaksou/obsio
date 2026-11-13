@@ -52,6 +52,13 @@ describe('documents émis : dossier signé et vérifiable', () => {
       liftedCount: 0,
     });
 
+    // Fiche ouverte par le QR code, sans le fichier : mêmes informations.
+    const sheet = await anonymous.get(`/api/documents/${row!.id}`);
+    expect(sheet.statusCode).toBe(200);
+    expect(sheet.json()).toEqual(verified.json());
+    expect((await anonymous.get(`/api/documents/${crypto.randomUUID()}`)).statusCode).toBe(404);
+    expect((await anonymous.get('/api/documents/pas-un-identifiant')).statusCode).toBe(400);
+
     // Un seul octet modifié : le fichier n'est plus reconnu.
     const tampered = Buffer.from(pdf);
     tampered[tampered.length - 20] = tampered.at(-20)! ^ 1;
@@ -69,8 +76,22 @@ describe('documents émis : dossier signé et vérifiable', () => {
       tx.select().from(issuedDocument),
     );
     expect(seen).toEqual([]);
-    // Sans organisation ni empreinte posée, rien n'est visible.
+    // Sans organisation, ni empreinte, ni identifiant posé, rien n'est visible.
     expect(await ctx.db.select().from(issuedDocument)).toEqual([]);
+
+    // L'identifiant d'un document (QR code) ne rend visible que lui, pas le reste du registre.
+    await admin.post(`/api/sites/${siteId}/proof-dossier`, { scope: 'levees' });
+    const ids = (
+      await withOrganisation(ctx.db, organisationId, (tx) =>
+        tx.select({ id: issuedDocument.id }).from(issuedDocument),
+      )
+    ).map((r) => r.id);
+    expect(ids).toHaveLength(2);
+    const visible = await ctx.db.transaction(async (tx) => {
+      await tx.execute(sql`select set_config('app.document_id', ${ids[0]!}, true)`);
+      return tx.select({ id: issuedDocument.id }).from(issuedDocument);
+    });
+    expect(visible).toEqual([{ id: ids[0] }]);
 
     for (const statement of [
       sql`update issued_document set reserve_count = 0`,

@@ -141,6 +141,13 @@
       "when": 1794567372656,
       "tag": "0019_issued_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794575452602,
+      "tag": "0020_document_id_lookup",
+      "breakpoints": true
     }
   ]
 }
