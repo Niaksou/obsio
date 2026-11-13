@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { api } from '../api.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { AssignPanel } from '../reserves/AssignPanel.js';
 import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
 import { DossierExport } from '../reserves/DossierExport.js';
@@ -29,7 +29,7 @@ const assignable = (item: ReserveListItem) =>
 
 export function ReservesPage() {
   const siteId = useParams().siteId!;
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const [params, setParams] = useSearchParams();
   const view = (params.get('vue') ?? 'en_cours') as View;
   const floorId = params.get('etage') ?? undefined;
@@ -143,7 +143,7 @@ export function ReservesPage() {
         </p>
       )}
 
-      {isAdmin && selectable.length > 0 && (
+      {isManager && selectable.length > 0 && (
         <label className="check select-all">
           <input
             type="checkbox"
@@ -161,7 +161,7 @@ export function ReservesPage() {
         <ul className="rows reserve-rows">
           {rows.map((item) => (
             <li key={item.id} className={selected.has(item.id) ? 'selected' : undefined}>
-              {isAdmin && (
+              {isManager && (
                 <input
                   type="checkbox"
                   aria-label={`Sélectionner : ${item.description}`}
@@ -179,7 +179,7 @@ export function ReservesPage() {
 
       <DossierExport siteId={siteId} />
 
-      {isAdmin && selected.size > 0 && (
+      {isManager && selected.size > 0 && (
         <div className="selection-bar" data-tour="selection-bar">
           {assigning === 'contractor' ? (
             <AssignPanel

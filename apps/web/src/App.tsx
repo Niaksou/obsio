@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router';
 import { Layout } from './components/Layout.js';
 import { RequireOrganisation } from './components/RequireOrganisation.js';
-import { RequireSession } from './components/RequireSession.js';
+import { RequireManager, RequireSession } from './components/RequireSession.js';
 import { AcceptInvitation } from './pages/AcceptInvitation.js';
 import { AccountPage } from './pages/AccountPage.js';
 import { ForgotPassword } from './pages/ForgotPassword.js';
@@ -70,6 +70,9 @@ const session = (page: ReactNode) => (
   </RequireSession>
 );
 
+/** Pages réservées aux admins et aux responsables. */
+const managers = (page: ReactNode) => session(<RequireManager>{page}</RequireManager>);
+
 const router = createBrowserRouter([
   {
     // Tutoriels interactifs, sur toutes les pages (voir src/tours).
@@ -82,15 +85,15 @@ const router = createBrowserRouter([
       {
         element: <Layout />,
         children: [
-          { path: '/', element: session(<SitesPage />) },
-          { path: '/sites/:siteId', element: session(<SitePage />) },
-          { path: '/sites/:siteId/reserves', element: session(<ReservesPage />) },
+          { path: '/', element: managers(<SitesPage />) },
+          { path: '/sites/:siteId', element: managers(<SitePage />) },
+          { path: '/sites/:siteId/reserves', element: managers(<ReservesPage />) },
           { path: '/reserves/:reserveId', element: session(<ReservePage />) },
           { path: '/mes-reserves', element: session(<MyReservesPage />) },
-          { path: '/verifications', element: session(<InspectionsPage />) },
+          { path: '/verifications', element: managers(<InspectionsPage />) },
           // Ancienne rubrique : les électriciens externes sont dans Organisation.
           { path: '/intervenants', element: <Navigate to="/organisation" replace /> },
-          { path: '/organisation', element: session(<Home />) },
+          { path: '/organisation', element: managers(<Home />) },
           // Sans organisation active : chacun gère son compte, même s'il n'est membre de rien.
           {
             path: '/compte',
@@ -115,8 +118,8 @@ const router = createBrowserRouter([
             path: '/etages/:floorId',
             element: session(lazyPage(<FloorPage />)),
           },
-          { path: '/imports/:importId', element: session(lazyPage(<ImportPage />)) },
-          { path: '/batiments/:buildingId/3d', element: session(lazyPage(<BuildingPage3D />)) },
+          { path: '/imports/:importId', element: managers(lazyPage(<ImportPage />)) },
+          { path: '/batiments/:buildingId/3d', element: managers(lazyPage(<BuildingPage3D />)) },
         ],
       },
       { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },

@@ -17,7 +17,7 @@ import {
 } from './describe.js';
 
 /** Échéancier d'un site : une carte par type de vérification, avec l'action de l'admin. */
-export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+export function SiteInspections({ siteId, isManager }: { siteId: string; isManager: boolean }) {
   const inspections = useQuery({
     queryKey: keys.siteInspections(siteId),
     queryFn: () => api.siteInspections(siteId),
@@ -43,7 +43,7 @@ export function SiteInspections({ siteId, isAdmin }: { siteId: string; isAdmin: 
       <h2 id="verifications-title">Échéances de contrôle</h2>
       <ul className="rows inspection-cards">
         {inspections.data.map((inspection) => (
-          <InspectionRow key={inspection.kind} inspection={inspection} isAdmin={isAdmin} />
+          <InspectionRow key={inspection.kind} inspection={inspection} isManager={isManager} />
         ))}
       </ul>
     </section>
@@ -56,7 +56,7 @@ function actionLabel(inspection: Inspection) {
   return inspection.plannedDate ? 'Modifier la visite' : 'Programmer la visite';
 }
 
-function InspectionRow({ inspection, isAdmin }: { inspection: Inspection; isAdmin: boolean }) {
+function InspectionRow({ inspection, isManager }: { inspection: Inspection; isManager: boolean }) {
   const [editing, setEditing] = useState(false);
   const key = keyDate(inspection);
   const last = lastVisitLabel(inspection);
@@ -78,7 +78,7 @@ function InspectionRow({ inspection, isAdmin }: { inspection: Inspection; isAdmi
       </p>
       {last && <p className="hint">{last}</p>}
       {inspection.contact && <p className="hint">Contact : {inspection.contact}</p>}
-      {isAdmin && !editing && (
+      {isManager && !editing && (
         <button type="button" className="secondary compact" onClick={() => setEditing(true)}>
           <CalendarClock size={16} strokeWidth={1.5} aria-hidden />
           {actionLabel(inspection)}

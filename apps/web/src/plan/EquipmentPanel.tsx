@@ -36,7 +36,7 @@ interface EquipmentPanelProps {
   equipment: Equipment[];
   selected: Equipment | null;
   draft: PlanPosition | null;
-  isAdmin: boolean;
+  isManager: boolean;
   pending: boolean;
   error: Error | null;
   onSelect: (id: string | null) => void;
@@ -67,9 +67,9 @@ interface EquipmentPanelProps {
 }
 
 export function EquipmentPanel(props: EquipmentPanelProps) {
-  const { equipment, selected, draft, isAdmin, error } = props;
+  const { equipment, selected, draft, isManager, error } = props;
 
-  if (draft && isAdmin) {
+  if (draft && isManager) {
     return (
       <aside className="panel" aria-label="Nouvel équipement">
         <h2>Nouvel équipement</h2>
@@ -92,7 +92,7 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
         <button type="button" className="back" onClick={() => props.onSelect(null)}>
           Tous les équipements
         </button>
-        {isAdmin ? (
+        {isManager ? (
           <>
             <h2>{selected.name}</h2>
             <EquipmentForm
@@ -156,7 +156,7 @@ export function EquipmentPanel(props: EquipmentPanelProps) {
       </div>
       {sorted.length === 0 && (
         <p className="empty">
-          {isAdmin
+          {isManager
             ? 'Aucun équipement. Utilisez « Placer un équipement », puis cliquez sur le plan.'
             : 'Aucun équipement sur cet étage.'}
         </p>

@@ -1,4 +1,5 @@
 import {
+  isManager as isManagerRole,
   assignmentCreatedSchema,
   buildingSchema,
   contractorReserveSchema,
@@ -260,6 +261,7 @@ export async function uploadToStorage(post: PresignedPost, file: Blob): Promise<
 }
 
 /** Rôle dans l'organisation active : seul l'admin modifie sites, plans et équipements. */
-export function isAdmin(me: Awaited<ReturnType<typeof api.me>> | undefined) {
-  return me?.organisation?.role === 'admin';
+/** Admin ou responsable de l'organisation active : sites, rapports, réserves, électriciens. */
+export function isManager(me: Awaited<ReturnType<typeof api.me>> | undefined) {
+  return isManagerRole(me?.organisation?.role);
 }

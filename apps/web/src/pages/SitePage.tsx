@@ -9,14 +9,14 @@ import { field } from '../components/Form.js';
 import { ImportsSection, ReportUploadButton } from '../imports/ImportsSection.js';
 import { SiteInspections } from '../inspections/SiteInspections.js';
 import { MutationError } from '../components/MutationError.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { SiteAlerts, SiteProgress } from '../reserves/SiteDashboard.js';
 import { plural } from '../reserves/status.js';
 import { Loading } from '../components/Loading.js';
 
 export function SitePage() {
   const siteId = useParams().siteId!;
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const site = useQuery({ queryKey: keys.site(siteId), queryFn: () => api.site(siteId) });
@@ -45,7 +45,7 @@ export function SitePage() {
           <Link to={`/sites/${siteId}/reserves`} className="button-link secondary">
             Réserves du site
           </Link>
-          {isAdmin && <ReportUploadButton siteId={siteId} />}
+          {isManager && <ReportUploadButton siteId={siteId} />}
         </div>
       </header>
 
@@ -53,16 +53,16 @@ export function SitePage() {
 
       <div className="site-grid">
         <div className="site-main">
-          <SiteProgress siteId={siteId} isAdmin={isAdmin} />
-          <BuildingsSection siteId={siteId} isAdmin={isAdmin} />
+          <SiteProgress siteId={siteId} isManager={isManager} />
+          <BuildingsSection siteId={siteId} isManager={isManager} />
         </div>
         <div className="site-side">
-          <SiteInspections siteId={siteId} isAdmin={isAdmin} />
-          <ImportsSection siteId={siteId} isAdmin={isAdmin} />
+          <SiteInspections siteId={siteId} isManager={isManager} />
+          <ImportsSection siteId={siteId} isManager={isManager} />
         </div>
       </div>
 
-      {isAdmin && (
+      {isManager && (
         <footer className="site-archive">
           <p className="hint">
             Un site archivé disparaît des listes ; ses réserves et ses preuves sont conservées
@@ -81,7 +81,7 @@ export function SitePage() {
 }
 
 /** Bâtiments du site, chacun avec ses étages ; ajout replié derrière un bouton. */
-function BuildingsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+function BuildingsSection({ siteId, isManager }: { siteId: string; isManager: boolean }) {
   const [adding, setAdding] = useState(false);
   const buildings = useQuery({
     queryKey: keys.buildings(siteId),
@@ -91,7 +91,7 @@ function BuildingsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolea
     <section className="site-section" aria-labelledby="buildings-title">
       <div className="site-section-head">
         <h2 id="buildings-title">Bâtiments</h2>
-        {isAdmin && !adding && (
+        {isManager && !adding && (
           <button
             type="button"
             className="secondary compact"
@@ -106,19 +106,19 @@ function BuildingsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolea
       {adding && <AddBuilding siteId={siteId} onDone={() => setAdding(false)} />}
       {buildings.data?.length === 0 && !adding && (
         <p className="empty">
-          {isAdmin
+          {isManager
             ? 'Ajoutez les bâtiments du site, puis leurs étages et leurs plans.'
             : 'Aucun bâtiment pour l’instant.'}
         </p>
       )}
       {buildings.data?.map((building) => (
-        <BuildingCard key={building.id} building={building} isAdmin={isAdmin} />
+        <BuildingCard key={building.id} building={building} isManager={isManager} />
       ))}
     </section>
   );
 }
 
-function BuildingCard({ building, isAdmin }: { building: Building; isAdmin: boolean }) {
+function BuildingCard({ building, isManager }: { building: Building; isManager: boolean }) {
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const floors = useQuery({
@@ -147,7 +147,7 @@ function BuildingCard({ building, isAdmin }: { building: Building; isAdmin: bool
               Vue 3D
             </Link>
           )}
-          {isAdmin && (
+          {isManager && (
             <ConfirmButton
               label="Archiver"
               confirmLabel="Archiver le bâtiment"
@@ -174,7 +174,7 @@ function BuildingCard({ building, isAdmin }: { building: Building; isAdmin: bool
           ))}
         </ul>
       )}
-      {isAdmin &&
+      {isManager &&
         (adding ? (
           <AddFloor buildingId={building.id} onDone={() => setAdding(false)} />
         ) : (

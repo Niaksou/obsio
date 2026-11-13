@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api, isAdmin } from './api.js';
+import { api, isManager } from './api.js';
 
 /** Clés de cache, regroupées pour invalider une branche après une modification. */
 export const keys = {
@@ -33,7 +33,12 @@ export function useMe() {
   return useQuery({ queryKey: keys.me, queryFn: api.me });
 }
 
-/** Vrai si l'utilisateur est admin de l'organisation active. */
-export function useIsAdmin() {
-  return isAdmin(useMe().data);
+/** Vrai si l'utilisateur est admin ou responsable de l'organisation active. */
+export function useIsManager() {
+  return isManager(useMe().data);
+}
+
+/** Rôle dans l'organisation active (null tant qu'il n'est pas connu). */
+export function useRole() {
+  return useMe().data?.organisation?.role ?? null;
 }

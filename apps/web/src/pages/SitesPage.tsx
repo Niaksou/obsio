@@ -4,12 +4,12 @@ import { api } from '../api.js';
 import { field } from '../components/Form.js';
 import { MutationError } from '../components/MutationError.js';
 import { PasskeySuggestion } from '../components/Passkeys.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { plural } from '../reserves/status.js';
 import { Loading } from '../components/Loading.js';
 
 export function SitesPage() {
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const sites = useQuery({ queryKey: keys.sites, queryFn: api.sites });
   const mine = useQuery({ queryKey: keys.myReserves, queryFn: api.myReserves });
   const toFix = mine.data?.filter((r) => r.status !== 'corrigee') ?? [];
@@ -33,7 +33,7 @@ export function SitesPage() {
       {sites.error && <p className="error">{sites.error.message}</p>}
       {sites.data?.length === 0 && (
         <p className="empty">
-          {isAdmin
+          {isManager
             ? 'Ajoutez votre premier site : l’établissement dont les installations sont vérifiées.'
             : 'Aucun site pour l’instant. L’administrateur de votre organisation les ajoute.'}
         </p>
@@ -50,7 +50,7 @@ export function SitesPage() {
           ))}
         </ul>
       )}
-      {isAdmin && <AddSite />}
+      {isManager && <AddSite />}
     </div>
   );
 }

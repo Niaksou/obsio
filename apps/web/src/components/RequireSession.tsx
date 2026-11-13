@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { authClient } from '../auth-client.js';
 import { TwoFactorSetup } from '../pages/TwoFactorSetup.js';
+import { useMe } from '../queries.js';
 import { Loading } from './Loading.js';
 
 /**
@@ -29,4 +30,15 @@ export function isInvitationPath(path: string): boolean {
 /** Destination après connexion : uniquement un chemin interne, jamais une URL externe. */
 export function safeRedirect(value: string | null): string {
   return value && value.startsWith('/') && !value.startsWith('//') ? value : '/';
+}
+
+/**
+ * Pages de pilotage (sites, rapports, échéances, organisation) : un collaborateur, qui ne voit
+ * que ses réserves, est renvoyé vers « Mes réserves ». L'API le refuse de toute façon.
+ */
+export function RequireManager({ children }: { children: ReactNode }) {
+  const { data: me, isPending } = useMe();
+  if (isPending) return <Loading shape="bar" />;
+  if (me?.organisation?.role === 'collaborateur') return <Navigate to="/mes-reserves" replace />;
+  return children;
 }

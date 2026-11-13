@@ -30,7 +30,7 @@ import { PlanViewer, type PlanViewerHandle } from '../plan/PlanViewer.js';
 import { formatLength, metersPerPixel, pixelDistance } from '../plan/scale.js';
 import { ZoneActions, ZoneNameForm } from '../plan/ZoneForms.js';
 import { shapeError, toPositions } from '../plan/zones.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { reserveBadges } from '../reserves/badges.js';
 import { StatusLabel } from '../reserves/status.js';
 import { Loading } from '../components/Loading.js';
@@ -59,7 +59,7 @@ export function FloorPage() {
 }
 
 function Floor({ floor }: { floor: FloorDetail }) {
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const equipmentKey = keys.equipment(floor.id);
@@ -307,23 +307,33 @@ function Floor({ floor }: { floor: FloorDetail }) {
     tool === 'zone' && zoneClosed && floor.plan ? toPositions(points, floor.plan) : null;
   const zoneShapeError = zoneShape && shapeError(zoneShape);
   const mutationError = create.error ?? update.error ?? archive.error;
-  const showUpload = isAdmin && (!floor.plan || replacingPlan);
+  const showUpload = isManager && (!floor.plan || replacingPlan);
 
   return (
     <div className="floor">
       <div className="toolbar">
-        <p className="crumbs">
-          <Link to="/">Sites</Link>
-          <span aria-hidden="true">/</span>
-          <Link to={`/sites/${floor.site.id}`}>{floor.site.name}</Link>
-          <span aria-hidden="true">/</span>
-          <span>{floor.building.name}</span>
-        </p>
+        {isManager ? (
+          <p className="crumbs">
+            <Link to="/">Sites</Link>
+            <span aria-hidden="true">/</span>
+            <Link to={`/sites/${floor.site.id}`}>{floor.site.name}</Link>
+            <span aria-hidden="true">/</span>
+            <span>{floor.building.name}</span>
+          </p>
+        ) : (
+          <p className="crumbs">
+            <Link to="/mes-reserves">Mes réserves</Link>
+            <span aria-hidden="true">/</span>
+            <span>
+              {floor.site.name}, {floor.building.name}
+            </span>
+          </p>
+        )}
         <h1>{floor.name}</h1>
         <div className="tools" data-tour="plan-tools">
           {floor.plan && !showUpload && (
             <>
-              {isAdmin && (
+              {isManager && (
                 <button
                   type="button"
                   className={placing ? 'secondary active' : 'secondary'}
@@ -371,9 +381,9 @@ function Floor({ floor }: { floor: FloorDetail }) {
               )}
             </>
           )}
-          {(isAdmin || floor.plan?.sourceUrl) && (
+          {(isManager || floor.plan?.sourceUrl) && (
             <MenuButton label="Plus">
-              {isAdmin && floor.plan && !showUpload && (
+              {isManager && floor.plan && !showUpload && (
                 <button
                   type="button"
                   className="quiet"
@@ -383,7 +393,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   Tracer une zone
                 </button>
               )}
-              {isAdmin && floor.plan && !showUpload && tool !== 'calibrer' && (
+              {isManager && floor.plan && !showUpload && tool !== 'calibrer' && (
                 <button
                   type="button"
                   className="quiet"
@@ -393,7 +403,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   {scale ? 'Recalibrer l’échelle' : 'Calibrer l’échelle'}
                 </button>
               )}
-              {isAdmin && floor.plan && !showUpload && (
+              {isManager && floor.plan && !showUpload && (
                 <button
                   type="button"
                   className="quiet"
@@ -414,7 +424,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
                   PDF d’origine
                 </a>
               )}
-              {isAdmin && (
+              {isManager && (
                 <ConfirmButton
                   label="Archiver l’étage"
                   confirmLabel="Archiver l’étage et ses équipements"
@@ -444,7 +454,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
             )}
           </div>
         )}
-        {!isAdmin && !floor.plan && (
+        {!isManager && !floor.plan && (
           <div className="plan-empty">
             <h2>Pas encore de plan</h2>
             <p>L’administrateur de votre organisation dépose les plans des étages.</p>
@@ -458,7 +468,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
             badges={badges}
             selectedId={selectedId}
             draft={draft}
-            editable={isAdmin}
+            editable={isManager}
             placing={!!placing}
             measuring={tool !== null}
             segment={tool === 'zone' ? undefined : { points, label: measured }}
@@ -565,7 +575,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
           equipment={items}
           selected={selected}
           draft={draft}
-          isAdmin={isAdmin}
+          isManager={isManager}
           pending={create.isPending || update.isPending || archive.isPending}
           error={mutationError}
           onSelect={selectAndFocus}
@@ -583,7 +593,7 @@ function Floor({ floor }: { floor: FloorDetail }) {
           activeZone={activeZone}
           onZoneSelect={chooseZone}
           zoneActions={
-            isAdmin && activeZone ? (
+            isManager && activeZone ? (
               <ZoneActions
                 key={activeZone.id}
                 zone={activeZone}

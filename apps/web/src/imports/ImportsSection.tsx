@@ -66,7 +66,7 @@ export function ReportUploadButton({ siteId }: { siteId: string }) {
 }
 
 /** Rapports de vérification d'un site et suivi de leur analyse ; le dépôt est dans l'en-tête. */
-export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+export function ImportsSection({ siteId, isManager }: { siteId: string; isManager: boolean }) {
   const imports = useQuery({
     queryKey: keys.imports(siteId),
     queryFn: () => api.imports(siteId),
@@ -80,7 +80,7 @@ export function ImportsSection({ siteId, isAdmin }: { siteId: string; isAdmin: b
       <h2 id="reports-title">Rapports de vérification</h2>
       {imports.data?.length === 0 && (
         <p className="empty">
-          {isAdmin
+          {isManager
             ? 'Importez le rapport PDF de l’organisme de contrôle : les réserves sont extraites, puis vous les relisez avant de les activer.'
             : 'Aucun rapport importé pour l’instant.'}
         </p>

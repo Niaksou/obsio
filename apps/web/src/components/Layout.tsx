@@ -13,7 +13,7 @@ import { authClient } from '../auth-client.js';
 import { disablePush } from '../push/push.js';
 import { HelpButton } from '../tours/HelpButton.js';
 import { useTours } from '../tours/TourProvider.js';
-import { useMe } from '../queries.js';
+import { useMe, useRole } from '../queries.js';
 import { LicenceBanner } from './LicenceBanner.js';
 import { usePageViews } from './usePageViews.js';
 import { Logo } from './Logo.js';
@@ -125,11 +125,13 @@ function MoreSheet({
   open,
   onClose,
   name,
+  manager,
   onSignOut,
 }: {
   open: boolean;
   onClose: () => void;
   name: string;
+  manager: boolean;
   onSignOut: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -152,9 +154,11 @@ function MoreSheet({
       <div className="more-body">
         <AccountLink name={name} />
         <nav className="nav" aria-label="Autres rubriques">
-          <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
-            Organisation
-          </NavItem>
+          {manager && (
+            <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
+              Organisation
+            </NavItem>
+          )}
           <ConsoleLink />
         </nav>
         <div className="more-session">
@@ -172,6 +176,8 @@ function MoreSheet({
 
 export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const { data: session } = authClient.useSession();
+  // Un collaborateur ne voit que ses réserves : ni sites, ni échéances, ni organisation.
+  const manager = useRole() !== 'collaborateur';
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { unseen } = useTours();
@@ -217,9 +223,11 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
       <aside className="sidebar">
         <Brand />
         <nav className="nav" aria-label="Navigation principale">
-          <NavItem tour="nav-sites" to="/" icon={<Factory {...iconProps} />} active={inSites}>
-            Sites
-          </NavItem>
+          {manager && (
+            <NavItem tour="nav-sites" to="/" icon={<Factory {...iconProps} />} active={inSites}>
+              Sites
+            </NavItem>
+          )}
           <NavItem
             tour="nav-mes-reserves"
             to="/mes-reserves"
@@ -227,16 +235,20 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
           >
             Mes réserves
           </NavItem>
-          <NavItem
-            tour="nav-verifications"
-            to="/verifications"
-            icon={<CalendarCheck {...iconProps} />}
-          >
-            Échéances de contrôle
-          </NavItem>
-          <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
-            Organisation
-          </NavItem>
+          {manager && (
+            <>
+              <NavItem
+                tour="nav-verifications"
+                to="/verifications"
+                icon={<CalendarCheck {...iconProps} />}
+              >
+                Échéances de contrôle
+              </NavItem>
+              <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
+                Organisation
+              </NavItem>
+            </>
+          )}
           <ConsoleLink />
         </nav>
         <div className="session">
@@ -259,16 +271,20 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
         >
           Mes réserves
         </NavItem>
-        <NavItem tour="nav-sites" to="/" icon={<Factory {...iconProps} />} active={inSites}>
-          Sites
-        </NavItem>
-        <NavItem
-          tour="nav-verifications"
-          to="/verifications"
-          icon={<CalendarCheck {...iconProps} />}
-        >
-          Échéances
-        </NavItem>
+        {manager && (
+          <>
+            <NavItem tour="nav-sites" to="/" icon={<Factory {...iconProps} />} active={inSites}>
+              Sites
+            </NavItem>
+            <NavItem
+              tour="nav-verifications"
+              to="/verifications"
+              icon={<CalendarCheck {...iconProps} />}
+            >
+              Échéances
+            </NavItem>
+          </>
+        )}
         <button
           type="button"
           className={inMore ? 'active' : undefined}
@@ -286,6 +302,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
         open={moreOpen}
         onClose={() => setMoreOpen(false)}
         name={session.user.name}
+        manager={manager}
         onSignOut={() => void signOut()}
       />
     </div>

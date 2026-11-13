@@ -20,7 +20,7 @@ export function SiteAlerts({ siteId }: { siteId: string }) {
  * Avancement d'un site : part des réserves levées, une barre par état (chaque état mène à la
  * liste filtrée), puis les étages où il reste du travail.
  */
-export function SiteProgress({ siteId, isAdmin }: { siteId: string; isAdmin: boolean }) {
+export function SiteProgress({ siteId, isManager }: { siteId: string; isManager: boolean }) {
   const dashboard = useDashboard(siteId);
   if (dashboard.error) return <p className="error">{dashboard.error.message}</p>;
   if (!dashboard.data) return null;
@@ -39,7 +39,7 @@ export function SiteProgress({ siteId, isAdmin }: { siteId: string; isAdmin: boo
       </h2>
       {total === 0 ? (
         <p className="empty">
-          {isAdmin
+          {isManager
             ? 'Aucune réserve active. Importez le rapport de l’organisme de contrôle pour commencer le suivi.'
             : 'Aucune réserve active sur ce site.'}
         </p>

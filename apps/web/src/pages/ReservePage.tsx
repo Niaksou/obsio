@@ -12,7 +12,7 @@ import { Link, useParams } from 'react-router';
 import { api } from '../api.js';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { MutationError } from '../components/MutationError.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
 import { ProofForm } from '../reserves/ProofForm.js';
 import { formatDateTime, formatDay, StatusLabel } from '../reserves/status.js';
@@ -39,23 +39,31 @@ function useRefresh(reserve: ReserveDetail) {
 }
 
 function Reserve({ reserve }: { reserve: ReserveDetail }) {
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const site = useQuery({
     queryKey: keys.site(reserve.siteId),
     queryFn: () => api.site(reserve.siteId),
+    // Un collaborateur n'ouvre pas le site : il arrive de « Mes réserves ».
+    enabled: isManager,
   });
   const [editing, setEditing] = useState(false);
   const open = reserve.status === 'ouverte' || reserve.status === 'assignee';
 
   return (
     <div className="page reserve-page">
-      <p className="crumbs">
-        <Link to="/">Sites</Link>
-        <span aria-hidden="true">/</span>
-        <Link to={`/sites/${reserve.siteId}`}>{site.data?.name ?? 'Site'}</Link>
-        <span aria-hidden="true">/</span>
-        <Link to={`/sites/${reserve.siteId}/reserves`}>Réserves</Link>
-      </p>
+      {isManager ? (
+        <p className="crumbs">
+          <Link to="/">Sites</Link>
+          <span aria-hidden="true">/</span>
+          <Link to={`/sites/${reserve.siteId}`}>{site.data?.name ?? 'Site'}</Link>
+          <span aria-hidden="true">/</span>
+          <Link to={`/sites/${reserve.siteId}/reserves`}>Réserves</Link>
+        </p>
+      ) : (
+        <p className="crumbs">
+          <Link to="/mes-reserves">Mes réserves</Link>
+        </p>
+      )}
 
       <header className="reserve-head" data-tour="reserve-head">
         <StatusLabel status={reserve.status} overdue={reserve.overdue} />
@@ -100,7 +108,7 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
             <strong>Préconisation :</strong> {reserve.preconisation}
           </p>
         )}
-        {isAdmin && reserve.status !== 'levee' && !editing && (
+        {isManager && reserve.status !== 'levee' && !editing && (
           <button type="button" className="quiet" onClick={() => setEditing(true)}>
             Modifier la réserve
           </button>
@@ -108,10 +116,10 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
         {editing && <EditReserve reserve={reserve} onDone={() => setEditing(false)} />}
       </header>
 
-      {isAdmin && reserve.status === 'corrigee' && <Review reserve={reserve} />}
+      {isManager && reserve.status === 'corrigee' && <Review reserve={reserve} />}
 
-      {(reserve.collaborators.length > 0 || (isAdmin && open)) && (
-        <Collaborators reserve={reserve} isAdmin={isAdmin} canAssign={open} />
+      {(reserve.collaborators.length > 0 || (isManager && open)) && (
+        <Collaborators reserve={reserve} isManager={isManager} canAssign={open} />
       )}
 
       <section className="reserve-section">
@@ -150,7 +158,7 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
                   {Q18_CONSTATATIONS[source.constatationQ18]}
                 </p>
               )}
-              {isAdmin && <Link to={`/imports/${source.importId}`}>Voir l’import</Link>}
+              {isManager && <Link to={`/imports/${source.importId}`}>Voir l’import</Link>}
             </li>
           ))}
         </ul>
@@ -174,7 +182,7 @@ function Reserve({ reserve }: { reserve: ReserveDetail }) {
         )}
       </section>
 
-      {reserve.assignments.length > 0 && <Assignments reserve={reserve} isAdmin={isAdmin} />}
+      {reserve.assignments.length > 0 && <Assignments reserve={reserve} isManager={isManager} />}
 
       <section className="reserve-section" data-tour="reserve-journal">
         <h2>Journal</h2>
@@ -318,11 +326,11 @@ function Review({ reserve }: { reserve: ReserveDetail }) {
 /** Collaborateurs chargés de corriger la réserve : liste, ajout et retrait par l'admin. */
 function Collaborators({
   reserve,
-  isAdmin,
+  isManager,
   canAssign,
 }: {
   reserve: ReserveDetail;
-  isAdmin: boolean;
+  isManager: boolean;
   canAssign: boolean;
 }) {
   const refresh = useRefresh(reserve);
@@ -341,7 +349,7 @@ function Collaborators({
           {reserve.collaborators.map((c) => (
             <li key={c.id} className="assignment-row">
               <span className="row-title">{c.name}</span>
-              {isAdmin && reserve.status !== 'levee' && (
+              {isManager && reserve.status !== 'levee' && (
                 <ConfirmButton
                   label="Retirer"
                   confirmLabel={`Retirer ${c.name}`}
@@ -354,7 +362,7 @@ function Collaborators({
         </ul>
       )}
       <MutationError error={remove.error} />
-      {isAdmin &&
+      {isManager &&
         canAssign &&
         (adding ? (
           <CollaboratorPanel
@@ -372,7 +380,7 @@ function Collaborators({
   );
 }
 
-function Assignments({ reserve, isAdmin }: { reserve: ReserveDetail; isAdmin: boolean }) {
+function Assignments({ reserve, isManager }: { reserve: ReserveDetail; isManager: boolean }) {
   const refresh = useRefresh(reserve);
   const revoke = useMutation({ mutationFn: api.revokeAssignment, onSuccess: refresh });
   const now = new Date().toISOString();
@@ -393,7 +401,7 @@ function Assignments({ reserve, isAdmin }: { reserve: ReserveDetail; isAdmin: bo
                 {a.dueDate && `, pour le ${formatDay(a.dueDate)}`}
               </span>
               <span className="status">{state}</span>
-              {isAdmin && state === 'Lien actif' && reserve.status !== 'levee' && (
+              {isManager && state === 'Lien actif' && reserve.status !== 'levee' && (
                 <ConfirmButton
                   label="Révoquer"
                   confirmLabel="Révoquer le lien"

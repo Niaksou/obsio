@@ -17,7 +17,7 @@ import { MutationError } from '../components/MutationError.js';
 import { formatDate } from '../imports/ImportsSection.js';
 import { PdfPage } from '../imports/PdfPage.js';
 import { openPdfUrl } from '../plan/rasterize.js';
-import { keys, useIsAdmin } from '../queries.js';
+import { keys, useIsManager } from '../queries.js';
 import { Loading } from '../components/Loading.js';
 
 const ANALYSIS_POLL_MS = 3000;
@@ -66,7 +66,7 @@ function usePdf(url: string) {
 }
 
 function ImportReview({ detail }: { detail: ReportImportDetail }) {
-  const isAdmin = useIsAdmin();
+  const isManager = useIsManager();
   const queryClient = useQueryClient();
   const site = useQuery({
     queryKey: keys.site(detail.siteId),
@@ -79,7 +79,7 @@ function ImportReview({ detail }: { detail: ReportImportDetail }) {
   const { pdf, error: pdfError } = usePdf(detail.pdfUrl);
   const [selectedId, setSelectedId] = useState<string | null>(detail.drafts[0]?.id ?? null);
   const selected = detail.drafts.find((draft) => draft.id === selectedId) ?? null;
-  const editable = isAdmin && detail.status === 'a_valider';
+  const editable = isManager && detail.status === 'a_valider';
   const pending = detail.drafts.filter((draft) => draft.decision === 'a_valider').length;
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: keys.importDetail(detail.id) });
@@ -139,7 +139,7 @@ function ImportReview({ detail }: { detail: ReportImportDetail }) {
         <div className="review-message">
           <h2>L’analyse a échoué</h2>
           <p className="error">{detail.error}</p>
-          {isAdmin && (
+          {isManager && (
             <button type="button" disabled={retry.isPending} onClick={() => retry.mutate()}>
               Relancer l’analyse
             </button>
