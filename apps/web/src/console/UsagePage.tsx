@@ -187,14 +187,14 @@ export function UsagePage() {
                     return (
                       <tr key={`${q.model}-${q.promptVersion}`}>
                         <th scope="row">{q.model}</th>
-                        <td>{q.promptVersion}</td>
-                        <td className="num">
+                        <td data-label="Prompt">{q.promptVersion}</td>
+                        <td className="num" data-label="Gardés">
                           {percent(q.kept, total)} <span className="hint">({q.kept})</span>
                         </td>
-                        <td className="num">
+                        <td className="num" data-label="Corrigés">
                           {percent(q.edited, total)} <span className="hint">({q.edited})</span>
                         </td>
-                        <td className="num">
+                        <td className="num" data-label="Écartés">
                           {percent(q.rejected, total)} <span className="hint">({q.rejected})</span>
                         </td>
                       </tr>

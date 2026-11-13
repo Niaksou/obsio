@@ -339,14 +339,19 @@ export function ClientsPage() {
                   <td>
                     <LicenceTrack client={client} />
                   </td>
-                  <td className="num">
+                  {/* data-label : intitulé affiché sur téléphone, où chaque client devient une carte. */}
+                  <td className="num" data-label="Utilisateurs">
                     {ofCap(client.members + client.pendingInvitations, client.licence.maxMembers)}
                   </td>
-                  <td className="num">{ofCap(client.sites, client.licence.maxSites)}</td>
-                  <td className="num">
+                  <td className="num" data-label="Sites">
+                    {ofCap(client.sites, client.licence.maxSites)}
+                  </td>
+                  <td className="num" data-label="Analyses">
                     {ofCap(client.analysesThisMonth, client.licence.maxAnalysesPerMonth)}
                   </td>
-                  <td className="muted-cell">{sinceLabel(client.lastLoginAt)}</td>
+                  <td className="muted-cell" data-label="Connexion">
+                    {sinceLabel(client.lastLoginAt)}
+                  </td>
                 </tr>
               ))}
             </tbody>

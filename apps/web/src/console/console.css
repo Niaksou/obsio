@@ -339,6 +339,7 @@
 
 .console-fields.caps {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
 }
 
 .console-fields.stacked {
@@ -427,8 +428,28 @@
 
 @media (max-width: 720px) {
   .console-bar {
-    gap: 12px;
-    padding: 0 12px;
+    gap: 8px;
+    padding: 0 8px 0 16px;
+  }
+
+  .console-brand span {
+    display: none;
+  }
+
+  /* Rubriques qui défilent sur le côté plutôt que d'élargir la page. */
+  .console-bar nav {
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .console-bar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .console-bar nav a {
+    flex: none;
+    white-space: nowrap;
   }
 
   .console-lock,
@@ -436,13 +457,107 @@
     display: none;
   }
 
+  .console-exit {
+    flex: none;
+    width: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
   .console-main {
     padding: 24px 16px 64px;
+  }
+
+  .console-head h1 {
+    font-size: 1.75rem;
+  }
+
+  /* Liste des clients : une carte par client, intitulés repris de data-label. */
+  .console-table-wrap {
+    overflow: visible;
+  }
+
+  .console-table thead {
+    display: none;
+  }
+
+  .console-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 8px;
+    padding: 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .console-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .console-table tbody th,
+  .console-table tbody td {
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .console-table tbody th,
+  .console-table tbody td:first-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .console-table tbody th button.link {
+    font-size: 1.0625rem;
+  }
+
+  .console-table .licence-track {
+    max-width: none;
+  }
+
+  .console-table tbody td.num {
+    text-align: left;
+  }
+
+  .console-table td[data-label] {
+    display: grid;
+    gap: 2px;
+    font-size: 0.9375rem;
+  }
+
+  .console-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    color: var(--faint);
+  }
+
+  /* Volet de la licence ou du nouveau client : plein écran, par-dessus la liste. */
+  .console-split.open > .console-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    align-content: start;
+    overflow-y: auto;
+    padding: 16px 16px 32px;
+    border: 0;
+    border-radius: 0;
+    overscroll-behavior: contain;
+  }
+
+  .console-fields.caps {
+    gap: 8px;
   }
 
   .audit-list > li {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
+  }
+
+  .watch-list li {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .watch-reason {
+    text-align: left;
   }
 }
 
