@@ -106,7 +106,8 @@ generate() {
   done
   for name in $EXTERNAL; do [ -e "$dir/$name" ] || : >"$dir/$name"; done
   [ -s "$dir/tls_ca" ] || certificates "$dir"
-  [ -s "$dir/document_signing_key" ] || signing_certificate "$dir"
+  # Clé absente ou réduite à un saut de ligne : on (re)crée la clé et le certificat.
+  grep -q 'PRIVATE KEY' "$dir/document_signing_key" 2>/dev/null || signing_certificate "$dir"
   derive "$dir"
   protect "$dir"
   echo "Secrets dans $dir. À compléter : $EXTERNAL (vides si le service n'est pas utilisé)."
@@ -156,7 +157,10 @@ decrypt() {
       value=
     fi
     case $name in
-      tls_* | document_signing_*) printf '%s\n' "$value" >"$dir/$name" ;;
+      # Certificats et clés : saut de ligne final, sauf pour un secret absent, qui reste vide
+      # (sinon « generer » le croirait présent et ne le créerait pas).
+      tls_* | document_signing_*)
+        if [ -n "$value" ]; then printf '%s\n' "$value"; else :; fi >"$dir/$name" ;;
       *) printf '%s' "$value" >"$dir/$name" ;;
     esac
   done
