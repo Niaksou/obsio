@@ -5,12 +5,13 @@ import {
   type ReserveListItem,
 } from '@obsio/shared';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useParams, useSearchParams } from 'react-router';
 import { api } from '../api.js';
 import { keys, useIsManager } from '../queries.js';
 import { AssignPanel } from '../reserves/AssignPanel.js';
 import { CollaboratorPanel } from '../reserves/CollaboratorPanel.js';
+import { FileDown } from 'lucide-react';
 import { DossierExport } from '../reserves/DossierExport.js';
 import { equipmentLabel, formatDay, plural, StatusLabel } from '../reserves/status.js';
 
@@ -78,6 +79,15 @@ export function ReservesPage() {
   }
 
   const rows = reserves.data ?? [];
+  // Arrivée par « Autres options » du rapport de levée (#dossier) : une fois la liste affichée,
+  // on descend jusqu'au formulaire du rapport.
+  const { hash } = useLocation();
+  const listReady = reserves.data !== undefined;
+  useEffect(() => {
+    if (hash === '#dossier' && listReady) {
+      document.getElementById('dossier')?.scrollIntoView({ block: 'start' });
+    }
+  }, [hash, listReady]);
   const selectable = rows.filter(assignable);
 
   return (
@@ -90,6 +100,10 @@ export function ReservesPage() {
       <div className="title-row">
         <h1>Réserves</h1>
         {reserves.data && <p className="row-meta">{plural(rows.length, 'réserve')}</p>}
+        <a href="#dossier" className="button-link secondary compact title-action">
+          <FileDown size={16} strokeWidth={1.5} aria-hidden />
+          Rapport PDF
+        </a>
       </div>
 
       <div className="filters" data-tour="reserves-filters">

@@ -1,7 +1,9 @@
 import { Q18_CONSTATATIONS, type SiteDashboard as Dashboard } from '@obsio/shared';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { FileDown } from 'lucide-react';
 import { Link } from 'react-router';
-import { api } from '../api.js';
+import { api, downloadProofDossier } from '../api.js';
+import { MutationError } from '../components/MutationError.js';
 import { keys } from '../queries.js';
 import { formatDay, plural } from './status.js';
 
@@ -14,6 +16,37 @@ export function SiteAlerts({ siteId }: { siteId: string }) {
   const dashboard = useDashboard(siteId);
   if (!dashboard.data?.q18) return null;
   return <Q18Alerts q18={dashboard.data.q18} />;
+}
+
+/**
+ * Rapport de levée : le dossier des réserves levées, signé et vérifiable, en un clic depuis
+ * l'avancement ; les autres options (origine, toutes les réserves) sont sur la page des réserves.
+ */
+function LiftedReport({ siteId }: { siteId: string }) {
+  const download = useMutation({
+    mutationFn: () => downloadProofDossier(siteId, { scope: 'levees' }),
+  });
+  return (
+    <div className="progress-report" data-tour="site-report">
+      <div>
+        <h3>Rapport de levée des réserves</h3>
+        <p className="hint">
+          PDF signé avec l’historique et les photos de chaque correction.{' '}
+          <Link to={`/sites/${siteId}/reserves#dossier`}>Autres options</Link>
+        </p>
+      </div>
+      <button
+        type="button"
+        className="secondary compact"
+        disabled={download.isPending}
+        onClick={() => download.mutate()}
+      >
+        <FileDown size={16} strokeWidth={1.5} aria-hidden />
+        {download.isPending ? 'Préparation…' : 'Télécharger'}
+      </button>
+      <MutationError error={download.error} />
+    </div>
+  );
 }
 
 /**
@@ -46,6 +79,8 @@ export function SiteProgress({ siteId, isManager }: { siteId: string; isManager:
       ) : (
         <Progress counts={counts} total={total} list={list} />
       )}
+
+      {isManager && counts.levees > 0 && <LiftedReport siteId={siteId} />}
 
       {(floors.length > 0 || unattached > 0) && (
         <div className="progress-floors">

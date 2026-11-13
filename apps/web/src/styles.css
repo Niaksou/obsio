@@ -1100,6 +1100,35 @@ button.compact {
   gap: 24px;
 }
 
+/* Rapport de levée, sous la barre d'avancement : titre et texte à gauche, action à droite. */
+.progress-report {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.progress-report h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.progress-report .hint {
+  margin: 2px 0 0;
+}
+
+.progress-report .error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.title-row .title-action {
+  margin-left: auto;
+}
+
 .progress-floors h3 {
   margin: 0 0 4px;
   font-size: 0.875rem;
