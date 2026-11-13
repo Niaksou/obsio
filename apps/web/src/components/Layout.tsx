@@ -1,10 +1,19 @@
-import { CalendarCheck, ClipboardCheck, Factory, LogOut, Menu, Users } from 'lucide-react';
+import {
+  CalendarCheck,
+  ClipboardCheck,
+  Factory,
+  KeyRound,
+  LogOut,
+  Menu,
+  Users,
+} from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { authClient } from '../auth-client.js';
 import { disablePush } from '../push/push.js';
 import { HelpButton } from '../tours/HelpButton.js';
 import { useTours } from '../tours/TourProvider.js';
+import { useMe } from '../queries.js';
 import { LicenceBanner } from './LicenceBanner.js';
 import { usePageViews } from './usePageViews.js';
 import { Logo } from './Logo.js';
@@ -75,6 +84,17 @@ function NavItem({
   );
 }
 
+/** Lien vers la console, affiché seulement aux membres de l'équipe Obsio. */
+function ConsoleLink() {
+  const { data: me } = useMe();
+  if (!me?.user.staff) return null;
+  return (
+    <NavItem to="/console" icon={<KeyRound {...iconProps} />}>
+      Console Obsio
+    </NavItem>
+  );
+}
+
 /** Initiales du nom affiché (« Camille Test » → « CT »). */
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -135,6 +155,7 @@ function MoreSheet({
           <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
             Organisation
           </NavItem>
+          <ConsoleLink />
         </nav>
         <div className="more-session">
           <HelpButton inline onStart={onClose} />
@@ -216,6 +237,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
           <NavItem tour="nav-organisation" to="/organisation" icon={<Users {...iconProps} />}>
             Organisation
           </NavItem>
+          <ConsoleLink />
         </nav>
         <div className="session">
           <HelpButton />

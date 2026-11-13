@@ -93,7 +93,7 @@ function queryString(params: Record<string, string | undefined>) {
 }
 
 const meSchema = z.object({
-  user: z.object({ id: z.uuid(), name: z.string(), email: z.string() }),
+  user: z.object({ id: z.uuid(), name: z.string(), email: z.string(), staff: z.boolean() }),
   organisation: z
     .object({
       id: z.uuid(),

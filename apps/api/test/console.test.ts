@@ -29,6 +29,8 @@ describe('Accès à la console Obsio', () => {
       staff: false,
       unlockedUntil: null,
     });
+    // Pas de lien vers la console dans l'application.
+    expect((await admin.get('/api/me')).json().user.staff).toBe(false);
     expect((await admin.get('/api/console/audit')).statusCode).toBe(404);
     const phone = await passkeySession(admin);
     expect((await phone.get('/api/console/audit')).statusCode).toBe(404);
@@ -37,6 +39,7 @@ describe('Accès à la console Obsio', () => {
   it("demande une connexion par clé d'accès, même à l'équipe", async () => {
     const { admin: staff } = await openClient('Obsio', 'Camille', 'camille@obsio.fr');
     await setStaff(owner.db, 'camille@obsio.fr', true);
+    expect((await staff.get('/api/me')).json().user.staff).toBe(true);
 
     // Mot de passe et code : compte reconnu, console verrouillée.
     expect((await staff.get('/api/console/session')).json()).toMatchObject({
@@ -56,6 +59,7 @@ describe('Accès à la console Obsio', () => {
     // Retiré de l'équipe : plus rien, même avec une session déverrouillée.
     await setStaff(owner.db, 'camille@obsio.fr', false);
     expect((await unlocked.get('/api/console/audit')).statusCode).toBe(404);
+    expect((await unlocked.get('/api/me')).json().user.staff).toBe(false);
   });
 
   it('se reverrouille après 15 minutes sans activité', async () => {

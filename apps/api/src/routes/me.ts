@@ -3,10 +3,17 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { findMembership, type Guards } from '../auth/guards.js';
 import type { Database } from '../db/client.js';
+import { isStaff } from '../console/staff.js';
 import { findLicenceAccess } from '../licences/licence.js';
 
 const meSchema = z.object({
-  user: z.object({ id: z.uuid(), name: z.string(), email: z.email() }),
+  user: z.object({
+    id: z.uuid(),
+    name: z.string(),
+    email: z.email(),
+    /** Membre de l'équipe Obsio : seul l'intéressé le lit, pour afficher le lien vers la console. */
+    staff: z.boolean(),
+  }),
   organisation: z
     .object({
       id: z.uuid(),
@@ -33,7 +40,7 @@ export const meRoutes: FastifyPluginAsyncZod<{
         ...membership,
         licence: await findLicenceAccess(db, membership.id),
       };
-      return { user: { id, name, email }, organisation };
+      return { user: { id, name, email, staff: await isStaff(db, id) }, organisation };
     },
   );
 };
