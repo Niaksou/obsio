@@ -38,6 +38,11 @@ declare module 'fastify' {
      * elle-même qu'elle ne leur montre que leurs réserves.
      */
     collaborator?: boolean;
+    /**
+     * Écriture permise même quand la licence est en lecture seule : émettre un dossier de
+     * preuves (le client garde l'accès à ses données et à leurs preuves).
+     */
+    readOnlyLicence?: boolean;
   }
 }
 
@@ -91,7 +96,7 @@ export function createGuards(auth: Auth, db: Database) {
     if (membership.role === 'collaborateur' && !request.routeOptions.config.collaborator) {
       return reply.code(403).send({ code: 'ROLE_FORBIDDEN', message: MANAGERS_ONLY });
     }
-    if (!READ_METHODS.has(request.method)) {
+    if (!READ_METHODS.has(request.method) && !request.routeOptions.config.readOnlyLicence) {
       const licence = await findLicenceAccess(db, membership.id);
       if (licence.access === 'lecture') {
         return reply.code(403).send({

@@ -39,6 +39,8 @@ x-api-env: &api-env
   OPERATOR_NAME: ${OPERATOR_NAME}
   BETTER_AUTH_SECRET_FILE: /run/secrets/better_auth_secret
   VAPID_PRIVATE_KEY_FILE: /run/secrets/vapid_private_key
+  DOCUMENT_SIGNING_KEY_FILE: /run/secrets/document_signing_key
+  DOCUMENT_SIGNING_CERT_FILE: /run/secrets/document_signing_cert
   CLAMAV_SOCKET: /run/clamav/clamd.sock
 
 # Rôle propriétaire de la base : migrations et commandes de l'éditeur (service setup) seulement,
@@ -192,6 +194,8 @@ services:
       - smtp_password
       - better_auth_secret
       - vapid_private_key
+      - document_signing_key
+      - document_signing_cert
     command: ['sh', '-c', 'node dist/db/migrate.js && node dist/cli/setup-storage.js']
     depends_on:
       postgres: { condition: service_healthy }
@@ -213,6 +217,8 @@ services:
       - smtp_password
       - better_auth_secret
       - vapid_private_key
+      - document_signing_key
+      - document_signing_cert
       - tls_ca
       - tls_api_cert
       - tls_api_key
@@ -297,6 +303,10 @@ secrets:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/better_auth_secret
   vapid_private_key:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/vapid_private_key
+  document_signing_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/document_signing_key
+  document_signing_cert:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/document_signing_cert
   mistral_api_key:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/mistral_api_key
   tls_ca:

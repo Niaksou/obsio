@@ -123,7 +123,7 @@ export async function buildApp({
   await app.register(reserveRoutes, { db, guards, storage, scanner, emailSender, push, config });
   await app.register(pushRoutes, { db, guards, push });
   await app.register(interventionRoutes, { db, storage, scanner, emailSender, config });
-  await app.register(dashboardRoutes, { db, guards, storage, quotas });
+  await app.register(dashboardRoutes, { db, guards, storage, quotas, config });
   await app.register(inspectionRoutes, { db, guards });
   await app.register(usageRoutes, { db, guards });
   await app.register(consoleRoutes, { db, guards, config, emailSender });

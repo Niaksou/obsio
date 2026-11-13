@@ -8,3 +8,4 @@ export * from './inspections.js';
 export * from './console.js';
 export * from './licence.js';
 export * from './usage.js';
+export * from './documents.js';

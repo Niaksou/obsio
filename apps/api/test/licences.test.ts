@@ -60,7 +60,7 @@ describe('licence d’un client', () => {
       reason: 'revoquee',
     });
     expect((await admin.get(`/api/sites/${siteId}/reserves`)).statusCode).toBe(200);
-    expect((await admin.get(`/api/sites/${siteId}/proof-dossier`)).statusCode).not.toBe(403);
+    expect((await admin.post(`/api/sites/${siteId}/proof-dossier`, {})).statusCode).not.toBe(403);
 
     const refused = await admin.post('/api/sites', { name: 'Grenoble' });
     expect(refused.statusCode).toBe(403);

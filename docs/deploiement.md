@@ -203,6 +203,19 @@ obsio up -d --build --wait
 
 Ne pas changer cette clé sans raison : les appareils abonnés ne recevraient plus rien et devraient réactiver les notifications.
 
+Dossiers de preuves signés (novembre 2026) : la clé et le certificat de signature (`document_signing_key`, `document_signing_cert`, certificat auto-signé de 10 ans) font partie des secrets, et l'API refuse de démarrer en production sans eux. Pour un fichier chiffré créé avant, les ajouter **avant** de mettre à jour le serveur :
+
+```sh
+deploy/secrets.sh dechiffrer ~/obsio-secrets.sops.yaml ~/obsio-secrets
+deploy/secrets.sh generer ~/obsio-secrets          # ajoute la clé et le certificat de signature
+deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+rm -r ~/obsio-secrets
+deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+obsio up -d --build --wait
+```
+
+Garder ce certificat : un changement n'invalide pas les dossiers déjà émis (leur empreinte reste au registre), mais leur signature renvoie à l'ancien certificat. Avant la production, le remplacer par un certificat d'une autorité de la liste AATL d'Adobe (voir `docs/securite.md`, « Écarts »).
+
 Les certificats internes sont valables deux ans (date affichée à leur création). Avant l'échéance, les refaire tous, avec une nouvelle autorité, puis relancer tous les services :
 
 ```sh

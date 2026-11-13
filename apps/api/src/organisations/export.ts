@@ -189,10 +189,12 @@ export async function exportOrganisation(
     const sites = await tx.select().from(site).orderBy(site.name);
     const names = new Set<string>();
     for (const s of sites) {
-      const pdf = await buildProofDossier(tx, storage, {
+      const { pdf } = await buildProofDossier(tx, storage, {
         organisationName: organisation.name,
         site: { id: s.id, name: s.name, address: s.address },
         scope: 'toutes',
+        issuedBy: 'Obsio, export des données',
+        issuedAt: new Date(),
       });
       let name = safeName(s.name);
       if (names.has(name)) name = `${name} (${s.id})`;

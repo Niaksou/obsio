@@ -42,7 +42,8 @@ Rôles : **admin**, **responsable** et **collaborateur** d'une organisation (Bet
 | Intervenants et assignations | — | Création, modification, révocation des liens | Idem | — | — |
 | Réserves confiées à des collaborateurs | « Mes réserves » (les siennes) | Confier à des personnes de l'organisation, retirer | Idem | — | — |
 | Vérifications périodiques | — | Modification | Idem | — | — |
-| Tableau de bord, dossier de preuves PDF | — | Oui | Oui | — | — |
+| Tableau de bord, émission du dossier de preuves (PDF signé et enregistré) | — | Oui | Oui | — | — |
+| Vérification d'un dossier (page publique `/verifier`) | Tout le monde, sans compte : l'empreinte du fichier seulement, réponse limitée au numéro, à la date, à l'organisation et au nombre de réserves | | | | |
 | Personnes et invitations | — | Invitation, changement de rôle et retrait des seuls collaborateurs | Tout le monde, sauf l'admin fondateur (ni rétrogradé, ni retiré) | — | — |
 | Organisation | — | — | — | — | Création, export, suppression (`pnpm org:*`), réinitialisation de la double authentification |
 

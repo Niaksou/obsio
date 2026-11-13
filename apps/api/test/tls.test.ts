@@ -68,13 +68,24 @@ describe('API en HTTPS', () => {
 });
 
 describe('configuration', () => {
-  const base = { ...process.env, NODE_ENV: 'production', CLAMAV_HOST: undefined };
+  const base = {
+    ...process.env,
+    NODE_ENV: 'production',
+    CLAMAV_HOST: undefined,
+    DOCUMENT_SIGNING_KEY: '-----BEGIN PRIVATE KEY-----',
+    DOCUMENT_SIGNING_CERT: '-----BEGIN CERTIFICATE-----',
+  };
 
   it('exige un antivirus en production, par TCP ou par socket Unix', () => {
     expect(() => loadConfig(base)).toThrow(/CLAMAV_SOCKET/);
     expect(loadConfig({ ...base, CLAMAV_SOCKET: '/run/clamav/clamd.sock' }).CLAMAV_SOCKET).toBe(
       '/run/clamav/clamd.sock',
     );
+  });
+
+  it('exige la clé de signature des dossiers en production', () => {
+    const withoutKey = { ...base, CLAMAV_SOCKET: '/s', DOCUMENT_SIGNING_KEY: undefined };
+    expect(() => loadConfig(withoutKey)).toThrow(/DOCUMENT_SIGNING_KEY/);
   });
 
   it('refuse un certificat sans sa clé', () => {

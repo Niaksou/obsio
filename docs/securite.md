@@ -163,3 +163,4 @@ Tenir ce document à jour : une correction change le statut de l'exigence et ret
 | Serveur de préproduction hors de l'UE | VPS disponible au Canada en attendant l'UE | Avant toute donnée réelle |
 | Fichiers du stockage sans sauvegarde, rien hors du serveur | Préproduction, données de test | Avant la bêta |
 | Réglages de chaîne d'approvisionnement de pnpm 10 absents (`minimumReleaseAge`, `trustPolicy`, `blockExoticSubdeps`) ; règles Semgrep correspondantes écartées | Le dépôt utilise pnpm 9 ; le passage à pnpm 10 change l'exécution des scripts d'installation | Passage à pnpm 10 |
+| Dossiers de preuves signés par un certificat auto-signé (Adobe affiche « identité inconnue ») et signature `adbe.pkcs7.detached` plutôt que PAdES B-B | L'intégrité est déjà prouvée par le registre des empreintes et la page « Vérifier un document » ; un certificat AATL est payant | Avant la production |

@@ -25,7 +25,10 @@ TLS_SERVICES="postgres redis api web storage"
 TLS_DAYS=730
 TLS=tls_ca
 for service in $TLS_SERVICES; do TLS="$TLS tls_${service}_cert tls_${service}_key"; done
-STORED="$GENERATED $EXTERNAL $TLS"
+# Signature des documents émis : certificat auto-signé de 10 ans (à remplacer par un certificat
+# AATL avant la production, voir docs/securite.md).
+SIGNING="document_signing_key document_signing_cert"
+STORED="$GENERATED $EXTERNAL $TLS $SIGNING"
 REMOTE_DIR_DEFAULT=/etc/obsio/secrets
 
 usage() {
@@ -73,6 +76,15 @@ certificates() {
   echo "Certificats internes valables $TLS_DAYS jours ($(openssl x509 -in "$dir/tls_ca" -noout -enddate))."
 }
 
+signing_certificate() {
+  dir=$1
+  openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$dir/document_signing_key" 2>/dev/null
+  openssl req -x509 -new -key "$dir/document_signing_key" -subj "/CN=Obsio documents emis/O=Obsio/C=FR" \
+    -days 3650 -sha256 -addext "basicConstraints=critical,CA:false" \
+    -addext "keyUsage=critical,digitalSignature,nonRepudiation" -out "$dir/document_signing_cert"
+  echo "Certificat de signature des documents valable 10 ans."
+}
+
 generate() {
   dir=$1
   mkdir -p "$dir"
@@ -94,6 +106,7 @@ generate() {
   done
   for name in $EXTERNAL; do [ -e "$dir/$name" ] || : >"$dir/$name"; done
   [ -s "$dir/tls_ca" ] || certificates "$dir"
+  [ -s "$dir/document_signing_key" ] || signing_certificate "$dir"
   derive "$dir"
   protect "$dir"
   echo "Secrets dans $dir. À compléter : $EXTERNAL (vides si le service n'est pas utilisé)."
@@ -143,7 +156,7 @@ decrypt() {
       value=
     fi
     case $name in
-      tls_*) printf '%s\n' "$value" >"$dir/$name" ;;
+      tls_* | document_signing_*) printf '%s\n' "$value" >"$dir/$name" ;;
       *) printf '%s' "$value" >"$dir/$name" ;;
     esac
   done

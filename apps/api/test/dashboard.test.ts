@@ -90,23 +90,24 @@ describe('pilotage', () => {
     });
     expect(proof.statusCode).toBe(204);
 
-    const response = await admin.get(`/api/sites/${siteId}/proof-dossier`);
+    const response = await admin.post(`/api/sites/${siteId}/proof-dossier`, {});
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/pdf');
     expect(response.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
 
-    const levees = await admin.get(
-      `/api/sites/${siteId}/proof-dossier?scope=levees&documentType=q18`,
-    );
+    const levees = await admin.post(`/api/sites/${siteId}/proof-dossier`, {
+      scope: 'levees',
+      documentType: 'q18',
+    });
     expect(levees.statusCode).toBe(200);
 
     const other = await openClient('Usine Martin', 'Chloé', 'chloe@martin.fr');
-    expect((await other.admin.get(`/api/sites/${siteId}/proof-dossier`)).statusCode).toBe(404);
+    expect((await other.admin.post(`/api/sites/${siteId}/proof-dossier`, {})).statusCode).toBe(404);
   });
 
   it('limite le nombre de dossiers de preuves par heure et par organisation', async () => {
     await ctx.redis.set(`obsio-quota:dossiers:${organisationId}`, '30', 'EX', 600);
-    const response = await admin.get(`/api/sites/${siteId}/proof-dossier`);
+    const response = await admin.post(`/api/sites/${siteId}/proof-dossier`, {});
     expect(response.statusCode).toBe(429);
     expect(response.json().message).toBe(
       'Limite atteinte : 30 dossiers de preuves par heure pour votre organisation. Réessayez dans 10 min.',

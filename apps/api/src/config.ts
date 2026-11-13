@@ -49,6 +49,10 @@ const apiEnvSchema = z
       .string()
       .regex(/^[A-Za-z0-9_-]{43}$/, 'clé P-256 de 32 octets en base64url')
       .optional(),
+    // Signature des documents émis (dossiers de preuves) : clé privée RSA et certificat, en PEM.
+    // Absents hors production : certificat de développement tiré au démarrage.
+    DOCUMENT_SIGNING_KEY: z.string().includes('PRIVATE KEY').optional(),
+    DOCUMENT_SIGNING_CERT: z.string().includes('CERTIFICATE').optional(),
     // Derrière un proxy (Caddy, répartiteur de l'hébergeur) : l'adresse du client est lue dans
     // X-Forwarded-For, sinon la limitation de débit compterait tout le monde comme le proxy.
     TRUST_PROXY: z
@@ -60,6 +64,19 @@ const apiEnvSchema = z
     path: ['CLAMAV_HOST'],
     message:
       'CLAMAV_HOST ou CLAMAV_SOCKET obligatoire en production (antivirus des fichiers déposés)',
+  })
+  .refine(
+    (env) =>
+      env.NODE_ENV !== 'production' || (env.DOCUMENT_SIGNING_KEY && env.DOCUMENT_SIGNING_CERT),
+    {
+      path: ['DOCUMENT_SIGNING_KEY'],
+      message:
+        'DOCUMENT_SIGNING_KEY et DOCUMENT_SIGNING_CERT obligatoires en production (signature des dossiers)',
+    },
+  )
+  .refine((env) => !env.DOCUMENT_SIGNING_KEY === !env.DOCUMENT_SIGNING_CERT, {
+    path: ['DOCUMENT_SIGNING_CERT'],
+    message: 'DOCUMENT_SIGNING_KEY et DOCUMENT_SIGNING_CERT vont ensemble',
   })
   .refine((env) => !env.TLS_CERT_FILE === !env.TLS_KEY_FILE, {
     path: ['TLS_KEY_FILE'],

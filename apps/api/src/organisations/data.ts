@@ -10,6 +10,7 @@ import {
   equipment,
   floor,
   inspectionPlan,
+  issuedDocument,
   licence,
   organisation,
   pageView,
@@ -48,6 +49,8 @@ export const ORGANISATION_TABLES = [
   { table: reserveMember },
   { table: proof },
   { table: reserveEvent },
+  // Dossiers de preuves émis ; leurs fichiers sont sous organisations/<id>/ comme les autres.
+  { table: issuedDocument },
   { table: pageView },
 ] as const;
 
