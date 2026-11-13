@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { get as httpGet } from 'node:http';
 import { get as httpsGet, type RequestOptions } from 'node:https';
 import type { AddressInfo } from 'node:net';
@@ -86,6 +86,23 @@ describe('configuration', () => {
   it('exige la clé de signature des dossiers en production', () => {
     const withoutKey = { ...base, CLAMAV_SOCKET: '/s', DOCUMENT_SIGNING_KEY: undefined };
     expect(() => loadConfig(withoutKey)).toThrow(/DOCUMENT_SIGNING_KEY/);
+  });
+
+  it('lit la clé et le certificat de signature dans leurs fichiers (secrets du déploiement)', () => {
+    const key = join(dir, 'signing.key');
+    const cert = join(dir, 'signing.crt');
+    writeFileSync(key, '-----BEGIN PRIVATE KEY-----\nabc\n');
+    writeFileSync(cert, '-----BEGIN CERTIFICATE-----\ndef\n');
+    const config = loadConfig({
+      ...base,
+      CLAMAV_SOCKET: '/s',
+      DOCUMENT_SIGNING_KEY: undefined,
+      DOCUMENT_SIGNING_CERT: undefined,
+      DOCUMENT_SIGNING_KEY_FILE: key,
+      DOCUMENT_SIGNING_CERT_FILE: cert,
+    });
+    expect(config.DOCUMENT_SIGNING_KEY).toContain('PRIVATE KEY');
+    expect(config.DOCUMENT_SIGNING_CERT).toContain('CERTIFICATE');
   });
 
   it('refuse un certificat sans sa clé', () => {
