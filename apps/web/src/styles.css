@@ -4101,7 +4101,8 @@ li.open .item-number {
 
 .person {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+  /* Rôle et action en colonnes fixes : alignés d'une ligne à l'autre, action présente ou non. */
+  grid-template-columns: 32px minmax(0, 1fr) 176px 88px;
   align-items: center;
   gap: 4px 12px;
   min-height: 56px;
@@ -4138,7 +4139,14 @@ li.open .item-number {
   white-space: nowrap;
 }
 
+.person > button,
+.person > .confirm {
+  grid-column: 4;
+  justify-self: end;
+}
+
 .person-role {
+  grid-column: 3;
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
