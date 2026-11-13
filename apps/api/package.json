@@ -22,7 +22,8 @@
     "storage:setup": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/setup-storage.ts",
     "staff:grant": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/grant-staff.ts",
     "user:reset-2fa": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/reset-two-factor.ts",
-    "demo:seed": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/seed-demo.ts"
+    "demo:seed": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/seed-demo.ts",
+    "demo:console": "tsx --conditions=@obsio/source --env-file-if-exists=../../.env src/cli/seed-console-demo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1156.0",

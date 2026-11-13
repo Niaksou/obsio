@@ -19,6 +19,7 @@
     "org:export": "pnpm --filter @obsio/api org:export",
     "org:delete": "pnpm --filter @obsio/api org:delete",
     "demo:seed": "pnpm --filter @obsio/api demo:seed",
+    "demo:console": "pnpm --filter @obsio/api demo:console",
     "staff:grant": "pnpm --filter @obsio/api staff:grant",
     "user:reset-2fa": "pnpm --filter @obsio/api user:reset-2fa"
   },
