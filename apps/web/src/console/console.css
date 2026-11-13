@@ -1,0 +1,452 @@
+/* Console de l'équipe Obsio : même matière que l'application, barre d'encre pour ne jamais la
+   confondre avec l'espace d'un client. Seul élément vivant : la pastille de déverrouillage. */
+
+.console {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.console-bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 56px;
+  padding: 0 24px;
+  color: rgb(255 255 255 / 0.72);
+  background: var(--ink);
+}
+
+.console-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-plate);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+}
+
+.console-brand span {
+  font-size: 0.875rem;
+  color: rgb(255 255 255 / 0.56);
+}
+
+.console-bar nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.console-bar nav a,
+.console-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.9375rem;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius);
+}
+
+.console-bar nav a:hover,
+.console-exit:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.console-bar nav a.active {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.console-bar a:focus-visible {
+  outline: 2px solid var(--patina-light);
+  outline-offset: 2px;
+}
+
+.console-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.console-lock-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--patina-light);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgb(140 199 182 / 0.2);
+}
+
+.console-main {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.console-page {
+  display: grid;
+  gap: 24px;
+}
+
+.console-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.console-gate {
+  margin-top: 12vh;
+  justify-items: start;
+}
+
+/* --- Chiffres d'ensemble */
+
+.console-figures {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.console-figures > div {
+  display: grid;
+  gap: 4px;
+  padding: 16px 20px;
+}
+
+.console-figures > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.console-figures dt {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.console-figures dd {
+  margin: 0;
+  font-family: var(--font-plate);
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.console-figures .alert-figure dd {
+  color: var(--copper-deep);
+}
+
+/* --- Liste des clients et volet de la licence */
+
+.console-split {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+.console-split.open {
+  grid-template-columns: minmax(0, 1fr) 400px;
+}
+
+.console-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.console-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.console-table th,
+.console-table td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.console-table thead th {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.console-table tbody tr {
+  cursor: pointer;
+  transition: background-color 140ms var(--ease);
+}
+
+.console-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.console-table tbody tr:hover {
+  background: var(--surface-tint);
+}
+
+.console-table tbody tr.selected {
+  background: var(--paper-deep);
+}
+
+.console-table tbody th {
+  font-weight: 500;
+}
+
+.console-table tbody th button.link {
+  font-weight: 500;
+  text-align: left;
+  color: var(--ink);
+}
+
+.console-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.console-table .muted-cell {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Durée de la licence : part écoulée, couleur selon l'état. */
+.licence-track {
+  --track: var(--patina);
+  display: grid;
+  gap: 4px;
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.licence-track.tone-soon {
+  --track: var(--copper);
+}
+
+.licence-track.tone-off {
+  --track: var(--danger);
+}
+
+.licence-track.tone-open {
+  --track: var(--line-strong);
+}
+
+.licence-track-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.licence-track-caption {
+  color: var(--muted);
+}
+
+.tone-soon .licence-track-caption {
+  color: var(--copper-deep);
+}
+
+.tone-off .licence-track-caption {
+  color: var(--danger);
+}
+
+.licence-track-bar {
+  height: 4px;
+  overflow: hidden;
+  background: var(--line-soft);
+  border-radius: 2px;
+}
+
+.licence-track-bar span {
+  display: block;
+  height: 100%;
+  background: var(--track);
+  border-radius: 2px;
+}
+
+.licence-track-dates {
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+
+.console-panel {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.console-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.console-panel-head .hint {
+  margin-top: 4px;
+}
+
+.console-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.console-actions button {
+  padding-inline: 12px;
+}
+
+.console-form {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.console-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.console-fields input,
+.console-fields select {
+  width: 100%;
+  min-width: 0;
+}
+
+.console-fields.caps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.console-fields.stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.console-fields .wide {
+  grid-column: 1 / -1;
+}
+
+.console-fields legend {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.console-panel textarea {
+  padding: 8px 12px;
+  resize: vertical;
+}
+
+/* --- Journal */
+
+.audit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.audit-list > li {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 12px 20px;
+  font-size: 0.9375rem;
+}
+
+.audit-list > li + li {
+  border-top: 1px solid var(--line-soft);
+}
+
+.audit-list time,
+.audit-actor {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.audit-list strong {
+  font-weight: 500;
+}
+
+.audit-changes {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.audit-field {
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1080px) {
+  .console-split.open {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .console-panel {
+    position: static;
+  }
+
+  .console-figures {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .console-figures > div + div {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .console-bar {
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  .console-lock,
+  .console-exit span {
+    display: none;
+  }
+
+  .console-main {
+    padding: 24px 16px 64px;
+  }
+
+  .audit-list > li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
+
+.console-panel-head button.icon-only {
+  min-height: 32px;
+  padding: 6px;
+}

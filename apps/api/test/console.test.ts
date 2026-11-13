@@ -98,3 +98,100 @@ describe('Accès à la console Obsio', () => {
     await expect(ctx.db.execute(sql`delete from console_audit`)).rejects.toThrow();
   });
 });
+
+describe('Clients dans la console', () => {
+  async function unlockedStaff() {
+    const { admin } = await openClient('Obsio', 'Camille', 'camille@obsio.fr');
+    await setStaff(owner.db, 'camille@obsio.fr', true);
+    return passkeySession(admin);
+  }
+
+  const essai = {
+    plan: 'essai',
+    status: 'active',
+    startsOn: '2026-11-01',
+    endsOn: '2026-12-31',
+    maxSites: 1,
+    maxMembers: 3,
+    maxAnalysesPerMonth: 5,
+    note: null,
+  };
+
+  it('ouvre un client avec sa licence et invite son admin', async () => {
+    const staff = await unlockedStaff();
+    const created = await staff.post('/api/console/clients', {
+      name: 'Usine Martin',
+      adminEmail: 'Paul@Martin.fr',
+      licence: essai,
+    });
+    expect(created.statusCode).toBe(201);
+    expect(ctx.emailSender.sent.some((mail) => mail.to === 'paul@martin.fr')).toBe(true);
+
+    const clients = (await staff.get('/api/console/clients')).json();
+    const martin = clients.find((c: { name: string }) => c.name === 'Usine Martin');
+    expect(martin).toMatchObject({
+      id: created.json().id,
+      licence: essai,
+      access: { access: 'complet', plan: 'essai' },
+      members: 0,
+      pendingInvitations: 1,
+      sites: 0,
+      analysesThisMonth: 0,
+      lastLoginAt: null,
+    });
+    // Que des chiffres : aucun nom de site, de réserve ni d'adresse de membre.
+    expect(Object.keys(martin).sort()).toEqual(
+      [
+        'id',
+        'name',
+        'slug',
+        'createdAt',
+        'licence',
+        'access',
+        'members',
+        'pendingInvitations',
+        'sites',
+        'analysesThisMonth',
+        'ocrPagesThisMonth',
+        'lastLoginAt',
+      ].sort(),
+    );
+    const [entry] = (await staff.get('/api/console/audit')).json();
+    expect(entry).toMatchObject({ action: 'client.cree', organisationName: 'Usine Martin' });
+  });
+
+  it('révoque une licence, journalise le changement, et seule l’équipe le peut', async () => {
+    const staff = await unlockedStaff();
+    const { admin, organisationId } = await openClient('Usine Dupont', 'Alice', 'alice@dupont.fr');
+    const revoked = { ...essai, status: 'revoquee', note: 'Impayé' };
+
+    expect(
+      (await admin.put(`/api/console/clients/${organisationId}/licence`, revoked)).statusCode,
+    ).toBe(404);
+    const response = await staff.put(`/api/console/clients/${organisationId}/licence`, revoked);
+    expect(response.statusCode).toBe(204);
+
+    expect((await admin.get('/api/me')).json().organisation.licence.access).toBe('lecture');
+    const [entry] = (await staff.get('/api/console/audit')).json();
+    expect(entry).toMatchObject({
+      action: 'licence.revoquee',
+      organisationId,
+      details: {
+        status: { avant: 'active', apres: 'revoquee' },
+        plan: { avant: 'standard', apres: 'essai' },
+      },
+    });
+
+    expect(
+      (await staff.put(`/api/console/clients/${crypto.randomUUID()}/licence`, revoked)).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await staff.put(`/api/console/clients/${organisationId}/licence`, {
+          ...revoked,
+          endsOn: '2026-10-01',
+        })
+      ).statusCode,
+    ).toBe(400);
+  });
+});

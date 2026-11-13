@@ -384,7 +384,7 @@ Interface réservée à l'équipe Obsio, jamais aux clients, dans l'application 
   - Table `licence`, une ligne par organisation (RLS), écrite à l'ouverture du client (standard, sans échéance ni plafond par défaut) ; sans ligne, cette même licence par défaut s'applique. Formules : essai, standard, sur mesure. États : active, suspendue, révoquée. Échéance incluse, à l'heure de Paris.
   - Licence suspendue, révoquée ou échue : lecture seule. Les lectures et le dossier de preuves restent permis ; toute requête qui modifie les données du client répond 403 `LICENCE_READ_ONLY`, les invitations et les preuves déposées par lien intervenant sont refusées. Un bandeau l'indique à tous ; les admins sont prévenus 14 jours avant l'échéance.
   - Plafonds facultatifs : sites actifs, utilisateurs (membres et invitations en attente), analyses de rapport par mois civil (imports créés, échecs compris ; les relances restent bornées par le quota journalier).
-- [ ] Clients : liste, création, gestion de la licence
+- [x] Clients : liste (licence et sa durée, utilisateurs, sites, analyses du mois, dernière connexion), ouverture d'un client avec sa licence, prolongation, suspension, révocation, réactivation et plafonds ; journal lisible des changements (avant → après). Écran `/console` chargé à part, avec sa propre barre ; un compte client y voit « Page introuvable »
 - [ ] Usage : extraction (pages OCR, jetons, coût estimé, échecs, qualité), pages vues
 - [ ] À surveiller et fiche client
 

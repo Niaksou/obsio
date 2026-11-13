@@ -124,7 +124,7 @@ export async function buildApp({
   await app.register(interventionRoutes, { db, storage, scanner, emailSender, config });
   await app.register(dashboardRoutes, { db, guards, storage, quotas });
   await app.register(inspectionRoutes, { db, guards });
-  await app.register(consoleRoutes, { db, guards });
+  await app.register(consoleRoutes, { db, guards, config, emailSender });
 
   // Exposés pour les modules de routes ajoutés par la suite (et pour les tests).
   app.decorate('guards', guards);

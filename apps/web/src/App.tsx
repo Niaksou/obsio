@@ -37,6 +37,19 @@ const InterventionPage = lazy(() =>
   import('./pages/InterventionPage.js').then((module) => ({ default: module.InterventionPage })),
 );
 
+// Console de l’équipe Obsio : chargée seulement à l’ouverture de /console.
+const consolePages = {
+  layout: lazy(() =>
+    import('./console/ConsoleLayout.js').then((module) => ({ default: module.ConsoleLayout })),
+  ),
+  clients: lazy(() =>
+    import('./console/ClientsPage.js').then((module) => ({ default: module.ClientsPage })),
+  ),
+  audit: lazy(() =>
+    import('./console/AuditPage.js').then((module) => ({ default: module.AuditPage })),
+  ),
+};
+
 const lazyPage = (page: ReactNode) => (
   <Suspense fallback={<p className="loading page-message">Chargement…</p>}>{page}</Suspense>
 );
@@ -97,6 +110,14 @@ const router = createBrowserRouter([
         ],
       },
       { path: '/intervention/:token', element: lazyPage(<InterventionPage />) },
+      {
+        path: '/console',
+        element: lazyPage(<consolePages.layout />),
+        children: [
+          { index: true, element: lazyPage(<consolePages.clients />) },
+          { path: 'journal', element: lazyPage(<consolePages.audit />) },
+        ],
+      },
     ],
   },
 ]);

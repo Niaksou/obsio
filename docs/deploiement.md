@@ -143,6 +143,12 @@ Ouvrir un client (pas d'inscription libre) ; le responsable reçoit l'invitation
 obsio exec api node dist/cli/create-organisation.js "Usine Test" responsable@exemple.fr
 ```
 
+Ou depuis la console Obsio (https://preprod.obsio.fr/console), qui fixe aussi la licence du client. La console est réservée aux comptes de l'équipe : le compte doit déjà exister (invité dans une organisation, double authentification activée), puis il est nommé avec le rôle propriétaire de la base. Elle s'ouvre avec une clé d'accès, à créer dans « Mon compte » :
+
+```sh
+obsio run --rm setup node dist/cli/grant-staff.js prenom@obsio.fr            # --revoke pour retirer
+```
+
 ### Sans Brevo (en test)
 
 Les e-mails peuvent rester sur le serveur, dans Mailpit, au lieu de partir : variables décrites dans `deploy/server.env.example`. Mailpit n'écoute que sur le serveur lui-même ; pour lire les e-mails (liens d'invitation compris), ouvrir un tunnel depuis son poste puis http://localhost:8125 :

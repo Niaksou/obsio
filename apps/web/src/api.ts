@@ -52,13 +52,15 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** Code machine renvoyé par l'API (CONSOLE_LOCKED, LICENCE_READ_ONLY…). */
+    readonly code?: string,
   ) {
     super(message);
   }
 }
 
 /** Appel à l'API avec le cookie de session ; la réponse est validée par le schéma partagé. */
-async function request<T>(
+export async function request<T>(
   schema: z.ZodType<T>,
   method: string,
   path: string,
@@ -71,8 +73,15 @@ async function request<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-    throw new ApiError(response.status, payload?.message ?? 'Une erreur est survenue. Réessayez.');
+    const payload = (await response.json().catch(() => null)) as {
+      message?: string;
+      code?: string;
+    } | null;
+    throw new ApiError(
+      response.status,
+      payload?.message ?? 'Une erreur est survenue. Réessayez.',
+      payload?.code,
+    );
   }
   return schema.parse(response.status === 204 ? null : await response.json());
 }

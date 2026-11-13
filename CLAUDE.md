@@ -55,7 +55,8 @@ pnpm dev                        # API :3000, front :5173, worker
 ```
 
 - Tester depuis un téléphone sur le même Wi-Fi : `pnpm dev:lan` à la place de `pnpm dev` ; l'adresse IP locale remplace `localhost` (front, API, stockage, liens des e-mails), à ouvrir aussi sur le poste. Forcer l'adresse avec `LAN_IP=192.168.x.y pnpm dev:lan`
-- Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`
+- Ouvrir un client (pas d'inscription libre) : `pnpm org:create "Usine Dupont" responsable@dupont.fr`, ou depuis la console Obsio (`/console`, avec sa licence)
+- Console Obsio (équipe de l'éditeur, jamais les clients) : `pnpm staff:grant <e-mail> [--revoke]` (rôle propriétaire de la base) ; ouverture par clé d'accès, reverrouillage après 15 minutes sans activité ; licences par organisation (`apps/api/src/licences/`), lecture seule une fois inactive
 - Demande RGPD d'un client : `pnpm org:export <identifiant ou slug> [--out archive.zip]` (archive ZIP) ; `pnpm org:delete <identifiant ou slug>` (simulation), puis `--confirm "<nom exact>"` pour supprimer définitivement
 - Double authentification perdue (téléphone et codes de secours), après vérification de l'identité auprès de l'admin de l'organisation : `pnpm user:reset-2fa <e-mail>`
 - Données de démonstration dans une organisation vide (compte de l'admin créé) : `pnpm demo:seed responsable@dupont.fr [--organisation <id>]` (contenu fictif, `apps/api/src/demo/`)
