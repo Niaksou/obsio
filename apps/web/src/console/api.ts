@@ -1,5 +1,6 @@
 import {
   consoleAuditEntrySchema,
+  consoleClientDetailSchema,
   consoleClientSchema,
   consoleSessionSchema,
   consoleUsageSchema,
@@ -14,6 +15,7 @@ export const consoleApi = {
   session: () => request(consoleSessionSchema, 'GET', '/api/console/session'),
   clients: () => request(z.array(consoleClientSchema), 'GET', '/api/console/clients'),
   audit: () => request(z.array(consoleAuditEntrySchema), 'GET', '/api/console/audit'),
+  client: (id: string) => request(consoleClientDetailSchema, 'GET', `/api/console/clients/${id}`),
   usage: (days: number) => request(consoleUsageSchema, 'GET', `/api/console/usage?days=${days}`),
   createClient: (body: ConsoleClientCreate) =>
     request(z.object({ id: z.uuid() }), 'POST', '/api/console/clients', body),
@@ -26,6 +28,7 @@ export const consoleKeys = {
   clients: ['console', 'clients'] as const,
   audit: ['console', 'audit'] as const,
   usage: (days: number) => ['console', 'usage', String(days)] as const,
+  client: (id: string) => ['console', 'client', id] as const,
 };
 
 /** Console reverrouillée côté serveur (15 minutes sans activité). */
@@ -37,7 +40,11 @@ export function useConsoleSession() {
 }
 
 /** Requête de la console : un reverrouillage renvoie à l'écran de déverrouillage. */
-function useConsoleQuery<T>(queryKey: readonly string[], queryFn: () => Promise<T>) {
+function useConsoleQuery<T>(
+  queryKey: readonly string[],
+  queryFn: () => Promise<T>,
+  enabled = true,
+) {
   const queryClient = useQueryClient();
   return useQuery({
     queryKey,
@@ -53,12 +60,16 @@ function useConsoleQuery<T>(queryKey: readonly string[], queryFn: () => Promise<
       }
     },
     retry: (count, error) => !isLocked(error) && count < 2,
+    enabled,
   });
 }
 
-export const useClients = () => useConsoleQuery(consoleKeys.clients, consoleApi.clients);
+export const useClients = (enabled = true) =>
+  useConsoleQuery(consoleKeys.clients, consoleApi.clients, enabled);
 export const useUsage = (days: number) =>
   useConsoleQuery(consoleKeys.usage(days), () => consoleApi.usage(days));
+export const useClientDetail = (id: string) =>
+  useConsoleQuery(consoleKeys.client(id), () => consoleApi.client(id));
 export const useAudit = () => useConsoleQuery(consoleKeys.audit, consoleApi.audit);
 
 function useConsoleMutation<V, R>(fn: (variables: V) => Promise<R>) {

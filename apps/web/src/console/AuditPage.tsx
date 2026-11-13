@@ -46,6 +46,36 @@ function Details({ entry }: { entry: ConsoleAuditEntry }) {
   );
 }
 
+/** Actions de la console, la plus récente d'abord. `showClient` : nom du client visé. */
+export function AuditList({
+  entries,
+  showClient = true,
+}: {
+  entries: ConsoleAuditEntry[];
+  showClient?: boolean;
+}) {
+  return (
+    <ol className="audit-list">
+      {entries.map((entry) => (
+        <li key={entry.id}>
+          <time dateTime={entry.createdAt}>{timeFormat.format(new Date(entry.createdAt))}</time>
+          <div>
+            <p>
+              <strong>{ACTIONS[entry.action] ?? entry.action}</strong>
+              {showClient && entry.organisationName && <> · {entry.organisationName}</>}
+              {showClient && entry.organisationId && !entry.organisationName && (
+                <> · client supprimé</>
+              )}
+            </p>
+            <Details entry={entry} />
+          </div>
+          <span className="audit-actor">{entry.actor}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export function AuditPage() {
   const { data: entries, error, isPending } = useAudit();
   if (isPending) return <p className="loading">Chargement…</p>;
@@ -59,22 +89,7 @@ export function AuditPage() {
       {entries.length === 0 ? (
         <p className="empty">Aucune action pour l'instant.</p>
       ) : (
-        <ol className="audit-list">
-          {entries.map((entry) => (
-            <li key={entry.id}>
-              <time dateTime={entry.createdAt}>{timeFormat.format(new Date(entry.createdAt))}</time>
-              <div>
-                <p>
-                  <strong>{ACTIONS[entry.action] ?? entry.action}</strong>
-                  {entry.organisationName && <> · {entry.organisationName}</>}
-                  {entry.organisationId && !entry.organisationName && <> · client supprimé</>}
-                </p>
-                <Details entry={entry} />
-              </div>
-              <span className="audit-actor">{entry.actor}</span>
-            </li>
-          ))}
-        </ol>
+        <AuditList entries={entries} />
       )}
     </div>
   );

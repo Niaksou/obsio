@@ -604,3 +604,152 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* --- À surveiller et fiche client */
+
+.console-count {
+  min-width: 20px;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  line-height: 20px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--patina-light);
+  border-radius: 10px;
+}
+
+.watch-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.watch-groups h2 .count {
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.watch-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watch-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 0.9375rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.watch-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.watch-list a {
+  font-weight: 500;
+}
+
+.watch-reason {
+  color: var(--muted);
+  text-align: right;
+}
+
+.watch-licence {
+  color: var(--copper-deep);
+}
+
+.console-back,
+.console-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.console-back {
+  text-decoration: none;
+}
+
+.console-back:hover {
+  color: var(--ink);
+}
+
+.client-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+.client-main {
+  display: grid;
+  gap: 24px;
+}
+
+.onboarding-bar {
+  height: 4px;
+  overflow: hidden;
+  background: var(--paper-deep);
+  border-radius: 2px;
+}
+
+.onboarding-bar span {
+  display: block;
+  height: 100%;
+  background: var(--patina);
+  border-radius: 2px;
+}
+
+.onboarding {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.onboarding li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onboarding li.done {
+  color: var(--ink);
+}
+
+.onboarding-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+}
+
+.done .onboarding-mark {
+  background: var(--patina);
+  border-color: var(--patina);
+}
+
+@media (max-width: 1080px) {
+  .watch-groups,
+  .client-layout,
+  .onboarding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

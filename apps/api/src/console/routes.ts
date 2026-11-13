@@ -1,6 +1,7 @@
 import {
   consoleAuditEntrySchema,
   consoleClientCreateSchema,
+  consoleClientDetailSchema,
   consoleClientSchema,
   consoleSessionSchema,
   consoleUsageSchema,
@@ -16,9 +17,9 @@ import { consoleAudit, organisation, session, user } from '../db/schema/index.js
 import type { EmailSender } from '../email/sender.js';
 import { readLicence, saveLicence } from '../licences/licence.js';
 import { provisionOrganisation } from '../organisations/provision.js';
-import { licenceAction, licenceChanges, listClients } from './clients.js';
+import { licenceAction, licenceChanges, listClients, onboarding } from './clients.js';
 import { audit, isStaff } from './staff.js';
-import { consoleUsage } from './usage.js';
+import { clientActivity, consoleUsage } from './usage.js';
 
 const messageSchema = z.object({ message: z.string() });
 
@@ -33,6 +34,27 @@ export const consoleRoutes: FastifyPluginAsyncZod<{
   emailSender: EmailSender;
 }> = async (app, { db, guards, config, emailSender }) => {
   const { requireUser, requireStaff } = guards;
+
+  /** Journal de la console, le plus récent d'abord ; d'un seul client si demandé. */
+  async function auditEntries(organisationId?: string) {
+    const rows = await db
+      .select({ entry: consoleAudit, actor: user.name, organisationName: organisation.name })
+      .from(consoleAudit)
+      .innerJoin(user, eq(user.id, consoleAudit.actorId))
+      .leftJoin(organisation, eq(organisation.id, consoleAudit.targetOrganisationId))
+      .where(organisationId ? eq(consoleAudit.targetOrganisationId, organisationId) : undefined)
+      .orderBy(desc(consoleAudit.createdAt))
+      .limit(200);
+    return rows.map(({ entry, actor, organisationName }) => ({
+      id: entry.id,
+      createdAt: entry.createdAt.toISOString(),
+      actor,
+      action: entry.action,
+      organisationId: entry.targetOrganisationId,
+      organisationName,
+      details: entry.details,
+    }));
+  }
 
   app.get(
     '/api/console/session',
@@ -58,28 +80,7 @@ export const consoleRoutes: FastifyPluginAsyncZod<{
       preHandler: requireStaff,
       schema: { response: { 200: z.array(consoleAuditEntrySchema) } },
     },
-    async () => {
-      const rows = await db
-        .select({
-          entry: consoleAudit,
-          actor: user.name,
-          organisationName: organisation.name,
-        })
-        .from(consoleAudit)
-        .innerJoin(user, eq(user.id, consoleAudit.actorId))
-        .leftJoin(organisation, eq(organisation.id, consoleAudit.targetOrganisationId))
-        .orderBy(desc(consoleAudit.createdAt))
-        .limit(200);
-      return rows.map(({ entry, actor, organisationName }) => ({
-        id: entry.id,
-        createdAt: entry.createdAt.toISOString(),
-        actor,
-        action: entry.action,
-        organisationId: entry.targetOrganisationId,
-        organisationName,
-        details: entry.details,
-      }));
-    },
+    async () => auditEntries(),
   );
 
   app.get(
@@ -157,5 +158,26 @@ export const consoleRoutes: FastifyPluginAsyncZod<{
       },
     },
     async (request) => consoleUsage(db, config, request.query.days),
+  );
+
+  app.get(
+    '/api/console/clients/:id',
+    {
+      preHandler: requireStaff,
+      schema: {
+        params: z.object({ id: z.uuid() }),
+        response: { 200: consoleClientDetailSchema, 404: messageSchema },
+      },
+    },
+    async (request, reply) => {
+      const [client] = await listClients(db, request.params.id);
+      if (!client) return reply.code(404).send({ message: 'Client introuvable' });
+      return {
+        client,
+        onboarding: await onboarding(db, client.id, client.members),
+        activity: await clientActivity(db, client.id, 90),
+        audit: await auditEntries(client.id),
+      };
+    },
   );
 };

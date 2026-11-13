@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { KeyRound, LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { authClient, errorMessage, passkeyCancelled, passkeysSupported } from '../auth-client.js';
 import { RequireSession } from '../components/RequireSession.js';
-import { consoleKeys, useConsoleSession } from './api.js';
+import { consoleKeys, useClients, useConsoleSession } from './api.js';
+import { watchItems } from './watch.js';
 import './console.css';
 
 const iconProps = { size: 18, strokeWidth: 1.5, 'aria-hidden': true } as const;
@@ -87,8 +88,17 @@ function UnlockedFor({ until }: { until: string }) {
   );
 }
 
+/** Nombre de clients à surveiller, une fois la console ouverte. */
+function useWatchCount(enabled: boolean) {
+  const { data: clients } = useClients(enabled);
+  if (!clients) return 0;
+  return new Set(watchItems(clients).map((item) => item.client.id)).size;
+}
+
 function ConsoleShell() {
   const { data: session, isPending } = useConsoleSession();
+  const { pathname } = useLocation();
+  const watchCount = useWatchCount(!!session?.unlockedUntil);
 
   if (isPending) return <p className="loading page-message">Chargement…</p>;
   if (!session?.staff) return <NotFound />;
@@ -101,8 +111,18 @@ function ConsoleShell() {
           Obsio <span>Console</span>
         </Link>
         <nav aria-label="Console">
-          <NavLink to="/console" end>
+          <NavLink
+            to="/console"
+            className={({ isActive }) =>
+              isActive || pathname.startsWith('/console/clients/') ? 'active' : undefined
+            }
+            end
+          >
             Clients
+          </NavLink>
+          <NavLink to="/console/a-surveiller">
+            À surveiller
+            {watchCount > 0 && <span className="console-count">{watchCount}</span>}
           </NavLink>
           <NavLink to="/console/usage">Usage</NavLink>
           <NavLink to="/console/journal">Journal</NavLink>

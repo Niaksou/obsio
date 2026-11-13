@@ -388,7 +388,7 @@ Interface réservée à l'équipe Obsio, jamais aux clients, dans l'application 
 - [x] Usage : extraction (pages OCR, jetons, coût estimé, échecs, qualité), pages vues
   - Écran « Usage » sur 7, 30 ou 90 jours : coût estimé par jour (graphique), par client, pages les plus vues, qualité par modèle et version du prompt (points extraits gardés tels quels, corrigés ou écartés à la validation). Coût estimé d'après les tarifs `PRICE_OCR_PER_1000_PAGES`, `PRICE_INPUT_PER_MILLION_TOKENS`, `PRICE_OUTPUT_PER_MILLION_TOKENS` (euros, à tenir à jour) appliqués aux compteurs de la trace d'extraction.
   - Pages vues : table `page_view` (RLS), un compteur par organisation, jour et modèle de page (`/etages/:id`), seulement pour la liste fermée `PAGE_PATTERNS` (`@obsio/shared`) ; ni utilisateur, ni adresse, ni cookie de mesure. La console et les pages publiques ne sont pas comptées.
-- [ ] À surveiller et fiche client
+- [x] À surveiller et fiche client : licences échues ou à moins de 30 jours de l'échéance, clients sans connexion depuis 30 jours (ou jamais, 14 jours après l'ouverture), plafond utilisé à 80 %, analyses en échec ce mois ; fiche avec activité sur 90 jours (pages vues, analyses), étapes du démarrage (site, plan, équipement placé, rapport importé puis validé, collègue invité, électricien assigné, réserve levée), licence et historique de ses changements
 
 ## Risques et questions ouvertes
 

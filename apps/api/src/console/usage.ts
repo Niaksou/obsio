@@ -26,7 +26,7 @@ function add(target: Consumption, value: Omit<Consumption, 'cost'>) {
   target.completionTokens += value.completionTokens;
 }
 
-function shiftDay(iso: string, days: number) {
+export function shiftDay(iso: string, days: number) {
   const date = new Date(`${iso}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
@@ -36,7 +36,7 @@ const usageField = (field: string) =>
   sql<number>`coalesce(sum((${reportImport.trace} -> 'usage' ->> ${field})::int), 0)::int`;
 
 /** Analyses par jour (heure de Paris) depuis `from`. */
-function importsByDay(tx: Transaction, from: string) {
+export function importsByDay(tx: Transaction, from: string) {
   const day = sql<string>`to_char((${reportImport.createdAt} at time zone 'Europe/Paris')::date, 'YYYY-MM-DD')`;
   return tx
     .select({
@@ -160,4 +160,25 @@ export async function consoleUsage(
       .map(([path, views]) => ({ path: path as PagePattern, views }))
       .sort((a, b) => b.views - a.views),
   };
+}
+
+/** Activité d'un client par jour : analyses et pages vues, jours vides compris. */
+export async function clientActivity(db: Database, organisationId: string, periodDays: number) {
+  const to = parisDate();
+  const from = shiftDay(to, 1 - periodDays);
+  const { imports, views } = await withOrganisation(db, organisationId, async (tx) => ({
+    imports: await importsByDay(tx, from),
+    views: await tx
+      .select({ day: pageView.day, views: sql<number>`sum(${pageView.views})::int` })
+      .from(pageView)
+      .where(gte(pageView.day, from))
+      .groupBy(pageView.day),
+  }));
+  const analyses = new Map(imports.map((row) => [row.day, row.analyses]));
+  const pageViews = new Map(views.map((row) => [row.day, row.views]));
+  const days = [];
+  for (let day = from; day <= to; day = shiftDay(day, 1)) {
+    days.push({ day, analyses: analyses.get(day) ?? 0, pageViews: pageViews.get(day) ?? 0 });
+  }
+  return days;
 }

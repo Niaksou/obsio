@@ -7,6 +7,7 @@ import {
 } from '@obsio/shared';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { ConfirmButton } from '../components/ConfirmButton.js';
 import { MutationError } from '../components/MutationError.js';
 import { useClients, useCreateClient, useSaveLicence } from './api.js';
@@ -165,7 +166,14 @@ function NewClient({ onDone }: { onDone: () => void }) {
   );
 }
 
-function ClientPanel({ client, onClose }: { client: ConsoleClient; onClose: () => void }) {
+export function ClientPanel({
+  client,
+  onClose,
+}: {
+  client: ConsoleClient;
+  /** Absent sur la fiche du client, où le volet est toujours ouvert. */
+  onClose?: () => void;
+}) {
   const save = useSaveLicence();
   const { licence } = client;
   const submit = (next: Licence) => save.mutate({ id: client.id, licence: next });
@@ -176,7 +184,7 @@ function ClientPanel({ client, onClose }: { client: ConsoleClient; onClose: () =
     <section className="console-panel" aria-label={`Licence de ${client.name}`}>
       <div className="console-panel-head">
         <div>
-          <h2>{client.name}</h2>
+          <h2>{onClose ? client.name : 'Licence'}</h2>
           <p className="hint">
             Client depuis le {formatDate(client.createdAt)} · {client.members} membre
             {client.members > 1 ? 's' : ''}
@@ -184,10 +192,17 @@ function ClientPanel({ client, onClose }: { client: ConsoleClient; onClose: () =
               `, ${client.pendingInvitations} invitation en attente`}
           </p>
         </div>
-        <button type="button" className="quiet icon-only" aria-label="Fermer" onClick={onClose}>
-          <X {...iconProps} />
-        </button>
+        {onClose && (
+          <button type="button" className="quiet icon-only" aria-label="Fermer" onClick={onClose}>
+            <X {...iconProps} />
+          </button>
+        )}
       </div>
+      {onClose && (
+        <Link to={`/console/clients/${client.id}`} className="console-more">
+          Fiche du client : démarrage, activité, historique
+        </Link>
+      )}
 
       <div className="console-actions">
         {licence.status === 'active' ? (

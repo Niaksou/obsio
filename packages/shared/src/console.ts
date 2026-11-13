@@ -35,6 +35,7 @@ export const consoleClientSchema = z.object({
   pendingInvitations: z.number().int(),
   sites: z.number().int(),
   analysesThisMonth: z.number().int(),
+  failedAnalysesThisMonth: z.number().int(),
   ocrPagesThisMonth: z.number().int(),
   /** Dernière ouverture de session d'un membre, null si personne ne s'est encore connecté. */
   lastLoginAt: z.iso.datetime().nullable(),
@@ -48,3 +49,42 @@ export const consoleClientCreateSchema = z.object({
   licence: licenceSchema,
 });
 export type ConsoleClientCreate = z.infer<typeof consoleClientCreateSchema>;
+
+export const ONBOARDING_STEPS = [
+  'site',
+  'plan',
+  'equipement_place',
+  'rapport_importe',
+  'rapport_valide',
+  'equipe_invitee',
+  'electricien_assigne',
+  'reserve_levee',
+] as const;
+export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+
+export const ONBOARDING_LABELS: Record<OnboardingStep, string> = {
+  site: 'Premier site créé',
+  plan: 'Plan d’étage déposé',
+  equipement_place: 'Équipement placé sur un plan',
+  rapport_importe: 'Rapport importé',
+  rapport_valide: 'Réserves validées',
+  equipe_invitee: 'Un collègue invité',
+  electricien_assigne: 'Réserve confiée à un électricien',
+  reserve_levee: 'Première réserve levée',
+};
+
+/** Fiche d'un client : sa licence, son démarrage et son activité, en chiffres seulement. */
+export const consoleClientDetailSchema = z.object({
+  client: consoleClientSchema,
+  onboarding: z.array(z.object({ step: z.enum(ONBOARDING_STEPS), done: z.boolean() })),
+  /** 90 derniers jours, un point par jour. */
+  activity: z.array(
+    z.object({
+      day: z.iso.date(),
+      analyses: z.number().int(),
+      pageViews: z.number().int(),
+    }),
+  ),
+  audit: z.array(consoleAuditEntrySchema),
+});
+export type ConsoleClientDetail = z.infer<typeof consoleClientDetailSchema>;

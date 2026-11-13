@@ -136,6 +136,7 @@ describe('Clients dans la console', () => {
         'pendingInvitations',
         'sites',
         'analysesThisMonth',
+        'failedAnalysesThisMonth',
         'ocrPagesThisMonth',
         'lastLoginAt',
       ].sort(),
@@ -177,5 +178,26 @@ describe('Clients dans la console', () => {
         })
       ).statusCode,
     ).toBe(400);
+  });
+
+  it('montre la fiche d’un client : démarrage, activité et historique', async () => {
+    const staff = await unlockedStaff();
+    const { admin, organisationId } = await openClient('Usine Dupont', 'Alice', 'alice@dupont.fr');
+    await admin.post('/api/sites', { name: 'Lyon' });
+    await admin.post('/api/usage/page', { path: '/' });
+    await staff.put(`/api/console/clients/${organisationId}/licence`, essai);
+
+    const detail = (await staff.get(`/api/console/clients/${organisationId}`)).json();
+    expect(detail.client).toMatchObject({ name: 'Usine Dupont', sites: 1 });
+    expect(detail.onboarding.slice(0, 2)).toEqual([
+      { step: 'site', done: true },
+      { step: 'plan', done: false },
+    ]);
+    expect(detail.activity).toHaveLength(90);
+    expect(detail.activity.at(-1)).toMatchObject({ pageViews: 1, analyses: 0 });
+    expect(detail.audit.map((e: { action: string }) => e.action)).toEqual(['licence.modifiee']);
+
+    expect((await staff.get(`/api/console/clients/${crypto.randomUUID()}`)).statusCode).toBe(404);
+    expect((await admin.get(`/api/console/clients/${organisationId}`)).statusCode).toBe(404);
   });
 });
