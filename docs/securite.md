@@ -99,6 +99,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 - Déverrouillage par une connexion par clé d'accès (deux facteurs résistants au hameçonnage, ASVS 6.6), jamais par mot de passe et code ; reverrouillage après 15 minutes sans activité (`session.console_until`).
 - Chaque action est inscrite dans `console_audit`, en ajout seul (`UPDATE` et `DELETE` retirés à `app_user`).
 - La console ne lit que des métadonnées et des compteurs, organisation par organisation, sous la RLS (`withOrganisation`) : jamais le contenu d'un client (réserves, rapports, plans, photos).
+- Licence d'un client (`licence`, sous RLS) : vérifiée côté serveur à chaque requête qui modifie ses données (`requireOrganisation`), à chaque invitation (crochet `beforeCreateInvitation` de Better Auth) et à chaque preuve déposée par lien intervenant ; les plafonds (sites, utilisateurs, analyses du mois) sont contrôlés dans la transaction de l'ajout. Le bandeau de l'application n'est qu'une information.
 
 ## Limites d'usage
 
@@ -109,6 +110,7 @@ Ce document contient la liste de contrôle à appliquer à chaque ajout, puis l'
 | Connexion, inscription, mot de passe, par adresse IP | Règles strictes de Better Auth | `apps/api/src/auth/auth.ts` |
 | Analyses de rapport (dépôt ou relance, appel à Mistral), par organisation | 20 par jour | `apps/api/src/quotas.ts` |
 | Dossiers de preuves en PDF, par organisation | 30 par heure | `apps/api/src/quotas.ts` |
+| Sites actifs, utilisateurs, analyses de rapport par mois, par organisation | Plafonds de la licence (facultatifs) | `apps/api/src/licences/licence.ts` |
 | Taille d'un rapport PDF, d'une photo, d'un plan | Imposée par l'URL signée de dépôt | `packages/shared` |
 
 Un quota d'organisation court sur une fenêtre fixe ouverte par la première opération ; une fois atteint, la réponse 429 donne le délai d'attente et l'événement `limite-depassee` est journalisé. Le refus ne consomme rien. Si Redis est injoignable, la limitation de débit et les quotas refusent toute requête (réponse 500 en une seconde au plus), sauf `/health` qui signale la panne. L'export d'une organisation passe par la ligne de commande de l'éditeur, sans route web.

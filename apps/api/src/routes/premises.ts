@@ -32,6 +32,7 @@ import { z } from 'zod';
 import type { Guards } from '../auth/guards.js';
 import { withOrganisation, type Database, type Transaction } from '../db/client.js';
 import { building, equipment, floor, site, zone } from '../db/schema/index.js';
+import { assertSiteAvailable } from '../licences/licence.js';
 import type { Storage } from '../storage.js';
 import { verifiedContentType } from '../file-signature.js';
 
@@ -139,12 +140,13 @@ export const premisesRoutes: FastifyPluginAsyncZod<{
     '/api/sites',
     { preHandler: admin, schema: { body: siteInputSchema, response: { 201: siteSchema } } },
     async (request, reply) => {
-      const [row] = await scoped(request, (tx) =>
-        tx
+      const [row] = await scoped(request, async (tx) => {
+        await assertSiteAvailable(tx);
+        return tx
           .insert(site)
           .values({ organisationId: request.organisation!.id, ...request.body })
-          .returning(),
-      );
+          .returning();
+      });
       return reply.code(201).send(toSite(row!));
     },
   );

@@ -10,6 +10,7 @@ import {
   equipment,
   floor,
   inspectionPlan,
+  licence,
   organisation,
   proof,
   reportDocument,
@@ -27,6 +28,7 @@ import {
  * organisation_id manque ici (hors member et invitation, traitées à part).
  */
 export const ORGANISATION_TABLES = [
+  { table: licence },
   { table: site },
   { table: building },
   { table: floor },

@@ -5,6 +5,7 @@ import { authClient } from '../auth-client.js';
 import { disablePush } from '../push/push.js';
 import { HelpButton } from '../tours/HelpButton.js';
 import { useTours } from '../tours/TourProvider.js';
+import { LicenceBanner } from './LicenceBanner.js';
 import { Logo } from './Logo.js';
 
 const SITE_PATHS = /^\/(?:$|sites\/|reserves\/|etages\/|imports\/|batiments\/)/;
@@ -164,6 +165,7 @@ export function Layout({ fullBleed = false }: { fullBleed?: boolean }) {
   const inMore = /^\/(?:compte|organisation)(?:\/|$)/.test(pathname);
   const main = (
     <main className={fullBleed ? 'main main-full' : 'main'}>
+      {session && <LicenceBanner />}
       <Outlet />
     </main>
   );

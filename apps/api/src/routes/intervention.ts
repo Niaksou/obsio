@@ -29,6 +29,7 @@ import type { EmailSender } from '../email/sender.js';
 import { notifyCorrection } from '../reserves/events.js';
 import { addProof, checkPhotos, ProofError } from '../reserves/proofs.js';
 import { currentAssignments, reserveProofs } from '../reserves/queries.js';
+import { assertLicenceWritable, readLicence } from '../licences/licence.js';
 import type { Storage } from '../storage.js';
 import { hashToken, PHOTO_EXTENSIONS } from './reserves.js';
 
@@ -58,9 +59,14 @@ export const interventionRoutes: FastifyPluginAsyncZod<{
    * Retrouve l'assignation par l'empreinte du jeton (politique RLS dédiée), puis exécute fn
    * dans le cloisonnement de son organisation.
    */
+  /**
+   * Ouvre la transaction du client du lien. `write` : l'intervenant ajoute une preuve, refusé si
+   * la licence du client est en lecture seule.
+   */
   async function withAssignment<T>(
     token: string,
     fn: (tx: Transaction, found: Assignment) => Promise<T>,
+    { write = false } = {},
   ): Promise<T | 'missing' | 'expired'> {
     const found = await db.transaction(async (tx) => {
       await tx.execute(
@@ -70,7 +76,10 @@ export const interventionRoutes: FastifyPluginAsyncZod<{
     });
     if (!found) return 'missing';
     if (found.revokedAt || found.expiresAt <= new Date()) return 'expired';
-    return withOrganisation(db, found.organisationId, (tx) => fn(tx, found));
+    return withOrganisation(db, found.organisationId, async (tx) => {
+      if (write) assertLicenceWritable(await readLicence(tx));
+      return fn(tx, found);
+    });
   }
 
   /** Réserves dont l'assignation en cours est celle du lien (une réassignation les retire). */
@@ -182,8 +191,11 @@ export const interventionRoutes: FastifyPluginAsyncZod<{
     },
     async (request, reply) => {
       const { reserveId, contentType } = request.body;
-      const result = await withAssignment(request.params.token, async (tx, found) =>
-        (await assignedReserveIds(tx, found.id)).includes(reserveId) ? found : null,
+      const result = await withAssignment(
+        request.params.token,
+        async (tx, found) =>
+          (await assignedReserveIds(tx, found.id)).includes(reserveId) ? found : null,
+        { write: true },
       );
       if (result === 'missing' || result === 'expired') return refused(reply, result);
       if (!result) return fail(reply, 404, 'Réserve introuvable.');
@@ -205,19 +217,28 @@ export const interventionRoutes: FastifyPluginAsyncZod<{
     async (request, reply) => {
       const { token, id } = request.params;
       try {
-        const result = await withAssignment(token, async (tx, found) => {
-          if (!(await assignedReserveIds(tx, found.id)).includes(id)) return null;
-          await checkPhotos({ storage, scanner }, found.organisationId, id, request.body.photoKeys);
-          const added = await addProof(tx, found.organisationId, id, request.body, {
-            contractorId: found.contractorId,
-            assignmentId: found.id,
-          });
-          const row = await tx.query.reserve.findFirst({ where: eq(reserve.id, id) });
-          const who = await tx.query.contractor.findFirst({
-            where: eq(contractor.id, found.contractorId),
-          });
-          return { ...added, found, description: row!.description, author: who?.name ?? '' };
-        });
+        const result = await withAssignment(
+          token,
+          async (tx, found) => {
+            if (!(await assignedReserveIds(tx, found.id)).includes(id)) return null;
+            await checkPhotos(
+              { storage, scanner },
+              found.organisationId,
+              id,
+              request.body.photoKeys,
+            );
+            const added = await addProof(tx, found.organisationId, id, request.body, {
+              contractorId: found.contractorId,
+              assignmentId: found.id,
+            });
+            const row = await tx.query.reserve.findFirst({ where: eq(reserve.id, id) });
+            const who = await tx.query.contractor.findFirst({
+              where: eq(contractor.id, found.contractorId),
+            });
+            return { ...added, found, description: row!.description, author: who?.name ?? '' };
+          },
+          { write: true },
+        );
         if (result === 'missing' || result === 'expired') return refused(reply, result);
         if (!result) return fail(reply, 404, 'Réserve introuvable.');
         if (result.corrected) {

@@ -1,12 +1,20 @@
-import { memberRoleSchema } from '@obsio/shared';
+import { licenceAccessSchema, memberRoleSchema } from '@obsio/shared';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { findMembership, type Guards } from '../auth/guards.js';
 import type { Database } from '../db/client.js';
+import { findLicenceAccess } from '../licences/licence.js';
 
 const meSchema = z.object({
   user: z.object({ id: z.uuid(), name: z.string(), email: z.email() }),
-  organisation: z.object({ id: z.uuid(), name: z.string(), role: memberRoleSchema }).nullable(),
+  organisation: z
+    .object({
+      id: z.uuid(),
+      name: z.string(),
+      role: memberRoleSchema,
+      licence: licenceAccessSchema,
+    })
+    .nullable(),
 });
 
 export const meRoutes: FastifyPluginAsyncZod<{
@@ -18,9 +26,13 @@ export const meRoutes: FastifyPluginAsyncZod<{
     { preHandler: guards.requireUser, schema: { response: { 200: meSchema } } },
     async (request) => {
       const { id, name, email, activeOrganisationId } = request.user!;
-      const organisation = activeOrganisationId
+      const membership = activeOrganisationId
         ? await findMembership(db, id, activeOrganisationId)
         : null;
+      const organisation = membership && {
+        ...membership,
+        licence: await findLicenceAccess(db, membership.id),
+      };
       return { user: { id, name, email }, organisation };
     },
   );

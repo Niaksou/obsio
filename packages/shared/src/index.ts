@@ -12,3 +12,4 @@ export * from './reserves.js';
 export * from './inspections.js';
 export * from './push.js';
 export * from './console.js';
+export * from './licence.js';

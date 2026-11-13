@@ -28,6 +28,7 @@ import {
 import { activateImport, ActivationError } from '../imports/activate.js';
 import { ingestImport, openSiteReserves } from '../imports/ingest.js';
 import type { ExtractionQueue } from '../imports/queue.js';
+import { assertAnalysisAvailable } from '../licences/licence.js';
 import { QUOTAS, type Quotas } from '../quotas.js';
 import type { Storage } from '../storage.js';
 import { verifiedContentType } from '../file-signature.js';
@@ -98,6 +99,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
       const row = await scoped(request, (tx) => activeSite(tx, request.params.id));
       if (!row) return fail(reply, 404, 'Site introuvable');
       // Prévenu avant le dépôt plutôt qu'après : le quota n'est consommé qu'à l'analyse.
+      await scoped(request, assertAnalysisAvailable);
       await quotas.check(QUOTAS.analyses, request.organisation!.id);
       // L'identifiant de l'import est choisi ici : il fait partie de la clé du PDF.
       const keys = reportImportKeys(request.organisation!.id, crypto.randomUUID());
@@ -130,6 +132,7 @@ export const importRoutes: FastifyPluginAsyncZod<{
         return fail(reply, 400, 'PDF du rapport introuvable : relancez le dépôt.');
       }
       // Consommé avant l'enregistrement : un import enregistré part toujours à l'analyse.
+      await scoped(request, assertAnalysisAvailable);
       await quotas.consume(QUOTAS.analyses, organisationId);
       const created = await scoped(request, async (tx) => {
         if (!(await activeSite(tx, request.params.id))) return null;

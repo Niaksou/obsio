@@ -380,7 +380,10 @@ Sept jalons, chacun livrable et démontrable seul ; l'extraction est attaquée t
 Interface réservée à l'équipe Obsio, jamais aux clients, dans l'application (`/console`, chargée à part). Décisions validées : licence par organisation (formule, date de fin, plafonds réglables) ; licence expirée, suspendue ou révoquée : lecture seule et export ; l'équipe ne voit que des chiffres, jamais le contenu d'un client.
 
 - [x] Comptes de l'équipe (`pnpm staff:grant <e-mail> [--revoke]`, rôle propriétaire de la base), console déverrouillée par clé d'accès pour 15 minutes d'inactivité, journal des actions en ajout seul (`console_audit`)
-- [ ] Licences : formule, état, échéance, plafonds ; effet sur l'application
+- [x] Licences : formule, état, échéance, plafonds ; effet sur l'application
+  - Table `licence`, une ligne par organisation (RLS), écrite à l'ouverture du client (standard, sans échéance ni plafond par défaut) ; sans ligne, cette même licence par défaut s'applique. Formules : essai, standard, sur mesure. États : active, suspendue, révoquée. Échéance incluse, à l'heure de Paris.
+  - Licence suspendue, révoquée ou échue : lecture seule. Les lectures et le dossier de preuves restent permis ; toute requête qui modifie les données du client répond 403 `LICENCE_READ_ONLY`, les invitations et les preuves déposées par lien intervenant sont refusées. Un bandeau l'indique à tous ; les admins sont prévenus 14 jours avant l'échéance.
+  - Plafonds facultatifs : sites actifs, utilisateurs (membres et invitations en attente), analyses de rapport par mois civil (imports créés, échecs compris ; les relances restent bornées par le quota journalier).
 - [ ] Clients : liste, création, gestion de la licence
 - [ ] Usage : extraction (pages OCR, jetons, coût estimé, échecs, qualité), pages vues
 - [ ] À surveiller et fiche client

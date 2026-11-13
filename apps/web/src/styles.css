@@ -2631,6 +2631,16 @@ li.open .item-number {
   border-left-color: var(--pending);
 }
 
+.licence-banner {
+  margin-bottom: 24px;
+}
+
+.main-full > .licence-banner {
+  margin: 0;
+  border-radius: 0;
+  border-width: 0 0 1px 3px;
+}
+
 .floor-load .status.late {
   color: var(--danger);
 }

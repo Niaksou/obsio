@@ -1,8 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { defaultLicence, parisDate, type Licence } from '@obsio/shared';
+import { eq, sql } from 'drizzle-orm';
 import type { ApiConfig } from '../config.js';
 import type { Database } from '../db/client.js';
 import { invitation, organisation, user } from '../db/schema/index.js';
 import type { EmailSender } from '../email/sender.js';
+import { saveLicence } from '../licences/licence.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from './invitations.js';
 
 export interface ProvisionDependencies {
@@ -22,12 +24,13 @@ function slugify(name: string): string {
 }
 
 /**
- * Ouvre un nouveau client : crée l'organisation et invite son premier administrateur.
+ * Ouvre un nouveau client : crée l'organisation, sa licence (standard sans échéance par défaut)
+ * et invite son premier administrateur.
  * Les organisations ne sont créées que par ce moyen (pas d'inscription en libre-service).
  */
 export async function provisionOrganisation(
   { config, db, emailSender }: ProvisionDependencies,
-  input: { name: string; adminEmail: string },
+  input: { name: string; adminEmail: string; licence?: Licence },
 ) {
   const email = input.adminEmail.trim().toLowerCase();
   const created = await db.transaction(async (tx) => {
@@ -45,6 +48,9 @@ export async function provisionOrganisation(
       .insert(organisation)
       .values({ name: input.name.trim(), slug: slugify(input.name) })
       .returning();
+    // La licence est une table métier : écrite dans le contexte de la nouvelle organisation.
+    await tx.execute(sql`select set_config('app.organisation_id', ${newOrganisation!.id}, true)`);
+    await saveLicence(tx, newOrganisation!.id, input.licence ?? defaultLicence(parisDate()));
     const [newInvitation] = await tx
       .insert(invitation)
       .values({

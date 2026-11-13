@@ -11,6 +11,7 @@ import * as schema from '../db/schema/index.js';
 import { CONSOLE_IDLE_MS, isStaff } from '../console/staff.js';
 import type { EmailSender } from '../email/sender.js';
 import { resetPasswordEmail, verificationEmail } from '../email/templates.js';
+import { assertInvitationAllowed, LicenceRefused } from '../licences/licence.js';
 import { endCollaboratorAssignments } from '../reserves/collaborators.js';
 import { INVITATION_TTL_SECONDS, sendInvitation } from '../organisations/invitations.js';
 import { hasPendingInvitation } from '../organisations/signup-guard.js';
@@ -184,6 +185,17 @@ export function createAuth({ config, db, emailSender }: AuthDependencies) {
         cancelPendingInvitationsOnReInvite: true,
         invitationExpiresIn: INVITATION_TTL_SECONDS,
         organizationHooks: {
+          // Licence en lecture seule ou plafond d'utilisateurs atteint : pas de nouvelle invitation.
+          beforeCreateInvitation: async ({ invitation, organization }) => {
+            try {
+              await assertInvitationAllowed(db, organization.id, invitation.email);
+            } catch (error) {
+              if (error instanceof LicenceRefused) {
+                throw new APIError('FORBIDDEN', { message: error.message });
+              }
+              throw error;
+            }
+          },
           // Un membre retiré est déconnecté partout (ASVS 7.4.5) : son accès à l'organisation
           // est déjà coupé, mais une session ouverte ne doit pas survivre au retrait.
           // Ses réserves en cours ne lui sont plus confiées.

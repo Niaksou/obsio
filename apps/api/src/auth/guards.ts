@@ -1,11 +1,15 @@
-import { memberRoleSchema, type MemberRole } from '@obsio/shared';
+import { memberRoleSchema, READ_ONLY_MESSAGES, type MemberRole } from '@obsio/shared';
 import { fromNodeHeaders } from 'better-auth/node';
 import { and, eq, gt } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { Database } from '../db/client.js';
 import { CONSOLE_IDLE_MS, isStaff } from '../console/staff.js';
 import { member, organisation, session } from '../db/schema/index.js';
+import { findLicenceAccess } from '../licences/licence.js';
 import type { Auth } from './auth.js';
+
+/** Méthodes qui ne modifient rien : permises avec une licence en lecture seule (export compris). */
+const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 export interface SessionUser {
   id: string;
@@ -62,7 +66,10 @@ export function createGuards(auth: Auth, db: Database) {
     };
   }
 
-  /** Exige une organisation active dont l'utilisateur est membre. */
+  /**
+   * Exige une organisation active dont l'utilisateur est membre. Avec une licence suspendue,
+   * révoquée ou échue, seules les lectures passent (403 LICENCE_READ_ONLY sinon).
+   */
   async function requireOrganisation(request: FastifyRequest, reply: FastifyReply) {
     await requireUser(request, reply);
     if (reply.sent || !request.user) return;
@@ -71,6 +78,15 @@ export function createGuards(auth: Auth, db: Database) {
       ? await findMembership(db, id, activeOrganisationId)
       : null;
     if (!membership) return reply.code(403).send({ message: 'Aucune organisation active' });
+    if (!READ_METHODS.has(request.method)) {
+      const licence = await findLicenceAccess(db, membership.id);
+      if (licence.access === 'lecture') {
+        return reply.code(403).send({
+          code: 'LICENCE_READ_ONLY',
+          message: READ_ONLY_MESSAGES[licence.reason!],
+        });
+      }
+    }
     request.organisation = membership;
   }
 

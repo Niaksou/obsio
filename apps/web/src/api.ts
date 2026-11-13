@@ -41,7 +41,7 @@ import {
   type InspectionKind,
   type UpdateInspection,
 } from '@obsio/shared';
-import { memberRoleSchema } from '@obsio/shared';
+import { licenceAccessSchema, memberRoleSchema } from '@obsio/shared';
 import { z } from 'zod';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
@@ -85,7 +85,14 @@ function queryString(params: Record<string, string | undefined>) {
 
 const meSchema = z.object({
   user: z.object({ id: z.uuid(), name: z.string(), email: z.string() }),
-  organisation: z.object({ id: z.uuid(), name: z.string(), role: memberRoleSchema }).nullable(),
+  organisation: z
+    .object({
+      id: z.uuid(),
+      name: z.string(),
+      role: memberRoleSchema,
+      licence: licenceAccessSchema,
+    })
+    .nullable(),
 });
 
 export const api = {
