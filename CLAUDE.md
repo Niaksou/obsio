@@ -28,6 +28,7 @@ La spécification complète est dans `docs/SPEC.md`. Lis-la avant de commencer u
 - Déploiement : TLS entre tous les services (autorité interne et certificats créés par `deploy/secrets.sh`) ; toute nouvelle connexion interne passe en TLS avec vérification du certificat
 - Stockage objet compatible S3 (RustFS en local : MinIO ne publie plus d'images Docker)
 - Notifications sur le téléphone : Web Push (`web-push`, clé `VAPID_PRIVATE_KEY`, file BullMQ dans l'API) ; abonnements acceptés seulement vers les services de notification connus des navigateurs
+- Sauvegarde (serveur) : service `backup` (`deploy/server/backup/`), base et copie du bucket chiffrées par restic vers OVH Object Storage (`OFFSITE_REPOSITORY`, secrets `restic_password` et `offsite_*`), compte du stockage en lecture seule `S3_BACKUP_ACCESS_KEY` ; alerte e-mail en cas d'échec
 - Dossiers de preuves : PDF signé (`DOCUMENT_SIGNING_KEY` et `DOCUMENT_SIGNING_CERT`, obligatoires en production, créés par `deploy/secrets.sh generer`), empreinte au registre `issued_document`, page publique `/verifier`
 - Extraction : **Mistral OCR** puis modèle Mistral en sortie structurée, derrière une interface `ExtractionProvider`
 - Développement local via `docker compose` (PostgreSQL sur le port 5433, Redis, RustFS, Mailpit)

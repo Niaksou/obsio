@@ -1,5 +1,5 @@
 import { loadConfig } from '../config.js';
-import { provisionAppUser } from '../storage-admin.js';
+import { provisionAppUser, provisionBackupUser } from '../storage-admin.js';
 import { createStorage } from '../storage.js';
 
 // Crée le bucket et autorise l'envoi direct depuis le front (WEB_URL), pour un stockage S3
@@ -26,6 +26,17 @@ try {
       },
     );
     console.log(`Compte ${config.S3_ACCESS_KEY} limité au bucket ${config.S3_BUCKET}`);
+    if (config.S3_BACKUP_ACCESS_KEY && config.S3_BACKUP_SECRET_KEY) {
+      await provisionBackupUser(
+        { endpoint: config.S3_ENDPOINT, region: config.S3_REGION, ...admin },
+        {
+          accessKey: config.S3_BACKUP_ACCESS_KEY,
+          secretKey: config.S3_BACKUP_SECRET_KEY,
+          bucket: config.S3_BUCKET,
+        },
+      );
+      console.log(`Compte ${config.S3_BACKUP_ACCESS_KEY} en lecture seule sur ${config.S3_BUCKET}`);
+    }
   }
 } finally {
   storage.close();

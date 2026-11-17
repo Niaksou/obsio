@@ -16,8 +16,9 @@
 set -eu
 
 # Secrets tirés au hasard, puis secrets fournis par des services externes (laissés vides).
-GENERATED="postgres_password app_owner_password app_user_password redis_password s3_admin_access_key s3_admin_secret_key s3_access_key s3_secret_key better_auth_secret vapid_private_key"
-EXTERNAL="smtp_password mistral_api_key betterstack_token"
+GENERATED="postgres_password app_owner_password app_user_password redis_password s3_admin_access_key s3_admin_secret_key s3_access_key s3_secret_key s3_backup_access_key s3_backup_secret_key better_auth_secret vapid_private_key restic_password"
+# offsite_* : clés du stockage objet qui reçoit la sauvegarde chiffrée (OVH Object Storage).
+EXTERNAL="smtp_password mistral_api_key betterstack_token offsite_access_key offsite_secret_key"
 DERIVED="database_url database_owner_url redis_url"
 # Chiffrement entre les services (ASVS 12.3.3) : un certificat par service, signé par une
 # autorité interne dont la clé est détruite aussitôt (le renouvellement refait tout).
@@ -94,6 +95,7 @@ generate() {
     case $name in
       s3_admin_access_key) printf 'obsio-admin' >"$dir/$name" ;;
       s3_access_key) printf 'obsio-app' >"$dir/$name" ;;
+      s3_backup_access_key) printf 'obsio-backup' >"$dir/$name" ;;
       better_auth_secret) openssl rand -base64 32 | tr -d '\n' >"$dir/$name" ;;
       # Notifications (Web Push) : clé privée P-256 en base64url (32 octets, au rang 8 du DER).
       vapid_private_key)

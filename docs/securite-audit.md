@@ -283,7 +283,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V12.2.2 | 1 | Conforme | Certificats Let’s Encrypt. |
 | V12.3.1 | 2 | Conforme | Mistral en HTTPS ; relais SMTP authentifié en TLS 1.2 au moins, obligatoire (requireTLS) ; services internes en TLS (12.3.3). |
 | V12.3.2 | 2 | Conforme | Certificats vérifiés par Node.js (comportement par défaut). |
-| V12.3.3 | 2 | Conforme | TLS entre tous les services : proxy vers web et stockage, web vers API, API et worker vers PostgreSQL (hostssl seulement) et Redis (port en clair fermé), sauvegarde vers PostgreSQL ; ClamAV, sans TLS, joint par une socket Unix. Aucun repli en clair. |
+| V12.3.3 | 2 | Conforme | TLS entre tous les services : proxy vers web et stockage, web vers API, API et worker vers PostgreSQL (hostssl seulement) et Redis (port en clair fermé), sauvegarde vers PostgreSQL et le stockage, puis HTTPS vérifié vers OVH Object Storage ; ClamAV, sans TLS, joint par une socket Unix. Aucun repli en clair. |
 | V12.3.4 | 2 | Conforme | Certificat par service, signé par une autorité interne (deploy/secrets.sh, clé détruite après signature) ; clients configurés avec cette autorité (NODE_EXTRA_CA_CERTS, tls_trust_pool, sslmode=verify-full), nom du service vérifié. |
 
 ### V13 — Configuration
@@ -294,7 +294,7 @@ Non applicable (29 exigences) : Pas de connexion par OAuth ou OpenID Connect : c
 | V13.2.1 | 2 | Conforme | PostgreSQL, stockage et Redis (mot de passe exigé, `deploy/compose.yml`) authentifiés. |
 | V13.2.2 | 2 | Conforme | Rôle propriétaire de la base et compte principal du stockage réservés au service `setup` ; l’API et le worker ont le rôle `app_user` (sans contournement de la RLS) et un compte de stockage limité aux objets du bucket (`apps/api/src/storage-admin.ts`, `test/storage-admin.test.ts`). |
 | V13.2.3 | 2 | Conforme | Identifiants choisis à l’installation (`changer-moi` dans les modèles). |
-| V13.2.4 | 2 | Partiel | Services externes appelés : Mistral, et les services de notification des navigateurs (liste blanche de domaines dans le code pour les adresses d'abonnement, `apps/api/src/push/push.ts`) ; pas de liste blanche réseau. |
+| V13.2.4 | 2 | Partiel | Services externes appelés : Mistral, OVH Object Storage (sauvegarde chiffrée), et les services de notification des navigateurs (liste blanche de domaines dans le code pour les adresses d'abonnement, `apps/api/src/push/push.ts`) ; pas de liste blanche réseau. |
 | V13.2.5 | 2 | Partiel | Pare-feu OVH sur l’entrant ; sortant non restreint par destination. |
 | V13.3.1 | 2 | Conforme | Secrets Docker : un fichier par secret, monté dans /run/secrets des seuls services concernés et lu par NOM_FILE, absent des variables et de docker inspect ; exemplaire de référence chiffré par SOPS/age, clé détenue par l’éditeur seul (deploy/secrets.sh). |
 | V13.3.2 | 2 | Conforme | Chaque service ne reçoit que les secrets dont il a besoin (voir 13.2.2). |

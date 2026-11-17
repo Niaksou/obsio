@@ -52,6 +52,9 @@ x-owner-env: &owner-env
   DATABASE_OWNER_URL_FILE: /run/secrets/database_owner_url
   S3_ADMIN_ACCESS_KEY_FILE: /run/secrets/s3_admin_access_key
   S3_ADMIN_SECRET_KEY_FILE: /run/secrets/s3_admin_secret_key
+  # Compte en lecture seule de la sauvegarde hors du serveur (deploy/compose.server.yml).
+  S3_BACKUP_ACCESS_KEY_FILE: /run/secrets/s3_backup_access_key
+  S3_BACKUP_SECRET_KEY_FILE: /run/secrets/s3_backup_secret_key
 
 # Conteneurs de l'application : aucune capacité Linux, système de fichiers en lecture seule,
 # mémoire et nombre de processus bornés.
@@ -191,6 +194,8 @@ services:
       - s3_secret_key
       - s3_admin_access_key
       - s3_admin_secret_key
+      - s3_backup_access_key
+      - s3_backup_secret_key
       - smtp_password
       - better_auth_secret
       - vapid_private_key
@@ -297,6 +302,10 @@ secrets:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_access_key
   s3_secret_key:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_secret_key
+  s3_backup_access_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_backup_access_key
+  s3_backup_secret_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/s3_backup_secret_key
   smtp_password:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/smtp_password
   better_auth_secret:

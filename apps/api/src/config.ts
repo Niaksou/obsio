@@ -28,6 +28,9 @@ const apiEnvSchema = z
     // de l'application (S3_ACCESS_KEY). Absent en développement, où S3_ACCESS_KEY est le principal.
     S3_ADMIN_ACCESS_KEY: z.string().min(1).optional(),
     S3_ADMIN_SECRET_KEY: z.string().min(1).optional(),
+    // Compte en lecture seule de la sauvegarde hors du serveur, créé par setup s'il est fourni.
+    S3_BACKUP_ACCESS_KEY: z.string().min(1).optional(),
+    S3_BACKUP_SECRET_KEY: z.string().min(1).optional(),
     // Vérification des mots de passe divulgués (Have I Been Pwned) : active hors tests par défaut.
     PASSWORD_BREACH_CHECK: z.stringbool().optional(),
     // Antivirus (service clamd) : obligatoire en production, facultatif en développement. Par

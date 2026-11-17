@@ -50,6 +50,17 @@ export function appPolicy(bucket: string) {
   };
 }
 
+/** Droits du compte de la sauvegarde : lecture des objets du bucket, sans écriture ni effacement. */
+export function backupPolicy(bucket: string) {
+  return {
+    Version: '2012-10-17',
+    Statement: [
+      { Effect: 'Allow', Action: ['s3:GetObject'], Resource: [`arn:aws:s3:::${bucket}/*`] },
+      { Effect: 'Allow', Action: ['s3:ListBucket'], Resource: [`arn:aws:s3:::${bucket}`] },
+    ],
+  };
+}
+
 async function adminRequest(
   admin: StorageAdmin,
   path: string,
@@ -90,30 +101,49 @@ async function adminRequest(
   }
 }
 
-/** Crée ou met à jour le compte de l'application et ses droits ; peut être rejoué. */
-export async function provisionAppUser(
+interface Account {
+  accessKey: string;
+  secretKey: string;
+  bucket: string;
+}
+
+/** Crée ou met à jour un compte du stockage et sa politique de droits ; peut être rejoué. */
+async function provisionUser(
   admin: StorageAdmin,
-  app: { accessKey: string; secretKey: string; bucket: string },
+  account: Account,
+  policy: { name: string; document: object },
 ) {
-  if (app.accessKey === admin.accessKey) {
-    throw new Error('Le compte de stockage de l’application doit différer du compte principal.');
+  if (account.accessKey === admin.accessKey) {
+    throw new Error('Un compte restreint du stockage doit différer du compte principal.');
   }
-  const policy = 'obsio-app';
   await adminRequest(
     admin,
     'add-canned-policy',
-    { name: policy },
-    JSON.stringify(appPolicy(app.bucket)),
+    { name: policy.name },
+    JSON.stringify(policy.document),
   );
   await adminRequest(
     admin,
     'add-user',
-    { accessKey: app.accessKey },
-    JSON.stringify({ secretKey: app.secretKey, status: 'enabled' }),
+    { accessKey: account.accessKey },
+    JSON.stringify({ secretKey: account.secretKey, status: 'enabled' }),
   );
   await adminRequest(admin, 'set-user-or-group-policy', {
-    policyName: policy,
-    userOrGroup: app.accessKey,
+    policyName: policy.name,
+    userOrGroup: account.accessKey,
     isGroup: 'false',
+  });
+}
+
+/** Compte de l'application (API et worker) : lecture, écriture et effacement dans le bucket. */
+export function provisionAppUser(admin: StorageAdmin, app: Account) {
+  return provisionUser(admin, app, { name: 'obsio-app', document: appPolicy(app.bucket) });
+}
+
+/** Compte de la sauvegarde hors du serveur : lecture seule du bucket. */
+export function provisionBackupUser(admin: StorageAdmin, backup: Account) {
+  return provisionUser(admin, backup, {
+    name: 'obsio-backup',
+    document: backupPolicy(backup.bucket),
   });
 }

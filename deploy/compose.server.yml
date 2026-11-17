@@ -84,31 +84,52 @@ services:
     environment:
       HTTP_BIND: 127.0.0.1
 
-  # Sauvegarde quotidienne de la base dans BACKUP_DIR, sept jours conservés.
+  # Sauvegarde chaque nuit à 3 h : la base dans BACKUP_DIR (sept jours), puis, si
+  # OFFSITE_REPOSITORY est renseigné, la base et une copie du bucket chiffrées par restic vers un
+  # stockage objet hors du serveur (OVH Object Storage), e-mail à OPERATOR_EMAIL en cas d'échec.
+  # Script : deploy/server/backup/backup.sh ; restauration : docs/deploiement.md.
   backup:
-    image: postgres:17-alpine
+    build: { context: ./server/backup }
+    image: obsio-backup:preprod
     <<: *restart
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    read_only: true
+    tmpfs: ['/tmp']
+    mem_limit: 512m
     environment:
+      TZ: Europe/Paris
+      HOME: /tmp
       PGHOST: postgres
       PGUSER: postgres
       PGSSLMODE: verify-full
       PGSSLROOTCERT: /run/secrets/tls_ca
-    secrets: [postgres_password, tls_ca]
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION}
+      S3_BUCKET: ${S3_BUCKET}
+      OFFSITE_REPOSITORY: ${OFFSITE_REPOSITORY:-}
+      OFFSITE_REGION: ${OFFSITE_REGION:-}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER:-}
+      MAIL_FROM: ${MAIL_FROM}
+      OPERATOR_EMAIL: ${OPERATOR_EMAIL}
+      APP_HOST: ${APP_HOST}
+    secrets:
+      - postgres_password
+      - tls_ca
+      - s3_backup_access_key
+      - s3_backup_secret_key
+      - restic_password
+      - offsite_access_key
+      - offsite_secret_key
+      - smtp_password
     volumes:
       - ${BACKUP_DIR:-/var/backups/obsio}:/backups
+      - backup-cache:/cache
     depends_on:
       postgres: { condition: service_healthy }
-    entrypoint:
-      - sh
-      - -c
-      - |
-        export PGPASSWORD="$$(cat /run/secrets/postgres_password)"
-        while true; do
-          file=/backups/obsio-$$(date +%F).dump
-          pg_dump -Fc obsio > "$$file.tmp" && mv "$$file.tmp" "$$file" && echo "Sauvegarde : $$file"
-          find /backups -name 'obsio-*.dump' -mtime +7 -delete
-          sleep 86400
-        done
+      setup: { condition: service_completed_successfully }
 
   # Journaux envoyés à Better Stack (UE), hors du serveur et non modifiables depuis lui
   # (COMPOSE_PROFILES=journaux, voir docs/deploiement.md). Lecture seule des fichiers de Docker,
@@ -134,6 +155,7 @@ volumes:
   caddy-config:
   mailpit-data:
   vector-data:
+  backup-cache:
 
 secrets:
   tls_storage_cert:
@@ -142,3 +164,9 @@ secrets:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/tls_storage_key
   betterstack_token:
     file: ${SECRETS_DIR:?SECRETS_DIR manquant}/betterstack_token
+  restic_password:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/restic_password
+  offsite_access_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/offsite_access_key
+  offsite_secret_key:
+    file: ${SECRETS_DIR:?SECRETS_DIR manquant}/offsite_secret_key

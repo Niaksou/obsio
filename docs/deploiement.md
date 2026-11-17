@@ -84,7 +84,7 @@ Remplacer chaque `changer-moi` et ajuster les adresses si le domaine diffère.
 
 ### Secrets (sur son poste, pas sur le serveur)
 
-Les secrets (mots de passe de la base, de Redis et du stockage, clé de session, clé des notifications, clés Brevo, Mistral et Better Stack) sont un fichier par secret, montés par Docker dans `/run/secrets` des seuls services qui en ont besoin : ils n'apparaissent ni dans les variables des conteneurs, ni dans `docker inspect`. L'exemplaire de référence est un fichier chiffré par [SOPS](https://getsops.io) avec une clé [age](https://age-encryption.org) que seul l'éditeur détient ; le serveur ne reçoit que les fichiers déchiffrés, dans `/etc/obsio/secrets`, lisible par root seulement.
+Les secrets (mots de passe de la base, de Redis et du stockage, clé de session, clé des notifications, mot de passe de la sauvegarde, clés Brevo, Mistral, Better Stack et OVH Object Storage) sont un fichier par secret, montés par Docker dans `/run/secrets` des seuls services qui en ont besoin : ils n'apparaissent ni dans les variables des conteneurs, ni dans `docker inspect`. L'exemplaire de référence est un fichier chiffré par [SOPS](https://getsops.io) avec une clé [age](https://age-encryption.org) que seul l'éditeur détient ; le serveur ne reçoit que les fichiers déchiffrés, dans `/etc/obsio/secrets`, lisible par root seulement.
 
 Une seule fois, sur son poste :
 
@@ -107,7 +107,8 @@ Créer les secrets, compléter les clés des services externes, puis chiffrer et
 
 ```sh
 deploy/secrets.sh generer ~/obsio-secrets
-nano ~/obsio-secrets/smtp_password ~/obsio-secrets/mistral_api_key ~/obsio-secrets/betterstack_token
+nano ~/obsio-secrets/smtp_password ~/obsio-secrets/mistral_api_key ~/obsio-secrets/betterstack_token \
+  ~/obsio-secrets/offsite_access_key ~/obsio-secrets/offsite_secret_key
 deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
 rm -r ~/obsio-secrets
 ```
@@ -262,7 +263,7 @@ obsio run --rm setup node dist/cli/delete-organisation.js <identifiant ou slug>
 obsio run --rm setup node dist/cli/delete-organisation.js <identifiant> --confirm "Nom exact"
 ```
 
-Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes de la base gardent les données supprimées jusqu'à sept jours.
+Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes gardent les données supprimées jusqu'à leur rotation : sept jours sur le serveur, six mois au plus hors du serveur (instantanés mensuels).
 
 ## Double authentification perdue
 
@@ -276,22 +277,96 @@ Ses sessions sont fermées ; à sa prochaine connexion, avec son mot de passe, i
 
 ## Sauvegardes
 
-La base est sauvegardée au démarrage puis toutes les 24 heures dans `/var/backups/obsio` (sept jours conservés). Les fichiers (photos, rapports) restent dans le volume Docker du stockage, sans sauvegarde à ce stade.
+Le service `backup` tourne chaque nuit à 3 h (heure de Paris), et au démarrage si la sauvegarde du jour manque (script : `deploy/server/backup/backup.sh`) :
 
-Copier une sauvegarde sur son poste :
+1. la base (`pg_dump`) dans `/var/backups/obsio`, sept jours conservés sur le serveur ;
+2. une copie du bucket du stockage (rapports, plans, photos, dossiers émis) dans `/var/backups/obsio/fichiers`, avec un compte du stockage en lecture seule (`obsio-backup`, créé par setup) ;
+3. hors du serveur, la base du jour et cette copie, envoyées par [restic](https://restic.net) vers un bucket OVH Object Storage : **chiffrées sur le serveur avant l'envoi** (mot de passe du dépôt : secret `restic_password`), seuls les blocs nouveaux partent, instantanés datés conservés (7 quotidiens, 4 hebdomadaires, 6 mensuels) ;
+4. le dimanche, contrôle du dépôt (structure, et 5 % des données relues et vérifiées) et purge des instantanés oubliés.
+
+En cas d'échec, un e-mail part vers `OPERATOR_EMAIL` avec la fin du journal. Une sauvegarde qui ne tourne plus du tout (service arrêté) ne prévient pas : jeter un œil aux journaux de temps en temps (`obsio logs backup`).
+
+Le mot de passe `restic_password` est dans le fichier chiffré des secrets : sans lui, la sauvegarde hors du serveur est illisible. Garder une copie du fichier `obsio-secrets.sops.yaml` et de la clé age hors du poste (gestionnaire de mots de passe).
+
+### Mettre en place la sauvegarde hors du serveur
+
+1. Chez OVH (Public Cloud > Object Storage), créer un conteneur S3 « Standard » **dans une autre région que le serveur**, par exemple Roubaix (`rbx`) ou Strasbourg (`sbg`), nommé par exemple `obsio-sauvegardes`, sans accès public.
+2. Créer un utilisateur S3 (Object Storage > Utilisateurs S3), avec le rôle d'accès à ce seul conteneur si OVH le propose, et noter sa clé d'accès et sa clé secrète.
+3. Ajouter les secrets sur le poste, **avant** de mettre à jour le serveur :
+
+   ```sh
+   deploy/secrets.sh dechiffrer ~/obsio-secrets.sops.yaml ~/obsio-secrets
+   deploy/secrets.sh generer ~/obsio-secrets          # compte obsio-backup et restic_password
+   nano ~/obsio-secrets/offsite_access_key ~/obsio-secrets/offsite_secret_key
+   deploy/secrets.sh chiffrer ~/obsio-secrets ~/obsio-secrets.sops.yaml
+   rm -r ~/obsio-secrets
+   deploy/secrets.sh envoyer ~/obsio-secrets.sops.yaml debian@IP_DU_VPS
+   ```
+
+4. Dans `deploy/server.env` du serveur, renseigner l'adresse du dépôt et la région (modèle dans `deploy/server.env.example`) :
+
+   ```sh
+   OFFSITE_REPOSITORY=s3:https://s3.rbx.io.cloud.ovh.net/obsio-sauvegardes
+   OFFSITE_REGION=rbx
+   ```
+
+5. Mettre à jour, lancer une première sauvegarde tout de suite, puis essayer l'alerte :
+
+   ```sh
+   cd ~/obsio && git pull && obsio up -d --build --wait
+   obsio run --rm backup maintenant
+   obsio run --rm backup alerte-test
+   ```
+
+Sans `OFFSITE_REPOSITORY`, le service ne sauvegarde que la base, sur le serveur, et le dit dans son journal.
+
+### Consulter et restaurer
+
+Lister les instantanés hors du serveur :
+
+```sh
+obsio run --rm --entrypoint /opt/obsio/restic.sh backup snapshots
+```
+
+Restaurer le dernier instantané dans `/var/backups/obsio/restauration` (ou un instantané précis par son identifiant à la place de `latest`) :
+
+```sh
+obsio run --rm --entrypoint /opt/obsio/restic.sh backup restore latest --target /backups/restauration
+```
+
+Le dossier contient alors `backups/obsio-AAAA-MM-JJ.dump` (la base) et `backups/fichiers/` (le bucket). Restaurer la base (remplace son contenu actuel) :
+
+```sh
+obsio stop api worker
+obsio exec -T postgres pg_restore -U postgres -d obsio --clean --if-exists < /var/backups/obsio/restauration/backups/obsio-2026-11-17.dump
+obsio up -d --wait
+```
+
+Remettre les fichiers dans le bucket, avec le compte de l'application (les fichiers déjà présents et identiques ne sont pas recopiés) :
+
+```sh
+obsio run --rm --entrypoint sh -v /var/backups/obsio/restauration:/restauration:ro \
+  -v /etc/obsio/secrets:/cles:ro backup -c '
+  export RCLONE_CONFIG_DEST_TYPE=s3 RCLONE_CONFIG_DEST_PROVIDER=Other RCLONE_CONFIG_DEST_FORCE_PATH_STYLE=true
+  export RCLONE_CONFIG_DEST_ENDPOINT="$S3_ENDPOINT" RCLONE_CONFIG_DEST_REGION="$S3_REGION"
+  export RCLONE_CONFIG_DEST_ACCESS_KEY_ID="$(cat /cles/s3_access_key)"
+  export RCLONE_CONFIG_DEST_SECRET_ACCESS_KEY="$(cat /cles/s3_secret_key)"
+  rclone copy /restauration/backups/fichiers "dest:$S3_BUCKET"'
+```
+
+Effacer ensuite `/var/backups/obsio/restauration`.
+
+Les sauvegardes locales de la base restent disponibles pour une erreur récente :
 
 ```sh
 scp debian@IP_DU_VPS:/var/backups/obsio/obsio-2026-11-02.dump .
-```
-
-Restaurer (remplace le contenu actuel de la base) :
-
-```sh
 obsio stop api worker
 obsio exec -T postgres pg_restore -U postgres -d obsio --clean --if-exists < /var/backups/obsio/obsio-2026-11-02.dump
 obsio up -d --wait
 ```
 
+Faire un essai de restauration complet tous les trimestres, sur un poste ou un serveur de test : restaurer le dernier instantané, charger la base, ouvrir quelques photos.
+
 ## Changer de serveur
 
-Recommencer les étapes 2 à 5 sur le nouveau, restaurer la dernière sauvegarde, copier le volume du stockage, puis faire pointer les enregistrements DNS vers la nouvelle adresse IP.
+Recommencer les étapes 2 à 5 sur le nouveau, restaurer le dernier instantané hors du serveur (base et fichiers, voir « Consulter et restaurer »), puis faire pointer les enregistrements DNS vers la nouvelle adresse IP.
