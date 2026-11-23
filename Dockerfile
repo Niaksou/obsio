@@ -33,6 +33,6 @@ COPY --from=build /out/worker .
 USER node
 CMD ["node", "dist/main.js"]
 
-FROM caddy:2.10-alpine AS web
+FROM caddy:2.11-alpine AS web
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/apps/web/dist /srv
