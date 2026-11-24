@@ -145,7 +145,10 @@ encrypt() {
     printf '%s: "%s"\n' "$name" "$value" >>"$plain"
   done
   sops encrypt --input-type yaml --output-type yaml --age "$SOPS_AGE_RECIPIENTS" "$plain" >"$out"
-  echo "Chiffré dans $out : à conserver hors du dépôt (gestionnaire de mots de passe, sauvegarde)."
+  echo "Chiffré dans $out : à conserver hors du dépôt."
+  echo "Copie hors du poste à refaire maintenant (docs/deploiement.md, « Copies hors du poste ») :"
+  echo "  mkdir -p ~/Library/Mobile\\ Documents/com~apple~CloudDocs/Obsio"
+  echo "  cp $out ~/Library/Mobile\\ Documents/com~apple~CloudDocs/Obsio/"
 }
 
 decrypt() {

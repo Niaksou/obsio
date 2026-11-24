@@ -91,7 +91,7 @@ Une seule fois, sur son poste :
 ```sh
 brew install sops age
 mkdir -p ~/.config/sops/age
-age-keygen -o ~/.config/sops/age/keys.txt    # clé privée : la sauvegarder dans un gestionnaire de mots de passe
+age-keygen -o ~/.config/sops/age/keys.txt    # clé privée : la copier dans le gestionnaire de mots de passe (voir plus bas)
 ```
 
 La ligne `public key: age1…` affichée est la clé publique. Dans `~/.zshrc` :
@@ -114,6 +114,35 @@ rm -r ~/obsio-secrets
 ```
 
 Le fichier `obsio-secrets.sops.yaml` peut être sauvegardé n'importe où (les valeurs sont chiffrées), jamais dans le dépôt. Pour modifier un secret : `sops edit ~/obsio-secrets.sops.yaml`.
+
+#### Copies hors du poste
+
+Sans ces deux copies, la perte du poste rend illisibles les secrets, donc la sauvegarde hors du serveur (mot de passe `restic_password`).
+
+- **La clé age**, une seule ligne `AGE-SECRET-KEY-…`, dans le gestionnaire de mots de passe, champ mot de passe (pas les notes, qui peuvent couper ou modifier le texte). Une seule fois, puisqu'elle ne change pas.
+- **Le fichier chiffré `obsio-secrets.sops.yaml`**, n'importe où hors du poste (illisible sans la clé age), ici iCloud Drive. **À refaire après chaque `chiffrer` ou `sops edit`** ; `deploy/secrets.sh chiffrer` le rappelle.
+
+Copier la clé dans le gestionnaire (sans l'afficher), puis vider le presse-papiers :
+
+```sh
+grep AGE-SECRET-KEY ~/.config/sops/age/keys.txt | tr -d '\n' | pbcopy
+# coller dans une entrée « Obsio – clé age » du gestionnaire, champ mot de passe, puis :
+pbcopy < /dev/null
+```
+
+Vérifier la copie : copier le mot de passe depuis le gestionnaire, puis **taper** (et non coller, ce qui remplacerait le presse-papiers) :
+
+```sh
+[ "$(pbpaste)" = "$(grep AGE-SECRET-KEY ~/.config/sops/age/keys.txt)" ] && echo IDENTIQUE || echo DIFFERENT
+pbcopy < /dev/null
+```
+
+Copier le fichier chiffré :
+
+```sh
+mkdir -p ~/Library/Mobile\ Documents/com~apple~CloudDocs/Obsio
+cp ~/obsio-secrets.sops.yaml ~/Library/Mobile\ Documents/com~apple~CloudDocs/Obsio/
+```
 
 Déposer les secrets sur le serveur (à refaire après chaque modification, puis relancer les services) :
 
@@ -286,7 +315,7 @@ Le service `backup` tourne chaque nuit à 3 h (heure de Paris), et au démarrage
 
 En cas d'échec, un e-mail part vers `OPERATOR_EMAIL` avec la fin du journal. Une sauvegarde qui ne tourne plus du tout (service arrêté) ne prévient pas : jeter un œil aux journaux de temps en temps (`obsio logs backup`).
 
-Le mot de passe `restic_password` est dans le fichier chiffré des secrets : sans lui, la sauvegarde hors du serveur est illisible. Garder une copie du fichier `obsio-secrets.sops.yaml` et de la clé age hors du poste (gestionnaire de mots de passe).
+Le mot de passe `restic_password` est dans le fichier chiffré des secrets : sans lui, la sauvegarde hors du serveur est illisible. Garder la clé age et une copie à jour du fichier `obsio-secrets.sops.yaml` hors du poste : voir « Copies hors du poste », dans « Secrets ».
 
 ### Mettre en place la sauvegarde hors du serveur
 
