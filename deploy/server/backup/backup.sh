@@ -3,7 +3,7 @@
 #   1. la base (pg_dump) dans BACKUP_DIR, sept jours conservés sur le serveur ;
 #   2. hors du serveur, si OFFSITE_REPOSITORY est renseigné : copie du bucket du stockage (compte
 #      en lecture seule), puis envoi chiffré de cette copie et de la sauvegarde de la base par
-#      restic, qui garde des instantanés datés (7 quotidiens, 4 hebdomadaires, 6 mensuels) ;
+#      restic, qui garde des instantanés datés (7 quotidiens, 4 hebdomadaires, 3 mensuels) ;
 #   3. le dimanche, contrôle du dépôt (structure et 5 % des données relues) et purge des données
 #      des instantanés oubliés.
 # En cas d'échec, e-mail à OPERATOR_EMAIL avec la fin du journal.
@@ -52,7 +52,7 @@ run() (
 
   $RESTIC cat config >/dev/null 2>&1 || $RESTIC init
   $RESTIC backup --host obsio --tag quotidienne --no-scan --quiet "$dump" "$FILES"
-  $RESTIC forget --host obsio --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --quiet
+  $RESTIC forget --host obsio --keep-daily 7 --keep-weekly 4 --keep-monthly 3 --quiet
   if [ "$(date +%u)" = 7 ]; then
     $RESTIC prune --quiet
     $RESTIC check --read-data-subset 5%

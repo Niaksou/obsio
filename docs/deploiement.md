@@ -263,7 +263,7 @@ obsio run --rm setup node dist/cli/delete-organisation.js <identifiant ou slug>
 obsio run --rm setup node dist/cli/delete-organisation.js <identifiant> --confirm "Nom exact"
 ```
 
-Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes gardent les données supprimées jusqu'à leur rotation : sept jours sur le serveur, six mois au plus hors du serveur (instantanés mensuels).
+Conserver la ligne datée qu'elle affiche à la fin (registre des demandes RGPD) : c'est la seule trace de la suppression. Les sauvegardes gardent les données supprimées jusqu'à leur rotation : sept jours sur le serveur, trois mois au plus hors du serveur (instantanés mensuels). Une restauration les ferait revenir : voir « Après une restauration : supprimer à nouveau », dans « Sauvegardes ».
 
 ## Double authentification perdue
 
@@ -281,7 +281,7 @@ Le service `backup` tourne chaque nuit à 3 h (heure de Paris), et au démarrage
 
 1. la base (`pg_dump`) dans `/var/backups/obsio`, sept jours conservés sur le serveur ;
 2. une copie du bucket du stockage (rapports, plans, photos, dossiers émis) dans `/var/backups/obsio/fichiers`, avec un compte du stockage en lecture seule (`obsio-backup`, créé par setup) ;
-3. hors du serveur, la base du jour et cette copie, envoyées par [restic](https://restic.net) vers un bucket OVH Object Storage : **chiffrées sur le serveur avant l'envoi** (mot de passe du dépôt : secret `restic_password`), seuls les blocs nouveaux partent, instantanés datés conservés (7 quotidiens, 4 hebdomadaires, 6 mensuels) ;
+3. hors du serveur, la base du jour et cette copie, envoyées par [restic](https://restic.net) vers un bucket OVH Object Storage : **chiffrées sur le serveur avant l'envoi** (mot de passe du dépôt : secret `restic_password`), seuls les blocs nouveaux partent, instantanés datés conservés (7 quotidiens, 4 hebdomadaires, 3 mensuels) ;
 4. le dimanche, contrôle du dépôt (structure, et 5 % des données relues et vérifiées) et purge des instantanés oubliés.
 
 En cas d'échec, un e-mail part vers `OPERATOR_EMAIL` avec la fin du journal. Une sauvegarde qui ne tourne plus du tout (service arrêté) ne prévient pas : jeter un œil aux journaux de temps en temps (`obsio logs backup`).
@@ -334,12 +334,11 @@ Restaurer le dernier instantané dans `/var/backups/obsio/restauration` (ou un i
 obsio run --rm --entrypoint /opt/obsio/restic.sh backup restore latest --target /backups/restauration
 ```
 
-Le dossier contient alors `backups/obsio-AAAA-MM-JJ.dump` (la base) et `backups/fichiers/` (le bucket). Restaurer la base (remplace son contenu actuel) :
+Le dossier contient alors `backups/obsio-AAAA-MM-JJ.dump` (la base) et `backups/fichiers/` (le bucket). Restaurer la base (remplace son contenu actuel). L'API et le worker restent arrêtés jusqu'à la fin de « Après une restauration : supprimer à nouveau » :
 
 ```sh
 obsio stop api worker
 obsio exec -T postgres pg_restore -U postgres -d obsio --clean --if-exists < /var/backups/obsio/restauration/backups/obsio-2026-11-17.dump
-obsio up -d --wait
 ```
 
 Remettre les fichiers dans le bucket, avec le compte de l'application (les fichiers déjà présents et identiques ne sont pas recopiés) :
@@ -356,17 +355,34 @@ obsio run --rm --entrypoint sh -v /var/backups/obsio/restauration:/restauration:
 
 Effacer ensuite `/var/backups/obsio/restauration`.
 
-Les sauvegardes locales de la base restent disponibles pour une erreur récente :
+Les sauvegardes locales de la base restent disponibles pour une erreur récente (même règle : API et worker arrêtés jusqu'à la nouvelle suppression) :
 
 ```sh
-scp debian@IP_DU_VPS:/var/backups/obsio/obsio-2026-11-02.dump .
 obsio stop api worker
 obsio exec -T postgres pg_restore -U postgres -d obsio --clean --if-exists < /var/backups/obsio/obsio-2026-11-02.dump
-obsio up -d --wait
 ```
+
+### Après une restauration : supprimer à nouveau
+
+Une restauration ramène les organisations supprimées après la date de l'instantané (base et fichiers). Le RGPD exige qu'elles restent supprimées : une donnée effacée ne doit jamais revenir en service. **Avant de redémarrer l'API**, à chaque restauration, qu'elle concerne la base, les fichiers ou les deux :
+
+1. Dans le registre des demandes RGPD (les lignes datées affichées par `delete-organisation.js`, conservées hors du serveur), relever chaque suppression datée **après** l'instantané restauré : `obsio-AAAA-MM-JJ.dump` pour la base, la liste des instantanés (voir plus haut) pour l'heure exacte d'un instantané hors du serveur. En cas de doute sur une date, la reprendre : si rien n'est revenu, la commande répond seulement « Aucune organisation […], ni aucun fichier à son nom ».
+2. Pour chacune, relancer la suppression avec l'identifiant noté dans le registre, d'abord en simulation pour voir ce qui est revenu :
+
+   ```sh
+   obsio run --rm setup node dist/cli/delete-organisation.js <identifiant>
+   obsio run --rm setup node dist/cli/delete-organisation.js <identifiant> --confirm "<nom affiché>"
+   ```
+
+   Si seule la base a été restaurée, ou seulement les fichiers, la commande supprime ce qui est revenu (pour des fichiers sans organisation dans la base, le nom à confirmer est l'identifiant).
+
+3. Redémarrer : `obsio up -d --wait`.
+4. Ajouter au registre une ligne datée : restauration de l'instantané du JJ/MM, suppressions refaites (identifiants), ou « aucune suppression à refaire ».
+
+Le registre doit donc rester hors du serveur (gestionnaire de mots de passe ou dossier de l'éditeur) : une restauration du serveur ne doit pas pouvoir l'effacer.
 
 Faire un essai de restauration complet tous les trimestres, sur un poste ou un serveur de test : restaurer le dernier instantané, charger la base, ouvrir quelques photos.
 
 ## Changer de serveur
 
-Recommencer les étapes 2 à 5 sur le nouveau, restaurer le dernier instantané hors du serveur (base et fichiers, voir « Consulter et restaurer »), puis faire pointer les enregistrements DNS vers la nouvelle adresse IP.
+Recommencer les étapes 2 à 5 sur le nouveau, restaurer le dernier instantané hors du serveur (base et fichiers, voir « Consulter et restaurer », sans oublier « Après une restauration : supprimer à nouveau »), puis faire pointer les enregistrements DNS vers la nouvelle adresse IP.
